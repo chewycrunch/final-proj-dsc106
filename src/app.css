@@ -1,1 +1,19 @@
 @import 'tailwindcss';
+
+@theme {
+	--font-sans: DM Sans, sans-serif;
+}
+
+@layer utilities {
+	/* The html element */
+	:root {
+		/* @apply text-text-primary; */
+	}
+}
+
+@layer base {
+	@font-face {
+		font-family: 'DM Sans';
+		src: url('$lib/fonts/DMSans-VariableFont_opsz,wght.ttf') format('truetype');
+	}
+}
