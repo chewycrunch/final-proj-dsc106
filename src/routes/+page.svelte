@@ -1,4 +1,33 @@
 <!-- File: src/routes/+page.svelte -->
+<script context="module" lang="ts">
+	// Define the patient data type, exported for use in other components
+	export interface SurgeryCase {
+		caseid: string;
+		age: number;
+		department: string;
+		casestart: number;
+		anestart: number;
+		opstart: number;
+		opend: number;
+		dis: number;
+		los_icu: number;
+		intraop_ebl: number;
+		death_inhosp: number;
+		bmi: number;
+		asa: number;
+		emergency: number; // Assuming this is a number (0 or 1) based on previous code
+		optype: string;
+		[key: string]: any; // Add index signature for groupBy access
+	}
+
+	interface Predictors {
+		age: number;
+		bmi: number;
+		asa: number;
+		emergency: number; // Assuming number based on previous interactions
+	}
+</script>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { csv } from 'd3-fetch';
@@ -6,9 +35,12 @@
 
 	import AgeDistribution from '$lib/AgeDistribution.svelte';
 	import DepartmentDistribution from '$lib/DepartmentDistribution.svelte';
-	import AggregatedTimeline from '$lib/AggregatedTimeline.svelte';
+	// import Timeline from '../lib/Timeline.svelte'; // Removed old Timeline import
+	import AggregatedTimeline from '$lib/AggregatedTimeline.svelte'; // Import AggregatedTimeline
+	import Comparison from '$lib/Comparison.svelte';
 	import BuildPatient from '$lib/BuildPatient.svelte';
-	import RiskRadar from '$lib/RiskRadar.svelte';
+
+	// interface SurgeryCase moved to script context="module"
 
 	let cases: SurgeryCase[] = $state([]);
 
@@ -16,7 +48,9 @@
 	let low: SurgeryCase | null = $state(null);
 
 	// reactive predictors for BuildPatient
-	let predictors = {
+	// interface Predictors moved to script context="module"
+
+	let predictors: Predictors = {
 		age: 65,
 		bmi: 28,
 		asa: 3,
@@ -44,12 +78,23 @@
 
 	onMount(async () => {
 		const url = `${base}/cases.csv`;
-		cases = await csv<SurgeryCase>(url, (row) => {
-			// Convert emergency to number, defaulting to 0 if NaN
-			const emergency = row.emergency ? Number(row.emergency) : 0;
-			if (isNaN(emergency)) {
-				console.warn('Invalid emergency value:', row.emergency, 'defaulting to 0');
-			}
+		cases = await csv<SurgeryCase>(url, (row: Record<string, string>) => ({
+			caseid: row.caseid!,
+			age: +row.age!,
+			department: row.department!,
+			casestart: +row.casestart!,
+			anestart: +row.anestart!,
+			opstart: +row.opstart!,
+			opend: +row.opend!,
+			dis: +row.dis!,
+			los_icu: +row.los_icu!,
+			intraop_ebl: +row.intraop_ebl!,
+			death_inhosp: +row.death_inhosp!,
+			bmi: +row.bmi!,
+			asa: +row.asa!,
+			emergency: row.emop === '1' ? 1 : 0,
+			optype: row.optype!
+		}));
 
 			// Parse ICU stay, defaulting to 0 if NaN
 			const icu_days = row.icu_days ? Number(row.icu_days) : 0;
@@ -126,19 +171,19 @@
 </section>
 
 <!-- Section 2: Timeline (visual on left, with selector) -->
-<section>
-	<h2>Average Phase Durations Over Departments</h2>
-	<p class="mb-4">
-		For each surgical department, this line chart shows the average minutes spent in 1) Anesthesia
-		(from anesthesia start to operation start), 2) Surgery (operation start to end), and 3) Recovery
-		(operation end to discharge).
+<section class="timeline-section">
+	<h2>Timeline of a <span class="highlight-orange">Surgical Journey</span></h2>
+	<p class="mb-8">
+		Explore the average timeline of surgical procedures. Filter by surgery type, department, or age range to see how different patient groups progress through their surgical journey. The timeline shows the average duration of each stage, with ranges indicating the variation across patients.
 	</p>
-	<div class="mx-auto w-full md:w-4/5">
-		<AggregatedTimeline patients={cases} />
+	<div class="md:w-3/4 mx-auto mb-4">
+		<AggregatedTimeline 
+			patients={filteredPatients}
+			groupBy="optype"
+			ageRange={[ageMin, ageMax]}
+		/>
 	</div>
 </section>
-
-<h1>The Tension</h1>
 
 <!-- Section 3: Profile Comparison (visual on right) -->
 <section class="space-y-6">
@@ -156,28 +201,30 @@
 	{#if high && low}
 		<div class="flex justify-center">
 			<RiskRadar {cases} />
+<section>
+	<h2>Profile Comparison</h2>
+	<div class="flex flex-col items-center gap-8 md:flex-row">
+		<div class="space-y-4 md:w-1/2">
+			<p>
+				Not all patients share the same journey. Here, we line up two distinct profiles to compare
+				critical outcomes: ICU length of stay, intraoperative blood loss, and survival. Profile A
+				might be an elderly emergency case, while Profile B is a younger elective surgery. Examining
+				their "dumbbell" plot highlights how small differences—like a one-day longer stay in ICU—can
+				translate into major resource implications.
+			</p>
+			<p>
+				The connecting lines between each pair of points underscore the delta in outcomes. You'll
+				quickly see which metrics diverge most dramatically—perhaps blood loss swings by hundreds of
+				milliliters, while mortality risk remains low for both. This side-by-side view encourages
+				viewers to ask: what preoperative or procedural factors drive these differences?
+			</p>
 		</div>
-	{/if}
-
-	<h3>What the chart reveals</h3>
-	<ul class="list-inside list-disc space-y-1">
-		<li>
-			<strong>Mortality</strong> — cohort&nbsp;A shows a non-zero median mortality, whereas cohort&nbsp;B’s
-			median is 0&nbsp;%; hover the red and blue vertices to see exact percentages.
-		</li>
-		<li>
-			<strong>ICU-stay</strong> — high-risk patients spend roughly
-			<span class="font-semibold">4× longer</span> in the ICU.
-		</li>
-		<li>
-			<strong>Blood loss</strong> — median intra-operative blood loss is markedly higher for cohort&nbsp;A.
-		</li>
-	</ul>
-
-	<p>
-		The outward-bulging red polygon demonstrates how pre-operative factors magnify surgical risk
-		across <em>all</em> major outcomes. Hover any point to inspect the underlying medians.
-	</p>
+		<div class="md:w-1/2">
+			{#if profileA && profileB}
+				<Comparison profileA={profileA} profileB={profileB} /> <!-- Explicitly pass props -->
+			{/if}
+		</div>
+	</div>
 </section>
 
 <!-- Section 4: Build Your Own Patient (visual on left) -->
@@ -220,7 +267,7 @@
 			</div>
 		</div>
 		<div class="md:w-1/2">
-			<BuildPatient {predictors} {cases} />
+			<BuildPatient predictors={predictors} /> <!-- Explicitly pass props -->
 		</div>
 	</div>
 </section>
