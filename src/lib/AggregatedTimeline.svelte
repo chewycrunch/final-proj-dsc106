@@ -22,6 +22,8 @@
 	let timelineDiv: HTMLDivElement;
 	let availableGroups: string[] = [];
 
+	let tooltip: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>; // Declare tooltip variable
+
 	// List of event keys and labels
 	const eventDefs = [
 		{ label: 'Case Start', key: 'casestart' },
@@ -158,13 +160,13 @@
 
 		const colorScale = d3.scaleOrdinal()
 			.domain(allEventLabels)
-			.range(mutedDistinctColors);
+			.range(mutedDistinctColors as any); // Cast to any to resolve type issue
 
 		// Draw axis
 		const x = d3.scaleLinear()
 			.domain([paddedMin, paddedMax]) // Use adjusted domain
-			.range([legendWidth + 40, width - 60]) // Timeline starts after legend
-			.nice();
+			.range([legendWidth + 40, width - 60]); // Timeline starts after legend
+			// .nice(); // Removed .nice() as it can mess with exact min/max padding
 
 		// Determine the number of ticks based on the visible range, not event count
 		const axis = d3.axisBottom(x);
@@ -175,7 +177,7 @@
 
 		svg.append('g')
 			.attr('transform', `translate(0,${height/2})`)
-			.call(axis.tickFormat((d: number) => `${Math.round(d)} min`))
+			.call(axis.tickFormat(d => `${Math.round(+d)} min`)) // Cast to number for tickFormat
 			.selectAll('text')
 			.style('font-size', '12px');
 
@@ -188,7 +190,7 @@
 			.attr('cx', (d: AggregatedEvent) => x(d.mean as number / 60)) // Cast to number
 			.attr('cy', height/2)
 			.attr('r', 10)
-			.attr('fill', (d: AggregatedEvent) => colorScale(d.label)) // Use color scale
+			.attr('fill', (d: AggregatedEvent) => colorScale(d.label) as string) // Use color scale and cast to string
 			// No need for mouse events here if we have a tooltip in the legend
 			// .on('mouseover', (event: MouseEvent, d: AggregatedEvent) => { // Added type annotations
 			//   tooltip.transition().duration(200).style('opacity', 1);
@@ -197,14 +199,14 @@
 			// .on('mousemove', (event: MouseEvent) => { // Added type annotation
 			//   tooltip.style('left', `${event.pageX + 10}px`).style('top', `${event.pageY - 30}px`);
 			// })
-			// .on('mouseout', () => {
+			// .on('mouseout', () => { // Added type annotation
 			//   tooltip.transition().duration(200).style('opacity', 0);
 			// });
 
 		// Add a legend above the plot for ALL defined events
 		const legend = svg.append('g')
 			.attr('class', 'event-legend')
-			.attr('transform', `translate(20, 40)`); // Position legend above timeline, closer to left edge
+			.attr('transform', `translate(100, 40)`); // Position legend above timeline, aligning with timeline start
 
 		const legendItems = legend.selectAll<SVGGElement, {label: string, key: string}>('g')
 			.data(eventDefs) // Use eventDefs to show all possible events in legend
@@ -219,13 +221,14 @@
 			g.append('circle')
 				.attr('r', 8)
 				.attr('cy', 0)
-				.attr('fill', colorScale(d.label));
+				.attr('fill', colorScale(d.label) as string); // Use color scale and cast to string
 			g.append('text')
 				.attr('x', 16)
 				.attr('y', 5)
 				.attr('font-size', 13)
 				.attr('fill', '#222')
 				.text(d.label);
+			 // Add tooltip to legend items
 			g.on('mouseover', (event: MouseEvent) => { // Added type annotation
 				tooltip.transition().duration(200).style('opacity', 1);
 				tooltip.html(`<strong>${d.label}</strong>`); // Show just label in legend tooltip
@@ -233,13 +236,13 @@
 			.on('mousemove', (event: MouseEvent) => { // Added type annotation
 				tooltip.style('left', `${event.pageX + 10}px`).style('top', `${event.pageY - 30}px`);
 			})
-			.on('mouseout', () => {
+			.on('mouseout', () => { // Added type annotation
 				tooltip.transition().duration(200).style('opacity', 0);
 			});
 		});
 
 		// Add tooltip div (needed for mouse events)
-		const tooltip = d3.select(timelineDiv)
+		tooltip = d3.select(timelineDiv)
 			.append('div')
 			.attr('class', 'tooltip')
 			.style('position', 'absolute')
@@ -354,5 +357,7 @@
 	}
 	.tooltip {
 		pointer-events: none;
+		position: absolute; /* Ensure position is absolute for positioning */
+		z-index: 10; /* Ensure tooltip is above other elements */
 	}
 </style>
