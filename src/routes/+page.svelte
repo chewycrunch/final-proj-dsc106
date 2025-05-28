@@ -19,7 +19,7 @@
 		opstart: number;
 		opend: number;
 		dis: number;
-		los_icu: number;
+		icu_days: number;
 		intraop_ebl: number;
 		death_inhosp: number;
 		bmi: number;
@@ -41,27 +41,41 @@
 		age: 65,
 		bmi: 28,
 		asa: 3,
-		emergency: 1
+		emergency: 0
 	};
 
 	onMount(async () => {
 		const url = `${base}/cases.csv`;
-		cases = await csv<SurgeryCase>(url, (row) => ({
-			caseid: row.caseid!,
-			age: +row.age!,
-			department: row.department!,
-			casestart: +row.casestart!,
-			anestart: +row.anestart!,
-			opstart: +row.opstart!,
-			opend: +row.opend!,
-			dis: +row.dis!,
-			los_icu: +row.los_icu!,
-			intraop_ebl: +row.intraop_ebl!,
-			death_inhosp: +row.death_inhosp!,
-			bmi: +row.bmi!,
-			asa: +row.asa!,
-			emergency: +row.emop! // or row.emergency
-		}));
+		cases = await csv<SurgeryCase>(url, (row) => {
+			// Convert emergency to number, defaulting to 0 if NaN
+			const emergency = row.emergency ? Number(row.emergency) : 0;
+			if (isNaN(emergency)) {
+				console.warn('Invalid emergency value:', row.emergency, 'defaulting to 0');
+			}
+
+			// Parse ICU stay, defaulting to 0 if NaN
+			const icu_days = row.icu_days ? Number(row.icu_days) : 0;
+			if (isNaN(icu_days)) {
+				console.warn('Invalid ICU stay value:', row.icu_days, 'defaulting to 0');
+			}
+
+			return {
+				caseid: row.caseid!,
+				age: +row.age!,
+				department: row.department!,
+				casestart: +row.casestart!,
+				anestart: +row.anestart!,
+				opstart: +row.opstart!,
+				opend: +row.opend!,
+				dis: +row.dis!,
+				icu_days: icu_days,
+				intraop_ebl: +row.intraop_ebl!,
+				death_inhosp: +row.death_inhosp!,
+				bmi: +row.bmi!,
+				asa: +row.asa!,
+				emergency: emergency
+			};
+		});
 
 		// defaults
 		if (cases.length) {
@@ -79,7 +93,7 @@
 	<div class="flex flex-col items-center gap-8 md:flex-row">
 		<div class="space-y-4 md:w-1/2">
 			<p>
-				Before diving into outcomes, it’s critical to understand who our patients are. Here we plot
+				Before diving into outcomes, it's critical to understand who our patients are. Here we plot
 				the age distribution of all surgical cases alongside a breakdown of procedure types by
 				department. The age histogram reveals the full span of adult patients—ranging from young
 				adults in their twenties to seniors in their eighties—highlighting that risk profiles may
@@ -121,11 +135,11 @@
 				Not all patients share the same journey. Here, we line up two distinct profiles to compare
 				critical outcomes: ICU length of stay, intraoperative blood loss, and survival. Profile A
 				might be an elderly emergency case, while Profile B is a younger elective surgery. Examining
-				their “dumbbell” plot highlights how small differences—like a one-day longer stay in ICU—can
+				their "dumbbell" plot highlights how small differences—like a one-day longer stay in ICU—can
 				translate into major resource implications.
 			</p>
 			<p>
-				The connecting lines between each pair of points underscore the delta in outcomes. You’ll
+				The connecting lines between each pair of points underscore the delta in outcomes. You'll
 				quickly see which metrics diverge most dramatically—perhaps blood loss swings by hundreds of
 				milliliters, while mortality risk remains low for both. This side-by-side view encourages
 				viewers to ask: what preoperative or procedural factors drive these differences?
@@ -151,7 +165,7 @@
 				duration and in-hospital mortality percentage.
 			</p>
 			<p>
-				This interactive “risk profile” tool brings theory into practice: you’ll see how even a
+				This interactive "risk profile" tool brings theory into practice: you'll see how even a
 				single-point change in ASA score or marking the case as emergency can shift predicted ICU
 				days by several hours or double mortality probability. Experiment freely to build intuition
 				about how each factor compounds overall risk.
@@ -172,14 +186,14 @@
 			<div class="flex items-center space-x-2">
 				<input
 					type="checkbox"
-					bind:checked={predictors.emergency}
-					on:change={() => (predictors.emergency = predictors.emergency ? 1 : 0)}
+					checked={predictors.emergency === 1}
+					on:change={() => (predictors.emergency = predictors.emergency === 1 ? 0 : 1)}
 				/>
 				<label>Emergency Case</label>
 			</div>
 		</div>
 		<div class="md:w-1/2">
-			<BuildPatient {predictors} />
+			<BuildPatient {predictors} {cases} />
 		</div>
 	</div>
 </section>
