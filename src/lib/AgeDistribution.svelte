@@ -3,7 +3,7 @@
 	import { onMount, afterUpdate } from 'svelte';
 	import { select } from 'd3-selection';
 	import { scaleLinear } from 'd3-scale';
-	import { extent, max, histogram } from 'd3-array';
+	import { extent, max, histogram, bin } from 'd3-array';
 	import { axisBottom, axisLeft } from 'd3-axis';
 
 	export let data: Array<{ age: number }> = [];
@@ -23,7 +23,7 @@
 			.nice()
 			.range([0, width]);
 
-		const bins = histogram<number>()
+		const bins = bin()
 			.domain(x.domain() as [number, number])
 			.thresholds(x.ticks(20))(ages);
 

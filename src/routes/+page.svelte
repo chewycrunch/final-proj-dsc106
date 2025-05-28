@@ -6,24 +6,14 @@
 
 	import AgeDistribution from '$lib/AgeDistribution.svelte';
 	import DepartmentDistribution from '$lib/DepartmentDistribution.svelte';
-	import Timeline from '$lib/Timeline.svelte';
-	import Comparison from '$lib/Comparison.svelte';
+	import AggregatedTimeline from '$lib/AggregatedTimeline.svelte';
 	import BuildPatient from '$lib/BuildPatient.svelte';
 	import RiskRadar from '$lib/RiskRadar.svelte';
-
-	// import RiskFactorComparison from '$lib/RiskFactorComparison.svelte';
 
 	let cases: SurgeryCase[] = [];
 
 	let high: SurgeryCase | null = null;
 	let low: SurgeryCase | null = null;
-
-	// Hold the selected case ID and derive the object reactively
-	let selectedCaseId = '';
-	$: selectedCase = cases.find((c) => c.caseid === selectedCaseId) ?? null;
-
-	let profileA: SurgeryCase | null = null;
-	let profileB: SurgeryCase | null = null;
 
 	// reactive predictors for BuildPatient
 	let predictors = {
@@ -78,11 +68,20 @@
 			return obj;
 		});
 
-		// defaults
-		if (cases.length) {
-			selectedCaseId = cases[0].caseid;
-			profileA = cases[0];
-			profileB = cases[1] ?? null;
+		/* ---------- helpers ---------- */
+		const hasMetrics = (c: SurgeryCase) =>
+			[c.icu_days, c.intraop_ebl, c.death_inhosp].every((v) => !isNaN(v) && v > 0);
+
+		/* simple composite risk score: deaths dominate, then ICU days, then blood loss */
+		const riskScore = (c: SurgeryCase) => c.death_inhosp * 100 + c.icu_days + c.intraop_ebl / 500;
+
+		/* after cases are loaded … */
+		$: if (cases.length) {
+			const valid = cases.filter(hasMetrics).sort((a, b) => riskScore(b) - riskScore(a));
+
+			/* highest-risk median vs safest-decile median */
+			high = valid[0] ?? null;
+			low = valid[Math.floor(valid.length * 0.1)] ?? null;
 		}
 	});
 </script>
@@ -123,7 +122,7 @@
 		(operation end to discharge).
 	</p>
 	<div class="mx-auto w-full md:w-4/5">
-		<Timeline data={cases} />
+		<AggregatedTimeline patients={cases} />
 	</div>
 </section>
 
@@ -142,9 +141,11 @@
 		<em>blood loss&nbsp;(mL)</em>. A vertex farther from the centre signals a worse outcome.
 	</p>
 
-	<div class="flex justify-center">
-		<RiskRadar {high} {low} />
-	</div>
+	{#if high && low}
+		<div class="flex justify-center">
+			<RiskRadar {high} {low} />
+		</div>
+	{/if}
 
 	<h3>What the chart reveals</h3>
 	<ul class="list-inside list-disc space-y-1">

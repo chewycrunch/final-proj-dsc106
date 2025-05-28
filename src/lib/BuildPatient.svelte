@@ -2,25 +2,8 @@
 <script lang="ts">
 	import { onMount, afterUpdate } from 'svelte';
 
-	export interface Predictors {
+	interface Predictors {
 		age: number;
-		bmi: number;
-		asa: number;
-		emergency: number;
-	}
-
-	export interface SurgeryCase {
-		caseid: string;
-		age: number;
-		department: string;
-		casestart: number;
-		anestart: number;
-		opstart: number;
-		opend: number;
-		dis: number;
-		icu_days: number;
-		intraop_ebl: number;
-		death_inhosp: number;
 		bmi: number;
 		asa: number;
 		emergency: number;
@@ -29,18 +12,19 @@
 	export let predictors!: Predictors;
 	export let cases: SurgeryCase[] = [];
 
-	$: ageRange = cases.length > 0 
-		? { min: Math.min(...cases.map(c => c.age)), max: Math.max(...cases.map(c => c.age)) }
-		: { min: 0, max: 0 };
-	$: bmiRange = cases.length > 0
-		? { min: Math.min(...cases.map(c => c.bmi)), max: Math.max(...cases.map(c => c.bmi)) }
-		: { min: 0, max: 0 };
-	$: asaValues = cases.length > 0
-		? [...new Set(cases.map(c => c.asa))].sort()
-		: [];
-	$: emergencyValues = cases.length > 0
-		? [...new Set(cases.map(c => c.emergency).filter(v => !isNaN(v)))].sort()
-		: [];
+	$: ageRange =
+		cases.length > 0
+			? { min: Math.min(...cases.map((c) => c.age)), max: Math.max(...cases.map((c) => c.age)) }
+			: { min: 0, max: 0 };
+	$: bmiRange =
+		cases.length > 0
+			? { min: Math.min(...cases.map((c) => c.bmi)), max: Math.max(...cases.map((c) => c.bmi)) }
+			: { min: 0, max: 0 };
+	$: asaValues = cases.length > 0 ? [...new Set(cases.map((c) => c.asa))].sort() : [];
+	$: emergencyValues =
+		cases.length > 0
+			? [...new Set(cases.map((c) => c.emergency).filter((v) => !isNaN(v)))].sort()
+			: [];
 
 	let avgICUStay = 0;
 	let mortalityRate = 0;
@@ -51,14 +35,16 @@
 	$: {
 		if (cases.length > 0) {
 			// Calculate matches
-			const ageMatches = cases.filter(c => Math.abs(c.age - predictors.age) <= 10);
-			const bmiMatches = cases.filter(c => Math.abs(c.bmi - predictors.bmi) <= 5);
-			const asaMatches = cases.filter(c => c.asa === predictors.asa);
-			const emergencyMatches = cases.filter(c => !isNaN(c.emergency) && c.emergency === predictors.emergency);
+			const ageMatches = cases.filter((c) => Math.abs(c.age - predictors.age) <= 10);
+			const bmiMatches = cases.filter((c) => Math.abs(c.bmi - predictors.bmi) <= 5);
+			const asaMatches = cases.filter((c) => c.asa === predictors.asa);
+			const emergencyMatches = cases.filter(
+				(c) => !isNaN(c.emergency) && c.emergency === predictors.emergency
+			);
 
-			const ageAndBmi = ageMatches.filter(c => bmiMatches.includes(c));
-			const ageAndBmiAndAsa = ageAndBmi.filter(c => asaMatches.includes(c));
-			const finalMatches = ageAndBmiAndAsa.filter(c => emergencyMatches.includes(c));
+			const ageAndBmi = ageMatches.filter((c) => bmiMatches.includes(c));
+			const ageAndBmiAndAsa = ageAndBmi.filter((c) => asaMatches.includes(c));
+			const finalMatches = ageAndBmiAndAsa.filter((c) => emergencyMatches.includes(c));
 
 			matchingCasesCount = finalMatches.length;
 
@@ -70,8 +56,16 @@
 				}, 0);
 
 				avgICUStay = Math.max(0, icuSum / finalMatches.length);
-				mortalityRate = Math.max(0, finalMatches.reduce((sum, case_) => sum + (case_.death_inhosp || 0), 0) / finalMatches.length);
-				avgBloodLoss = Math.max(0, finalMatches.reduce((sum, case_) => sum + (case_.intraop_ebl || 0), 0) / finalMatches.length);
+				mortalityRate = Math.max(
+					0,
+					finalMatches.reduce((sum, case_) => sum + (case_.death_inhosp || 0), 0) /
+						finalMatches.length
+				);
+				avgBloodLoss = Math.max(
+					0,
+					finalMatches.reduce((sum, case_) => sum + (case_.intraop_ebl || 0), 0) /
+						finalMatches.length
+				);
 			} else {
 				avgICUStay = 0;
 				mortalityRate = 0;
@@ -81,7 +75,7 @@
 	}
 </script>
 
-<div class="space-y-6 p-4 bg-gray-50 rounded-lg">
+<div class="space-y-6 rounded-lg bg-gray-50 p-4">
 	<h3 class="text-lg font-semibold">Current Filters</h3>
 	<div class="grid grid-cols-2 gap-4">
 		<div>
@@ -92,7 +86,9 @@
 		<div>
 			<p class="text-sm text-gray-600">BMI</p>
 			<p class="font-medium">{predictors.bmi}</p>
-			<p class="text-xs text-gray-500">Range in data: {bmiRange.min.toFixed(1)} - {bmiRange.max.toFixed(1)}</p>
+			<p class="text-xs text-gray-500">
+				Range in data: {bmiRange.min.toFixed(1)} - {bmiRange.max.toFixed(1)}
+			</p>
 		</div>
 		<div>
 			<p class="text-sm text-gray-600">ASA Score</p>
@@ -106,7 +102,7 @@
 		</div>
 	</div>
 
-	<h3 class="text-lg font-semibold mt-6">Outcomes from Similar Cases</h3>
+	<h3 class="mt-6 text-lg font-semibold">Outcomes from Similar Cases</h3>
 	<div class="grid grid-cols-3 gap-4">
 		<div>
 			<p class="text-sm text-gray-600">Average ICU Stay</p>
