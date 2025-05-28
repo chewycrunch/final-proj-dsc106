@@ -9,25 +9,14 @@
 	import Timeline from '$lib/Timeline.svelte';
 	import Comparison from '$lib/Comparison.svelte';
 	import BuildPatient from '$lib/BuildPatient.svelte';
+	import RiskRadar from '$lib/RiskRadar.svelte';
 
-	interface SurgeryCase {
-		caseid: string;
-		age: number;
-		department: string;
-		casestart: number;
-		anestart: number;
-		opstart: number;
-		opend: number;
-		dis: number;
-		los_icu: number;
-		intraop_ebl: number;
-		death_inhosp: number;
-		bmi: number;
-		asa: number;
-		emergency: number;
-	}
+	// import RiskFactorComparison from '$lib/RiskFactorComparison.svelte';
 
 	let cases: SurgeryCase[] = [];
+
+	let high: SurgeryCase | null = null;
+	let low: SurgeryCase | null = null;
 
 	// Hold the selected case ID and derive the object reactively
 	let selectedCaseId = '';
@@ -41,27 +30,53 @@
 		age: 65,
 		bmi: 28,
 		asa: 3,
-		emergency: 1
+		emergency: 0
 	};
+
+	const num = (v: string | undefined) => (v === '' || v == null ? NaN : +v);
 
 	onMount(async () => {
 		const url = `${base}/cases.csv`;
-		cases = await csv<SurgeryCase>(url, (row) => ({
-			caseid: row.caseid!,
-			age: +row.age!,
-			department: row.department!,
-			casestart: +row.casestart!,
-			anestart: +row.anestart!,
-			opstart: +row.opstart!,
-			opend: +row.opend!,
-			dis: +row.dis!,
-			los_icu: +row.los_icu!,
-			intraop_ebl: +row.intraop_ebl!,
-			death_inhosp: +row.death_inhosp!,
-			bmi: +row.bmi!,
-			asa: +row.asa!,
-			emergency: +row.emop! // or row.emergency
-		}));
+		cases = await csv<SurgeryCase>(url, (row) => {
+			// Convert emergency to number, defaulting to 0 if NaN
+			const emergency = row.emergency ? Number(row.emergency) : 0;
+			if (isNaN(emergency)) {
+				console.warn('Invalid emergency value:', row.emergency, 'defaulting to 0');
+			}
+
+			// Parse ICU stay, defaulting to 0 if NaN
+			const icu_days = row.icu_days ? Number(row.icu_days) : 0;
+			if (isNaN(icu_days)) {
+				console.warn('Invalid ICU stay value:', row.icu_days, 'defaulting to 0');
+			}
+
+			const obj: SurgeryCase = {
+				caseid: row.caseid!,
+
+				age: +row.age!,
+				sex: (row.sex as 'M' | 'F') ?? 'M',
+				bmi: +row.bmi!,
+
+				department: row.department!,
+				asa: +row.asa!,
+				emergency: emergency,
+
+				casestart: +row.casestart!,
+				anestart: +row.anestart!,
+				opstart: +row.opstart!,
+				opend: +row.opend!,
+				dis: +row.dis!,
+
+				icu_days: icu_days,
+				intraop_ebl: +row.intraop_ebl!,
+				death_inhosp: +row.death_inhosp!,
+
+				preop_htn: num(row.preop_htn), // hypertension 0 / 1
+				preop_dm: num(row.preop_dm)
+			};
+
+			return obj;
+		});
 
 		// defaults
 		if (cases.length) {
@@ -79,7 +94,7 @@
 	<div class="flex flex-col items-center gap-8 md:flex-row">
 		<div class="space-y-4 md:w-1/2">
 			<p>
-				Before diving into outcomes, it’s critical to understand who our patients are. Here we plot
+				Before diving into outcomes, it's critical to understand who our patients are. Here we plot
 				the age distribution of all surgical cases alongside a breakdown of procedure types by
 				department. The age histogram reveals the full span of adult patients—ranging from young
 				adults in their twenties to seniors in their eighties—highlighting that risk profiles may
@@ -112,6 +127,8 @@
 	</div>
 </section>
 
+<h1>The Tension</h1>
+
 <!-- Section 3: Profile Comparison (visual on right) -->
 <section>
 	<h2>Profile Comparison</h2>
@@ -131,11 +148,30 @@
 				viewers to ask: what preoperative or procedural factors drive these differences?
 			</p>
 		</div>
-		<div class="md:w-1/2">
-			{#if profileA && profileB}
-				<Comparison {profileA} {profileB} />
-			{/if}
-		</div>
+
+		<!-- findings -->
+		<h3>What the chart reveals</h3>
+		<ul class="list-inside list-disc space-y-1">
+			<li>
+				<strong>Mortality</strong> — median mortality in the high-risk cohort is non-zero, while the
+				low-risk cohort’s median is 0 %, so the red vertex reaches the rim and the blue hugs the centre.
+			</li>
+			<li>
+				<strong>ICU-stay</strong> — elderly hypertensive patients spend roughly
+				<span class="font-semibold">4× longer</span> in the ICU.
+			</li>
+			<li>
+				<strong>Blood loss</strong> — median intra-operative blood loss is markedly higher for the high-risk
+				group.
+			</li>
+		</ul>
+
+		<!-- takeaway -->
+		<p>
+			The outward-bulging red polygon shows how a seemingly small pre-operative difference (age +
+			hypertension) magnifies surgical risk across <em>all</em> major outcomes. Hover any vertex to see
+			the exact median values.
+		</p>
 	</div>
 </section>
 
@@ -151,7 +187,7 @@
 				duration and in-hospital mortality percentage.
 			</p>
 			<p>
-				This interactive “risk profile” tool brings theory into practice: you’ll see how even a
+				This interactive "risk profile" tool brings theory into practice: you'll see how even a
 				single-point change in ASA score or marking the case as emergency can shift predicted ICU
 				days by several hours or double mortality probability. Experiment freely to build intuition
 				about how each factor compounds overall risk.
@@ -172,14 +208,14 @@
 			<div class="flex items-center space-x-2">
 				<input
 					type="checkbox"
-					bind:checked={predictors.emergency}
-					on:change={() => (predictors.emergency = predictors.emergency ? 1 : 0)}
+					checked={predictors.emergency === 1}
+					on:change={() => (predictors.emergency = predictors.emergency === 1 ? 0 : 1)}
 				/>
 				<label>Emergency Case</label>
 			</div>
 		</div>
 		<div class="md:w-1/2">
-			<BuildPatient {predictors} />
+			<BuildPatient {predictors} {cases} />
 		</div>
 	</div>
 </section>
