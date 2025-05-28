@@ -30,60 +30,34 @@
 		age: 65,
 		bmi: 28,
 		asa: 3,
-		emergency: 1
+		emergency: 0
 	};
 
 	onMount(async () => {
 		const url = `${base}/cases.csv`;
-		const num = (v: string | undefined) => (v === '' || v == null ? NaN : +v);
+		cases = await csv<SurgeryCase>(url, (row) => ({
+			caseid: row.caseid!,
+			age: +row.age!,
+			department: row.department!,
+			casestart: +row.casestart!,
+			anestart: +row.anestart!,
+			opstart: +row.opstart!,
+			opend: +row.opend!,
+			dis: +row.dis!,
+			los_icu: +row.los_icu!,
+			intraop_ebl: +row.intraop_ebl!,
+			death_inhosp: +row.death_inhosp!,
+			bmi: +row.bmi!,
+			asa: +row.asa!,
+			emergency: +row.emop! // or row.emergency
+		}));
 
-		cases = await csv<SurgeryCase>(url, (row) => {
-			const obj: SurgeryCase = {
-				caseid: row.caseid!,
-
-				age: num(row.age),
-				bmi: num(row.bmi),
-				sex: row.sex as 'M' | 'F',
-
-				department: row.department!,
-				asa: num(row.asa),
-				emergency: num(row.emop),
-
-				casestart: num(row.casestart),
-				anestart: num(row.anestart),
-				opstart: num(row.opstart),
-				opend: num(row.opend),
-				dis: num(row.dis),
-
-				icu_days: num(row.icu_days),
-				intraop_ebl: num(row.intraop_ebl),
-				death_inhosp: num(row.death_inhosp),
-
-				preop_htn: num(row.preop_htn),
-				preop_dm: num(row.preop_dm)
-			};
-
-			return obj;
-		});
-
-		/* ---------- pick contrasting profiles ---------- */
-
-		const risk = (c: SurgeryCase) =>
-			c.death_inhosp * 100 + // deaths dominate
-			c.icu_days + // + ICU-days
-			c.intraop_ebl / 500; // + scaled blood loss
-
-		const hasMetrics = (c: SurgeryCase) =>
-			[c.icu_days, c.intraop_ebl, c.death_inhosp].every((v) => !isNaN(v) && v > 0);
-
-		const valid = cases.filter(hasMetrics);
-
-		// sort descending for high-risk
-		valid.sort((a, b) => risk(b) - risk(a));
-
-		high = valid[0]; // worst
-		// low = valid[valid.length - 1]; // best
-		low = valid[Math.floor(valid.length * 0.1)];
+		// defaults
+		if (cases.length) {
+			selectedCaseId = cases[0].caseid;
+			profileA = cases[0];
+			profileB = cases[1] ?? null;
+		}
 	});
 </script>
 
@@ -94,7 +68,7 @@
 	<div class="flex flex-col items-center gap-8 md:flex-row">
 		<div class="space-y-4 md:w-1/2">
 			<p>
-				Before diving into outcomes, it’s critical to understand who our patients are. Here we plot
+				Before diving into outcomes, it's critical to understand who our patients are. Here we plot
 				the age distribution of all surgical cases alongside a breakdown of procedure types by
 				department. The age histogram reveals the full span of adult patients—ranging from young
 				adults in their twenties to seniors in their eighties—highlighting that risk profiles may
@@ -130,45 +104,23 @@
 <h1>The Tension</h1>
 
 <!-- Section 3: Profile Comparison (visual on right) -->
-<section class="space-y-6">
-	<!-- heading -->
-	<h2 id="dynamic-comparison">
-		Dynamic Comparison — Median Outcomes for High-Risk vs Low-Risk Cohorts
-	</h2>
-
-	<!-- high-level intro -->
-	<p>
-		We contrast two carefully defined cohorts to show how <strong>age + hypertension</strong>
-		compound surgical risk. The radar chart plots <em>median</em> outcomes — mortality (%), ICU-stay
-		(days) and blood loss (mL). A vertex farther from the centre means a worse median outcome.
-	</p>
-
-	<!-- methodology -->
-	<h3>How we built the comparison</h3>
-	<ol class="list-inside list-decimal space-y-2">
-		<li>
-			<strong>Define cohorts</strong>
-			<ul class="ml-4 list-inside list-disc">
-				<li>
-					<em>High-risk (A)</em> — patients <mark>≥ 70 years</mark> <em>and</em> with pre-operative hypertension.
-				</li>
-				<li>
-					<em>Low-risk (B)</em> — patients <mark>≤ 40 years</mark> with <em>no</em> hypertension.
-				</li>
-			</ul>
-		</li>
-		<li><strong>Filter to valid cases</strong> — rows missing any outcome metric are dropped.</li>
-		<li><strong>Summarise by the median</strong> within each cohort.</li>
-		<li>
-			<strong>Normalise each spoke</strong> by the larger of the two medians so the outer rim equals
-			“worse of these two groups,” not a single outlier.
-		</li>
-	</ol>
-
-	<!-- radar chart -->
-	{#if high && low}
-		<div class="flex justify-center">
-			<RiskRadar {high} {low} />
+<section>
+	<h2>Profile Comparison</h2>
+	<div class="flex flex-col items-center gap-8 md:flex-row">
+		<div class="space-y-4 md:w-1/2">
+			<p>
+				Not all patients share the same journey. Here, we line up two distinct profiles to compare
+				critical outcomes: ICU length of stay, intraoperative blood loss, and survival. Profile A
+				might be an elderly emergency case, while Profile B is a younger elective surgery. Examining
+				their “dumbbell” plot highlights how small differences—like a one-day longer stay in ICU—can
+				translate into major resource implications.
+			</p>
+			<p>
+				The connecting lines between each pair of points underscore the delta in outcomes. You’ll
+				quickly see which metrics diverge most dramatically—perhaps blood loss swings by hundreds of
+				milliliters, while mortality risk remains low for both. This side-by-side view encourages
+				viewers to ask: what preoperative or procedural factors drive these differences?
+			</p>
 		</div>
 	{/if}
 
@@ -198,3 +150,46 @@
 </section>
 
 <!-- Section 4: Build Your Own Patient (visual on left) -->
+<section>
+	<h2>Build Your Own Patient</h2>
+	<div class="flex flex-col items-center gap-8 md:flex-row-reverse">
+		<div class="space-y-4 md:w-1/2">
+			<p>
+				What if you could dial in exactly the characteristics of a patient and instantly preview
+				their risks? Use the sliders below to set age, BMI, ASA physical status, and toggle
+				emergency status. These inputs feed a simple predictive model that estimates both ICU stay
+				duration and in-hospital mortality percentage.
+			</p>
+			<p>
+				This interactive “risk profile” tool brings theory into practice: you’ll see how even a
+				single-point change in ASA score or marking the case as emergency can shift predicted ICU
+				days by several hours or double mortality probability. Experiment freely to build intuition
+				about how each factor compounds overall risk.
+			</p>
+
+			<div>
+				<label class="block font-medium">Age: {predictors.age}</label>
+				<input type="range" min="0" max="100" bind:value={predictors.age} class="w-full" />
+			</div>
+			<div>
+				<label class="block font-medium">BMI: {predictors.bmi}</label>
+				<input type="range" min="10" max="50" step="1" bind:value={predictors.bmi} class="w-full" />
+			</div>
+			<div>
+				<label class="block font-medium">ASA Score: {predictors.asa}</label>
+				<input type="range" min="1" max="5" bind:value={predictors.asa} class="w-full" />
+			</div>
+			<div class="flex items-center space-x-2">
+				<input
+					type="checkbox"
+					bind:checked={predictors.emergency}
+					on:change={() => (predictors.emergency = predictors.emergency ? 1 : 0)}
+				/>
+				<label>Emergency Case</label>
+			</div>
+		</div>
+		<div class="md:w-1/2">
+			<BuildPatient {predictors} />
+		</div>
+	</div>
+</section>
