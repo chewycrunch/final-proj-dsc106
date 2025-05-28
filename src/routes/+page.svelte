@@ -130,49 +130,41 @@
 <h1>The Tension</h1>
 
 <!-- Section 3: Profile Comparison (visual on right) -->
-<section>
-	<h2>Profile Comparison</h2>
-	<div class="flex flex-col items-center gap-8 md:flex-row">
-		<div class="space-y-4 md:w-1/2">
-			<p>
-				Not all patients share the same journey. Here, we line up two distinct profiles to compare
-				critical outcomes: ICU length of stay, intraoperative blood loss, and survival. Profile A
-				might be an elderly emergency case, while Profile B is a younger elective surgery. Examining
-				their “dumbbell” plot highlights how small differences—like a one-day longer stay in ICU—can
-				translate into major resource implications.
-			</p>
-			<p>
-				The connecting lines between each pair of points underscore the delta in outcomes. You’ll
-				quickly see which metrics diverge most dramatically—perhaps blood loss swings by hundreds of
-				milliliters, while mortality risk remains low for both. This side-by-side view encourages
-				viewers to ask: what preoperative or procedural factors drive these differences?
-			</p>
-		</div>
+<section class="space-y-6">
+	<h2 id="dynamic-comparison">
+		Dynamic Comparison — Median Outcomes for High-Risk vs Low-Risk Cohorts
+	</h2>
 
-		<!-- findings -->
-		<h3>What the chart reveals</h3>
-		<ul class="list-inside list-disc space-y-1">
-			<li>
-				<strong>Mortality</strong> — median mortality in the high-risk cohort is non-zero, while the
-				low-risk cohort’s median is 0 %, so the red vertex reaches the rim and the blue hugs the centre.
-			</li>
-			<li>
-				<strong>ICU-stay</strong> — elderly hypertensive patients spend roughly
-				<span class="font-semibold">4× longer</span> in the ICU.
-			</li>
-			<li>
-				<strong>Blood loss</strong> — median intra-operative blood loss is markedly higher for the high-risk
-				group.
-			</li>
-		</ul>
+	<p>
+		We summarise the <strong>highest-risk cohort&nbsp;(A)</strong> (worst composite score) and the
+		<strong>lowest-risk decile&nbsp;(B)</strong>. The radar chart shows median values for
+		<em>mortality&nbsp;(%)</em>, <em>ICU-stay&nbsp;(days)</em>, and
+		<em>blood loss&nbsp;(mL)</em>. A vertex farther from the centre signals a worse outcome.
+	</p>
 
-		<!-- takeaway -->
-		<p>
-			The outward-bulging red polygon shows how a seemingly small pre-operative difference (age +
-			hypertension) magnifies surgical risk across <em>all</em> major outcomes. Hover any vertex to see
-			the exact median values.
-		</p>
+	<div class="flex justify-center">
+		<RiskRadar {high} {low} />
 	</div>
+
+	<h3>What the chart reveals</h3>
+	<ul class="list-inside list-disc space-y-1">
+		<li>
+			<strong>Mortality</strong> — cohort&nbsp;A shows a non-zero median mortality, whereas cohort&nbsp;B’s
+			median is 0&nbsp;%; hover the red and blue vertices to see exact percentages.
+		</li>
+		<li>
+			<strong>ICU-stay</strong> — high-risk patients spend roughly
+			<span class="font-semibold">4× longer</span> in the ICU.
+		</li>
+		<li>
+			<strong>Blood loss</strong> — median intra-operative blood loss is markedly higher for cohort&nbsp;A.
+		</li>
+	</ul>
+
+	<p>
+		The outward-bulging red polygon demonstrates how pre-operative factors magnify surgical risk
+		across <em>all</em> major outcomes. Hover any point to inspect the underlying medians.
+	</p>
 </section>
 
 <!-- Section 4: Build Your Own Patient (visual on left) -->
