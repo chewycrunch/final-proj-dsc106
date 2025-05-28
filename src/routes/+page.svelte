@@ -1,4 +1,33 @@
 <!-- File: src/routes/+page.svelte -->
+<script context="module" lang="ts">
+	// Define the patient data type, exported for use in other components
+	export interface SurgeryCase {
+		caseid: string;
+		age: number;
+		department: string;
+		casestart: number;
+		anestart: number;
+		opstart: number;
+		opend: number;
+		dis: number;
+		los_icu: number;
+		intraop_ebl: number;
+		death_inhosp: number;
+		bmi: number;
+		asa: number;
+		emergency: number; // Assuming this is a number (0 or 1) based on previous code
+		optype: string;
+		[key: string]: any; // Add index signature for groupBy access
+	}
+
+	interface Predictors {
+		age: number;
+		bmi: number;
+		asa: number;
+		emergency: number; // Assuming number based on previous interactions
+	}
+</script>
+
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { csv } from 'd3-fetch';
@@ -6,82 +35,76 @@
 
 	import AgeDistribution from '$lib/AgeDistribution.svelte';
 	import DepartmentDistribution from '$lib/DepartmentDistribution.svelte';
-	import AggregatedTimeline from '$lib/AggregatedTimeline.svelte';
+	// import Timeline from '../lib/Timeline.svelte'; // Removed old Timeline import
+	import AggregatedTimeline from '$lib/AggregatedTimeline.svelte'; // Import AggregatedTimeline
+	import Comparison from '$lib/Comparison.svelte';
 	import BuildPatient from '$lib/BuildPatient.svelte';
-	import RiskRadar from '$lib/RiskRadar.svelte';
+
+	// interface SurgeryCase moved to script context="module"
 
 	let cases: SurgeryCase[] = [];
+	let selectedPatient: SurgeryCase | null = null;
+	let selectedPatientIndex: number = 0;
 
-	let high: SurgeryCase | null = null;
-	let low: SurgeryCase | null = null;
+	// Filtering criteria
+	let selectedOpType: string | null = null;
+	let selectedDepartment: string | null = null;
+	let ageMin: number = 0;
+	let ageMax: number = 120;
+
+	let availableOpTypes: string[] = [];
+	let availableDepartments: string[] = [];
+
+	$: availableOpTypes = Array.from(new Set(cases.map(p => p.optype))).filter(Boolean);
+	$: availableDepartments = Array.from(new Set(cases.map(p => p.department))).filter(Boolean);
+
+	$: filteredPatients = cases.filter(p =>
+		(!selectedOpType || p.optype === selectedOpType) &&
+		(!selectedDepartment || p.department === selectedDepartment) &&
+		(typeof p.age === 'number' ? p.age >= ageMin && p.age <= ageMax : true)
+	);
+
+	$: selectedPatient = filteredPatients[selectedPatientIndex] || null;
+
+	let profileA: SurgeryCase | null = null;
+	let profileB: SurgeryCase | null = null;
 
 	// reactive predictors for BuildPatient
-	let predictors = {
+	// interface Predictors moved to script context="module"
+
+	let predictors: Predictors = {
 		age: 65,
 		bmi: 28,
 		asa: 3,
 		emergency: 0
 	};
 
-	const num = (v: string | undefined) => (v === '' || v == null ? NaN : +v);
-
 	onMount(async () => {
 		const url = `${base}/cases.csv`;
-		cases = await csv<SurgeryCase>(url, (row) => {
-			// Convert emergency to number, defaulting to 0 if NaN
-			const emergency = row.emergency ? Number(row.emergency) : 0;
-			if (isNaN(emergency)) {
-				console.warn('Invalid emergency value:', row.emergency, 'defaulting to 0');
-			}
+		cases = await csv<SurgeryCase>(url, (row: Record<string, string>) => ({
+			caseid: row.caseid!,
+			age: +row.age!,
+			department: row.department!,
+			casestart: +row.casestart!,
+			anestart: +row.anestart!,
+			opstart: +row.opstart!,
+			opend: +row.opend!,
+			dis: +row.dis!,
+			los_icu: +row.los_icu!,
+			intraop_ebl: +row.intraop_ebl!,
+			death_inhosp: +row.death_inhosp!,
+			bmi: +row.bmi!,
+			asa: +row.asa!,
+			emergency: row.emop === '1' ? 1 : 0,
+			optype: row.optype!
+		}));
 
-			// Parse ICU stay, defaulting to 0 if NaN
-			const icu_days = row.icu_days ? Number(row.icu_days) : 0;
-			if (isNaN(icu_days)) {
-				console.warn('Invalid ICU stay value:', row.icu_days, 'defaulting to 0');
-			}
-
-			const obj: SurgeryCase = {
-				caseid: row.caseid!,
-
-				age: +row.age!,
-				sex: (row.sex as 'M' | 'F') ?? 'M',
-				bmi: +row.bmi!,
-
-				department: row.department!,
-				asa: +row.asa!,
-				emergency: emergency,
-
-				casestart: +row.casestart!,
-				anestart: +row.anestart!,
-				opstart: +row.opstart!,
-				opend: +row.opend!,
-				dis: +row.dis!,
-
-				icu_days: icu_days,
-				intraop_ebl: +row.intraop_ebl!,
-				death_inhosp: +row.death_inhosp!,
-
-				preop_htn: num(row.preop_htn), // hypertension 0 / 1
-				preop_dm: num(row.preop_dm)
-			};
-
-			return obj;
-		});
-
-		/* ---------- helpers ---------- */
-		const hasMetrics = (c: SurgeryCase) =>
-			[c.icu_days, c.intraop_ebl, c.death_inhosp].every((v) => !isNaN(v) && v > 0);
-
-		/* simple composite risk score: deaths dominate, then ICU days, then blood loss */
-		const riskScore = (c: SurgeryCase) => c.death_inhosp * 100 + c.icu_days + c.intraop_ebl / 500;
-
-		/* after cases are loaded … */
-		$: if (cases.length) {
-			const valid = cases.filter(hasMetrics).sort((a, b) => riskScore(b) - riskScore(a));
-
-			/* highest-risk median vs safest-decile median */
-			high = valid[0] ?? null;
-			low = valid[Math.floor(valid.length * 0.1)] ?? null;
+		// defaults
+		if (cases.length) {
+			selectedPatientIndex = 0;
+			selectedPatient = cases[0];
+			profileA = cases[0];
+			profileB = cases[1] ?? null;
 		}
 	});
 </script>
@@ -114,58 +137,45 @@
 </section>
 
 <!-- Section 2: Timeline (visual on left, with selector) -->
-<section>
-	<h2>Average Phase Durations Over Departments</h2>
-	<p class="mb-4">
-		For each surgical department, this line chart shows the average minutes spent in 1) Anesthesia
-		(from anesthesia start to operation start), 2) Surgery (operation start to end), and 3) Recovery
-		(operation end to discharge).
+<section class="timeline-section">
+	<h2>Timeline of a <span class="highlight-orange">Surgical Journey</span></h2>
+	<p class="mb-8">
+		Explore the average timeline of surgical procedures. Filter by surgery type, department, or age range to see how different patient groups progress through their surgical journey. The timeline shows the average duration of each stage, with ranges indicating the variation across patients.
 	</p>
-	<div class="mx-auto w-full md:w-4/5">
-		<AggregatedTimeline patients={cases} />
+	<div class="md:w-3/4 mx-auto mb-4">
+		<AggregatedTimeline 
+			patients={filteredPatients}
+			groupBy="optype"
+			ageRange={[ageMin, ageMax]}
+		/>
 	</div>
 </section>
 
-<h1>The Tension</h1>
-
 <!-- Section 3: Profile Comparison (visual on right) -->
-<section class="space-y-6">
-	<h2 id="dynamic-comparison">
-		Dynamic Comparison — Median Outcomes for High-Risk vs Low-Risk Cohorts
-	</h2>
-
-	<p>
-		We summarise the <strong>highest-risk cohort&nbsp;(A)</strong> (worst composite score) and the
-		<strong>lowest-risk decile&nbsp;(B)</strong>. The radar chart shows median values for
-		<em>mortality&nbsp;(%)</em>, <em>ICU-stay&nbsp;(days)</em>, and
-		<em>blood loss&nbsp;(mL)</em>. A vertex farther from the centre signals a worse outcome.
-	</p>
-
-	{#if high && low}
-		<div class="flex justify-center">
-			<RiskRadar {high} {low} />
+<section>
+	<h2>Profile Comparison</h2>
+	<div class="flex flex-col items-center gap-8 md:flex-row">
+		<div class="space-y-4 md:w-1/2">
+			<p>
+				Not all patients share the same journey. Here, we line up two distinct profiles to compare
+				critical outcomes: ICU length of stay, intraoperative blood loss, and survival. Profile A
+				might be an elderly emergency case, while Profile B is a younger elective surgery. Examining
+				their "dumbbell" plot highlights how small differences—like a one-day longer stay in ICU—can
+				translate into major resource implications.
+			</p>
+			<p>
+				The connecting lines between each pair of points underscore the delta in outcomes. You'll
+				quickly see which metrics diverge most dramatically—perhaps blood loss swings by hundreds of
+				milliliters, while mortality risk remains low for both. This side-by-side view encourages
+				viewers to ask: what preoperative or procedural factors drive these differences?
+			</p>
 		</div>
-	{/if}
-
-	<h3>What the chart reveals</h3>
-	<ul class="list-inside list-disc space-y-1">
-		<li>
-			<strong>Mortality</strong> — cohort&nbsp;A shows a non-zero median mortality, whereas cohort&nbsp;B’s
-			median is 0&nbsp;%; hover the red and blue vertices to see exact percentages.
-		</li>
-		<li>
-			<strong>ICU-stay</strong> — high-risk patients spend roughly
-			<span class="font-semibold">4× longer</span> in the ICU.
-		</li>
-		<li>
-			<strong>Blood loss</strong> — median intra-operative blood loss is markedly higher for cohort&nbsp;A.
-		</li>
-	</ul>
-
-	<p>
-		The outward-bulging red polygon demonstrates how pre-operative factors magnify surgical risk
-		across <em>all</em> major outcomes. Hover any point to inspect the underlying medians.
-	</p>
+		<div class="md:w-1/2">
+			{#if profileA && profileB}
+				<Comparison profileA={profileA} profileB={profileB} /> <!-- Explicitly pass props -->
+			{/if}
+		</div>
+	</div>
 </section>
 
 <!-- Section 4: Build Your Own Patient (visual on left) -->
@@ -208,7 +218,7 @@
 			</div>
 		</div>
 		<div class="md:w-1/2">
-			<BuildPatient {predictors} {cases} />
+			<BuildPatient predictors={predictors} /> <!-- Explicitly pass props -->
 		</div>
 	</div>
 </section>
