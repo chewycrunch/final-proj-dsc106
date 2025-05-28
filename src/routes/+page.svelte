@@ -10,10 +10,10 @@
 	import BuildPatient from '$lib/BuildPatient.svelte';
 	import RiskRadar from '$lib/RiskRadar.svelte';
 
-	let cases: SurgeryCase[] = [];
+	let cases: SurgeryCase[] = $state([]);
 
-	let high: SurgeryCase | null = null;
-	let low: SurgeryCase | null = null;
+	let high: SurgeryCase | null = $state(null);
+	let low: SurgeryCase | null = $state(null);
 
 	// reactive predictors for BuildPatient
 	let predictors = {
@@ -24,6 +24,23 @@
 	};
 
 	const num = (v: string | undefined) => (v === '' || v == null ? NaN : +v);
+
+	const hasMetrics = (c: SurgeryCase) =>
+		[c.icu_days, c.intraop_ebl, c.death_inhosp].every((v) => !isNaN(v) && v > 0);
+
+	/* simple composite risk score: deaths dominate, then ICU days, then blood loss */
+	const riskScore = (c: SurgeryCase) => c.death_inhosp * 100 + c.icu_days + c.intraop_ebl / 500;
+
+	$effect(() => {
+		if (cases.length) {
+			// sort ascending → index 0 = safest
+			const valid = cases.filter(hasMetrics).sort((a, b) => riskScore(a) - riskScore(b));
+
+			/* safest-decile median vs worst single case */
+			low = valid[Math.floor(valid.length * 0.1)] ?? null; // safest 10 %
+			high = valid[valid.length - 1] ?? null; // worst
+		}
+	});
 
 	onMount(async () => {
 		const url = `${base}/cases.csv`;
@@ -69,20 +86,15 @@
 		});
 
 		/* ---------- helpers ---------- */
-		const hasMetrics = (c: SurgeryCase) =>
-			[c.icu_days, c.intraop_ebl, c.death_inhosp].every((v) => !isNaN(v) && v > 0);
-
-		/* simple composite risk score: deaths dominate, then ICU days, then blood loss */
-		const riskScore = (c: SurgeryCase) => c.death_inhosp * 100 + c.icu_days + c.intraop_ebl / 500;
 
 		/* after cases are loaded … */
-		$: if (cases.length) {
-			const valid = cases.filter(hasMetrics).sort((a, b) => riskScore(b) - riskScore(a));
+		// $: if (cases.length) {
+		// 	const valid = cases.filter(hasMetrics).sort((a, b) => riskScore(b) - riskScore(a));
 
-			/* highest-risk median vs safest-decile median */
-			high = valid[0] ?? null;
-			low = valid[Math.floor(valid.length * 0.1)] ?? null;
-		}
+		// 	/* highest-risk median vs safest-decile median */
+		// 	high = valid[0] ?? null;
+		// 	low = valid[Math.floor(valid.length * 0.1)] ?? null;
+		// }
 	});
 </script>
 
@@ -143,7 +155,7 @@
 
 	{#if high && low}
 		<div class="flex justify-center">
-			<RiskRadar {high} {low} />
+			<RiskRadar {cases} />
 		</div>
 	{/if}
 

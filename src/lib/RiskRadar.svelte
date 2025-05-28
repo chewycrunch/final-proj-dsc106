@@ -3,98 +3,123 @@
 	import { select } from 'd3-selection';
 	import { lineRadial } from 'd3-shape';
 
-	export let high!: SurgeryCase; // summary of high-risk cohort
-	export let low!: SurgeryCase; // summary of low-risk cohort
+	/* ---------- prop ---------- */
+	export let cases: SurgeryCase[] = [];
 
+	/* ---------- pick high-risk & low-risk ---------- */
+	let high: SurgeryCase | null = null;
+	let low: SurgeryCase | null = null;
+
+	const riskScore = (c: SurgeryCase) =>
+		/* deaths dominate, then ICU days, then blood loss */
+		c.death_inhosp * 1e6 + c.icu_days * 1e3 + c.intraop_ebl;
+
+	$: if (cases.length) {
+		/* split by mortality status first */
+		const survivors = cases.filter((c) => c.death_inhosp === 0);
+		const mortalities = cases.filter((c) => c.death_inhosp === 1);
+
+		/* safest survivor = lowest score among survivors */
+		survivors.sort((a, b) => riskScore(a) - riskScore(b));
+		low = survivors[0] ?? null;
+
+		/* riskiest = highest score overall (ties favour deaths) */
+		const all = [...cases].sort((a, b) => riskScore(b) - riskScore(a));
+		high = all[0] ?? null;
+	}
+
+	/* ---------- chart geometry ---------- */
 	const axes = [
-		{ key: 'death_inhosp', label: 'Mortality (%)' },
-		{ key: 'icu_days', label: 'ICU Stay (days)' },
-		{ key: 'intraop_ebl', label: 'Blood Loss (mL)' }
+		{ key: 'death_inhosp', label: 'Mortality (%)', colour: '#d62728' },
+		{ key: 'icu_days', label: 'ICU Stay (days)', colour: '#ff8800' },
+		{ key: 'intraop_ebl', label: 'Blood Loss (mL)', colour: '#2ca02c' }
 	];
+	const R = 140;
+	const angle = (i: number) => ((Math.PI * 2) / axes.length) * i;
 
 	let svg: SVGSVGElement;
 	let tip: HTMLDivElement;
-	const R = 140; // outer radius
-	const angle = (i: number) => ((Math.PI * 2) / axes.length) * i;
 
+	/* ---------- draw ---------- */
 	function draw() {
+		if (!svg) return;
+		const s = select(svg).attr('viewBox', '-220 -190 440 380');
+		s.selectAll('*').remove();
 		if (!high || !low) return;
-		const s = select(svg).attr('viewBox', '-240 -180 470 360').selectAll('*').remove();
 
-		/* ---- scale each axis by max(high,low) ---- */
-		const rows = axes.map((a, i) => {
-			const hi = +(high as any)[a.key] || 0;
-			const lo = +(low as any)[a.key] || 0;
-			const denom = Math.max(hi, lo) || 1;
-			return { a, hi, lo, hiN: hi / denom, loN: lo / denom };
+		/* scale each axis by max(high, low) */
+		const rows = axes.map((a) => {
+			const hi = (high as any)[a.key] as number;
+			const lo = (low as any)[a.key] as number;
+			const max = Math.max(hi, lo) || 1;
+			return { a, hi, lo, hiN: hi / max, loN: lo / max };
 		});
 
-		const line = lineRadial<number>()
-			.radius((d) => d * R)
-			.angle((_, i) => angle(i));
+		const g = s.append('g');
 
-		const g = select(svg).append('g');
-
-		// grid
-		for (let t = 1; t <= 4; t++)
+		/* grid */
+		for (let r = 1; r <= 4; r++)
 			g.append('circle')
-				.attr('r', (R * t) / 4)
+				.attr('r', (R * r) / 4)
 				.attr('fill', 'none')
 				.attr('stroke', '#bbb')
-				.attr('stroke-dasharray', '3 3');
+				.attr('stroke-dasharray', '4 3');
 
-		// spokes + axis labels
+		/* spokes & labels */
 		rows.forEach((d, i) => {
-			const x = Math.sin(angle(i)) * R,
-				y = -Math.cos(angle(i)) * R;
+			const x = Math.sin(angle(i)) * R;
+			const y = -Math.cos(angle(i)) * R;
 			g.append('line')
 				.attr('x1', 0)
 				.attr('y1', 0)
 				.attr('x2', x)
 				.attr('y2', y)
-				.attr('stroke', '#888');
+				.attr('stroke', d.a.colour)
+				.attr('stroke-width', 1.4);
 			g.append('text')
-				.attr('x', x * 1.13)
-				.attr('y', y * 1.13)
+				.attr('x', x * 1.15)
+				.attr('y', y * 1.15)
 				.attr('text-anchor', x >= 0 ? 'start' : 'end')
 				.attr('alignment-baseline', 'middle')
 				.attr('font-size', 12)
 				.text(d.a.label);
 		});
 
-		// polygons
+		/* polygons */
+		const radialLine = lineRadial<number>()
+			.radius((d) => d * R)
+			.angle((_, i) => angle(i));
+
+		const poly = (f: 'hiN' | 'loN') => rows.map((r) => (r as any)[f]).concat(rows[0][f]);
 		const blue = '#1f77b4',
 			red = '#d62728';
-		const hiPoly = rows.map((r) => r.hiN).concat(rows[0].hiN);
-		const loPoly = rows.map((r) => r.loN).concat(rows[0].loN);
 
 		g.append('path')
-			.datum(loPoly)
-			.attr('d', line as any)
+			.attr('d', radialLine(poly('loN')) as any)
 			.attr('fill', blue)
 			.attr('fill-opacity', 0.35)
 			.attr('stroke', blue)
 			.attr('stroke-width', 2);
+
 		g.append('path')
-			.datum(hiPoly)
-			.attr('d', line as any)
+			.attr('d', radialLine(poly('hiN')) as any)
 			.attr('fill', red)
 			.attr('fill-opacity', 0.35)
 			.attr('stroke', red)
 			.attr('stroke-width', 2);
 
-		// data points with tooltip
-		const showDots = (field: 'hiN' | 'loN', raw: 'hi' | 'lo', clr: string) => {
-			g.selectAll('.dot-' + field)
+		/* dots & tooltip */
+		function addDots(norm: 'hiN' | 'loN', raw: 'hi' | 'lo', colour: string) {
+			g.selectAll('.dot-' + norm)
 				.data(rows)
 				.enter()
 				.append('circle')
-				.attr('class', 'dot-' + field)
+				.attr('class', 'dot-' + norm)
 				.attr('r', 4)
-				.attr('cx', (d, i) => Math.sin(angle(i)) * (d as any)[field] * R)
-				.attr('cy', (d, i) => -Math.cos(angle(i)) * (d as any)[field] * R)
-				.attr('fill', clr)
-				.on('mouseover', (e, d) => {
+				.attr('cx', (d, i) => Math.sin(angle(i)) * (d as any)[norm] * R)
+				.attr('cy', (d, i) => -Math.cos(angle(i)) * (d as any)[norm] * R)
+				.attr('fill', colour)
+				.on('mouseover', (_e, d) => {
 					tip.style.opacity = '1';
 					tip.textContent = `${d.a.label}: ${(d as any)[raw]}`;
 				})
@@ -103,31 +128,31 @@
 					(e) => (tip.style.transform = `translate(${e.pageX + 12}px,${e.pageY - 24}px)`)
 				)
 				.on('mouseout', () => (tip.style.opacity = '0'));
-		};
-		showDots('hiN', 'hi', red);
-		showDots('loN', 'lo', blue);
+		}
+		addDots('loN', 'lo', blue);
+		addDots('hiN', 'hi', red);
 
-		// legend
+		/* legend */
 		g.append('rect')
-			.attr('x', -50)
-			.attr('y', R + 22)
+			.attr('x', -52)
+			.attr('y', R + 24)
 			.attr('width', 12)
 			.attr('height', 12)
 			.attr('fill', red);
 		g.append('text')
-			.attr('x', -30)
-			.attr('y', R + 32)
+			.attr('x', -34)
+			.attr('y', R + 33)
 			.text('High-risk')
 			.attr('font-size', 12);
 		g.append('rect')
-			.attr('x', 60)
-			.attr('y', R + 22)
+			.attr('x', 54)
+			.attr('y', R + 24)
 			.attr('width', 12)
 			.attr('height', 12)
 			.attr('fill', blue);
 		g.append('text')
-			.attr('x', 80)
-			.attr('y', R + 32)
+			.attr('x', 72)
+			.attr('y', R + 33)
 			.text('Low-risk')
 			.attr('font-size', 12);
 	}
