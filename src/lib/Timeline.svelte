@@ -1,129 +1,159 @@
-<!-- File: src/lib/Timeline.svelte -->
 <script lang="ts">
-	import { onMount, afterUpdate } from 'svelte';
-	import { select } from 'd3-selection';
-	import { scalePoint, scaleLinear } from 'd3-scale';
-	import { axisBottom, axisLeft } from 'd3-axis';
-	import { line, curveMonotoneX } from 'd3-shape';
-	import { rollup, max } from 'd3-array';
+    import { onMount } from 'svelte';
+    import * as d3 from 'd3';
+    // Test patient for debugging
+    const testPatient = {
+      adm: '2023-01-01T08:00:00Z',
+      casestart: 0,
+      anestart: 600, // 10 minutes after casestart
+      opstart: 1200, // 20 minutes after casestart
+      opend: 3600,   // 1 hour after casestart
+      caseend: 4000,
+      dis: '2023-01-05T10:00:00Z'
+    };
+    // Use testPatient for debugging
+    let patientToPlot = testPatient;
+    let timelineDiv: HTMLDivElement;
+    let hasRendered = false;
+  
+    // Helper to get absolute event date
+    function getEventDate(patient: Record<string, any>, key: string): Date | null {
+      let refDate: Date;
+      if (patient.adm && !isNaN(new Date(patient.adm).getTime())) {
+        refDate = new Date(patient.adm);
+      } else {
+        refDate = new Date('2000-01-01T00:00:00Z');
+      }
+      if (key === 'adm') return refDate;
+      if (key === 'dis' && patient.dis) return new Date(patient.dis);
+      // All other keys are offsets in seconds from casestart
+      if (typeof patient[key] === 'number') {
+        return new Date(refDate.getTime() + patient[key] * 1000);
+      }
+      return null;
+    }
+  
+    onMount(() => {
+      if (!patientToPlot) {
+        hasRendered = false;
+        return;
+      }
+      console.log('Timeline patientToPlot:', patientToPlot);
+      timelineDiv.innerHTML = '';
+      const width = 800, height = 140;
+      const svg = d3.select(timelineDiv)
+        .append('svg')
+        .attr('width', width)
+        .attr('height', height);
+  
+      // Collect all relevant events, skipping missing ones
+      const events = [
+        { label: 'Hospital Admission', key: 'adm' },
+        { label: 'Case Start', key: 'casestart' },
+        { label: 'Anesthesia Start', key: 'anestart' },
+        { label: 'Operation Start', key: 'opstart' },
+        { label: 'Operation End', key: 'opend' },
+        { label: 'Anesthesia End', key: 'aneend' },
+        { label: 'Case End', key: 'caseend' },
+        { label: 'Hospital Discharge', key: 'dis' }
+      ].map(e => ({
+        label: e.label,
+        time: getEventDate(patientToPlot, e.key)
+      })).filter((e: { time: Date | null }) => e.time && !isNaN(e.time.getTime()));
 
-	export interface SurgeryCase {
-		department: string;
-		anestart: number; // anesthesia start (sec)
-		opstart: number; // operation start
-		opend: number; // operation end
-		dis: number; // discharge time
-	}
-
-	export let data: SurgeryCase[] = [];
-	let svg: SVGSVGElement;
-
-	function draw() {
-		if (!data.length) return;
-		select(svg).selectAll('*').remove();
-
-		// 1) group by department, compute correct phase durations in MINUTES
-		const grouped = rollup(
-			data,
-			(cases) => {
-				const avg = (fn: (d: SurgeryCase) => number) =>
-					cases.reduce((s, d) => s + fn(d), 0) / cases.length;
-				return {
-					Anesthesia: avg((d) => d.opstart - d.anestart) / 60,
-					Surgery: avg((d) => d.opend - d.opstart) / 60,
-					Recovery: avg((d) => d.dis - d.opend) / 60
-				};
-			},
-			(d) => d.department
-		);
-
-		const entries = Array.from(grouped, ([dept, vals]) => ({ dept, ...vals }));
-		const phases = ['Anesthesia', 'Surgery', 'Recovery'] as const;
-
-		// 2) scales
-		const margin = { top: 30, right: 120, bottom: 60, left: 60 };
-		const width = 700 - margin.left - margin.right;
-		const height = 400 - margin.top - margin.bottom;
-
-		const x = scalePoint<string>().domain(phases).range([0, width]).padding(0.5);
-
-		const yMax = max(entries, (e) => Math.max(e.Anesthesia, e.Surgery, e.Recovery)) as number;
-
-		const y = scaleLinear().domain([0, yMax]).nice().range([height, 0]);
-
-		const colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd'];
-
-		// 3) draw
-		const g = select(svg)
-			.attr(
-				'viewBox',
-				`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`
-			)
-			.append('g')
-			.attr('transform', `translate(${margin.left},${margin.top})`);
-
-		// axes
-		g.append('g').attr('transform', `translate(0,${height})`).call(axisBottom(x));
-
-		g.append('g')
-			.call(axisLeft(y).ticks(6))
-			.append('text')
-			.attr('fill', '#000')
-			.attr('x', -margin.left + 10)
-			.attr('y', -10)
-			.attr('text-anchor', 'start')
-			.text('Duration (min)');
-
-		// line generator
-		const lineGen = line<[string, number]>()
-			.x((d) => x(d[0])!)
-			.y((d) => y(d[1]))
-			.curve(curveMonotoneX);
-
-		// draw one line per department
-		entries.forEach((entry, i) => {
-			const pts: [string, number][] = phases.map((p) => [p, (entry as any)[p]]);
-			g.append('path')
-				.datum(pts)
-				.attr('fill', 'none')
-				.attr('stroke', colors[i % colors.length])
-				.attr('stroke-width', 2)
-				.attr('d', lineGen);
-
-			// dots
-			g.selectAll(`.dot-${i}`)
-				.data(pts)
-				.enter()
-				.append('circle')
-				.attr('class', `dot-${i}`)
-				.attr('cx', (d) => x(d[0])!)
-				.attr('cy', (d) => y(d[1]))
-				.attr('r', 4)
-				.attr('fill', colors[i % colors.length]);
-		});
-
-		// legend
-		const legend = g.append('g').attr('transform', `translate(${width + 20},0)`);
-		entries.forEach((entry, i) => {
-			legend
-				.append('rect')
-				.attr('x', 0)
-				.attr('y', i * 20)
-				.attr('width', 12)
-				.attr('height', 12)
-				.attr('fill', colors[i % colors.length]);
-			legend
-				.append('text')
-				.attr('x', 18)
-				.attr('y', i * 20 + 10)
-				.text(entry.dept)
-				.attr('font-size', '12px')
-				.attr('alignment-baseline', 'middle');
-		});
-	}
-
-	onMount(draw);
-	afterUpdate(draw);
-</script>
-
-<svg bind:this={svg} class="h-auto w-full"></svg>
+      console.log('Timeline events:', events.map(e => ({ label: e.label, time: e.time?.toISOString() })));
+  
+      if (events.length < 2) {
+        hasRendered = false;
+        return;
+      }
+      hasRendered = true;
+  
+      // Time scale
+      const x = d3.scaleTime()
+        .domain(d3.extent(events, (d: { time: Date }) => d.time) as [Date, Date])
+        .range([100, width - 60]);
+  
+      // Draw axis
+      svg.append('g')
+        .attr('transform', `translate(0,${height/2})`)
+        .call(d3.axisBottom(x).ticks(events.length).tickFormat(d3.timeFormat('%b %d %H:%M')));
+  
+      // Draw event markers and labels
+      svg.selectAll('circle')
+        .data(events)
+        .enter()
+        .append('circle')
+        .attr('cx', (d: { time: Date }) => x(d.time))
+        .attr('cy', height/2)
+        .attr('r', 10)
+        .attr('fill', (_d: { time: Date }, i: number) => i === 0 ? '#14b8a6' : (i === events.length-1 ? '#facc15' : '#1e293b'));
+  
+      svg.selectAll('text.event-label')
+        .data(events)
+        .enter()
+        .append('text')
+        .attr('class', 'event-label')
+        .attr('x', (d: { time: Date }) => x(d.time))
+        .attr('y', height/2 - 20)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', 13)
+        .attr('fill', '#222')
+        .text((d: { label: string }) => d.label);
+  
+      // Draw operation period as a bar
+      if (patientToPlot.opstart !== undefined && patientToPlot.opend !== undefined) {
+        const opStart = getEventDate(patientToPlot, 'opstart');
+        const opEnd = getEventDate(patientToPlot, 'opend');
+        if (opStart && opEnd && !isNaN(opStart.getTime()) && !isNaN(opEnd.getTime())) {
+          svg.append('rect')
+            .attr('x', x(opStart))
+            .attr('y', height/2 + 18)
+            .attr('width', x(opEnd) - x(opStart))
+            .attr('height', 14)
+            .attr('fill', '#14b8a6')
+            .attr('opacity', 0.7);
+          svg.append('text')
+            .attr('x', (x(opStart) + x(opEnd)) / 2)
+            .attr('y', height/2 + 34)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 12)
+            .attr('fill', '#14b8a6')
+            .text('Operation');
+        }
+      }
+  
+      // Draw ICU period as a bar if available
+      if (patientToPlot.opend !== undefined && patientToPlot.dis && patientToPlot.icu_days > 0) {
+        const icuStart = getEventDate(patientToPlot, 'opend');
+        const icuEnd = getEventDate(patientToPlot, 'dis');
+        if (icuStart && icuEnd && !isNaN(icuStart.getTime()) && !isNaN(icuEnd.getTime())) {
+          svg.append('rect')
+            .attr('x', x(icuStart))
+            .attr('y', height/2 + 38)
+            .attr('width', x(icuEnd) - x(icuStart))
+            .attr('height', 14)
+            .attr('fill', '#facc15')
+            .attr('opacity', 0.7);
+          svg.append('text')
+            .attr('x', (x(icuStart) + x(icuEnd)) / 2)
+            .attr('y', height/2 + 54)
+            .attr('text-anchor', 'middle')
+            .attr('font-size', 12)
+            .attr('fill', '#facc15')
+            .text('ICU');
+        }
+      }
+    });
+  </script>
+  
+  {#if !hasRendered}
+    <div style="color: #ef4444; padding: 1rem; text-align: center;">No timeline data available for this surgery.</div>
+  {/if}
+  <div bind:this={timelineDiv}></div>
+  <style>
+    :global(.event-label) {
+      font-family: 'Work Sans', Arial, sans-serif;
+      font-weight: 600;
+    }
+  </style>
