@@ -33,6 +33,8 @@
 		emergency: 0
 	};
 
+	const num = (v: string | undefined) => (v === '' || v == null ? NaN : +v);
+
 	onMount(async () => {
 		const url = `${base}/cases.csv`;
 		cases = await csv<SurgeryCase>(url, (row) => {
@@ -50,19 +52,27 @@
 
 			const obj: SurgeryCase = {
 				caseid: row.caseid!,
+
 				age: +row.age!,
+				sex: (row.sex as 'M' | 'F') ?? 'M',
+				bmi: +row.bmi!,
+
 				department: row.department!,
+				asa: +row.asa!,
+				emergency: emergency,
+
 				casestart: +row.casestart!,
 				anestart: +row.anestart!,
 				opstart: +row.opstart!,
 				opend: +row.opend!,
 				dis: +row.dis!,
+
 				icu_days: icu_days,
 				intraop_ebl: +row.intraop_ebl!,
 				death_inhosp: +row.death_inhosp!,
-				bmi: +row.bmi!,
-				asa: +row.asa!,
-				emergency: emergency
+
+				preop_htn: num(row.preop_htn), // hypertension 0 / 1
+				preop_dm: num(row.preop_dm)
 			};
 
 			return obj;
