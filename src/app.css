@@ -17,3 +17,19 @@
 		src: url('$lib/fonts/DMSans-VariableFont_opsz,wght.ttf') format('truetype');
 	}
 }
+
+h1 {
+	@apply font-serif text-4xl font-bold tracking-wide;
+}
+
+h2 {
+	@apply font-serif text-2xl font-medium tracking-wide;
+}
+
+h3 {
+	@apply font-serif text-lg font-normal;
+}
+
+p {
+	@apply font-sans text-base font-normal;
+}
