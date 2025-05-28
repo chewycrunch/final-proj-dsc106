@@ -8,7 +8,7 @@
 </script>
 
 <svelte:head>
-	<title>title goes here</title>
+	<title>Vitals Unveiled: Building Patient Profiles to Forecast Surgical Risk</title>
 	<meta name="description" content="View your favorite basketball content." />
 	<meta name="viewport" content="width=device-width, initial-scale=1" />
 </svelte:head>

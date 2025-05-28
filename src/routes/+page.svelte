@@ -98,24 +98,22 @@
 	});
 </script>
 
-<h1>Title here</h1>
+<h1>Vitals Unveiled: Building Patient Profiles to Forecast Surgical Risk</h1>
 <!-- Section 1: Demographics (visual on right) -->
 <section>
 	<h2>Explore Patient Demographics</h2>
 	<div class="flex flex-col items-center gap-8 md:flex-row">
 		<div class="space-y-4 md:w-1/2">
 			<p>
-				Before diving into outcomes, it's critical to understand who our patients are. Here we plot
-				the age distribution of all surgical cases alongside a breakdown of procedure types by
-				department. The age histogram reveals the full span of adult patients—ranging from young
-				adults in their twenties to seniors in their eighties—highlighting that risk profiles may
-				vary substantially across that range.
+				Prior to examining outcomes, it is essential to characterize our patient population. 
+				We present an age-distribution histogram alongside a breakdown of surgical cases by department. 
+				The histogram shows that our cohort ranges from patients in their twenties to those in their eighties—highlighting 
+				the wide variation in risk profiles across different age groups.
 			</p>
 			<p>
-				The department bar chart then shows which specialties contribute most to our dataset.
-				General surgery leads by volume, but thoracic and urologic procedures also form significant
-				cohorts. By surfacing these basic patterns, we equip viewers with the demographic and
-				procedural context needed to interpret subsequent analyses of risk and outcomes.
+				The accompanying bar chart illustrates the volume of cases by specialty, with general surgery comprising the largest share 
+				and thoracic and urologic procedures also representing substantial cohorts. Establishing this foundational context will improve readers’ understanding 
+				of the detailed risk and outcome analyses that follow.
 			</p>
 		</div>
 		<div class="space-y-8 md:w-1/2">
@@ -162,7 +160,7 @@
 	<h3>What the chart reveals</h3>
 	<ul class="list-inside list-disc space-y-1">
 		<li>
-			<strong>Mortality</strong> — cohort&nbsp;A shows a non-zero median mortality, whereas cohort&nbsp;B’s
+			<strong>Mortality</strong> — cohort&nbsp;A shows a non-zero median mortality, whereas cohort&nbsp;B's
 			median is 0&nbsp;%; hover the red and blue vertices to see exact percentages.
 		</li>
 		<li>
