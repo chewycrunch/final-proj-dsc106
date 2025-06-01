@@ -194,6 +194,11 @@
 
 	// Calculate stick thickness based on BMI
 	$: stickThickness = 2 + (predictors.bmi - bmiRange.min) / (bmiRange.max - bmiRange.min) * 4; // 2px to 6px
+	
+	// Calculate stomach size based on BMI
+	$: stomachScale = (predictors.bmi - bmiRange.min) / (bmiRange.max - bmiRange.min);
+	$: stomachWidth = 10 + (stomachScale * 25); // 10px to 35px
+	$: stomachHeight = figureHeight * 0.2; // Constant height
 
 	// Calculate hair whiteness based on age
 	$: hairColor = `rgb(${(predictors.age - ageRange.min) / (ageRange.max - ageRange.min) * 255}, ${(predictors.age - ageRange.min) / (ageRange.max - ageRange.min) * 255}, ${(predictors.age - ageRange.min) / (ageRange.max - ageRange.min) * 255})`;
@@ -342,18 +347,8 @@
 					cy="30"
 					r="20"
 					fill={asaColor}
-					stroke="black"
 					stroke-width={stickThickness}
 					opacity={activeFilters.asa ? 1 : 0.5}
-				/>
-				
-				<!-- Hair -->
-				<path
-					d="M80,30 Q100,10 120,30"
-					fill="none"
-					stroke={hairColor}
-					stroke-width={stickThickness * 1.5}
-					opacity={activeFilters.age ? 1 : 0.5}
 				/>
 
 				<!-- Body -->
@@ -367,11 +362,22 @@
 					opacity={activeFilters.asa ? 1 : 0.5}
 				/>
 
+				<!-- Stomach -->
+				<ellipse
+					cx="100"
+					cy={figureHeight * 0.45}
+					rx={stomachWidth}
+					ry={stomachHeight}
+					fill={asaColor}
+					stroke-width={stickThickness}
+					opacity={activeFilters.bmi ? 1 : 0.5}
+				/>
+
 				<!-- Arms -->
 				<line
 					x1="100"
 					y1="80"
-					x2="60"
+					x2={60 - Math.max(0, stomachWidth - 20)}
 					y2={figureHeight * 0.4}
 					stroke={asaColor}
 					stroke-width={stickThickness}
@@ -380,7 +386,7 @@
 				<line
 					x1="100"
 					y1="80"
-					x2="140"
+					x2={140 + Math.max(0, stomachWidth - 20)}
 					y2={figureHeight * 0.4}
 					stroke={asaColor}
 					stroke-width={stickThickness}
@@ -405,6 +411,15 @@
 					stroke={asaColor}
 					stroke-width={stickThickness}
 					opacity={activeFilters.asa ? 1 : 0.5}
+				/>
+
+				<!-- Hair (moved to end to appear on top) -->
+				<path
+					d="M80,20 Q100,0 120,20"
+					fill="none"
+					stroke={hairColor}
+					stroke-width={stickThickness * 1.5}
+					opacity={activeFilters.age ? 1 : 0.5}
 				/>
 			</svg>
 		</div>
