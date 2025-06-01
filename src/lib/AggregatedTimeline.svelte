@@ -58,30 +58,21 @@
 				// Check if both event time and casestart are valid numbers for this case
 				if (typeof eventTime === 'number' && typeof caseStartTime === 'number') {
 					return eventTime - caseStartTime;
-				} else {
-					return NaN; // Use NaN to indicate invalid duration for this case
 				}
-			}).filter(d => !isNaN(d)); // Filter out NaN durations
+				return NaN;
+			}).filter(d => !isNaN(d));
 
 			// If no valid durations found for this event across all cases, return nulls
 			if (!durations.length) {
-				console.warn(`Event: ${label} (${key}), No valid durations found.`);
 				return { label, key, mean: null, min: null, max: null };
 			}
 
-			// Log the number of valid durations found before outlier filtering
-			console.log(`Event: ${label} (${key}), Valid durations before outlier filtering: ${durations.length}`);
-
 			// Filter out extreme outliers based on duration from casestart
-			const plausibleDurationSeconds = 365 * 24 * 60 * 60; // Approximately 1 year (365 days) in seconds
+			const plausibleDurationSeconds = 365 * 24 * 60 * 60; // Approximately 1 year in seconds
 			const filteredDurations = durations.filter(duration => Math.abs(duration) < plausibleDurationSeconds);
 			
-			// Log the number of durations after outlier filtering
-			console.log(`Event: ${label} (${key}), Valid durations after outlier filtering: ${filteredDurations.length}`);
-
 			// Check if sufficient data remains after filtering
 			if (filteredDurations.length === 0) {
-				console.warn(`Outlier filtering removed all plausible durations for ${label}. Original durations: ${durations.length}, Filtered: ${filteredDurations.length}`);
 				return { label, key, mean: null, min: null, max: null };
 			}
 
@@ -94,12 +85,20 @@
 	}
 
 	let aggEvents: TimelineEvent[] = [];
+	let needsRender = false;
 
+	// Separate data computation from rendering
 	$: {
-		aggEvents = computeAggregatedEvents(filteredCases);
-		if (timelineDiv) {
-			renderTimeline();
+		if (filteredCases) {
+			aggEvents = computeAggregatedEvents(filteredCases);
+			needsRender = true;
 		}
+	}
+
+	// Handle rendering separately
+	$: if (needsRender && timelineDiv) {
+		renderTimeline();
+		needsRender = false;
 	}
 
 	function renderTimeline() {
@@ -108,47 +107,39 @@
 
 		if (!aggEvents.length) return;
 
-		const width = 800;
+		const width = timelineDiv.clientWidth || 800;
 		const height = 280;
 		const legendWidthEstimate = 200;
 		const horizontalPadding = 30;
 
 		const plottableEvents = aggEvents.filter(e => e.mean !== null);
 
-		// Calculate overall min and max based on the mean durations of events
-		const allMeanDurations = plottableEvents.map(e => e.mean as number);
-		const overallExtent = d3.extent(allMeanDurations) as [number, number];
-		let [overallMinMean, overallMaxMean] = overallExtent;
+		// Get the min and max of the mean values for the 6 events
+		const meanValues = plottableEvents.map(e => e.mean as number);
+		const minMean = Math.min(...meanValues);
+		const maxMean = Math.max(...meanValues);
 
-		// Calculate raw domain with a fixed padding of 10 minutes (600 seconds) around mean durations
-		const rawDomainMin = (overallMinMean / 60) - 10;
-		const rawDomainMax = (overallMaxMean / 60) + 10;
+		// Set padding (in minutes)
+		const padding = 10;
+		const minMinutes = Math.floor(minMean / 60) - padding;
+		const maxMinutes = Math.ceil(maxMean / 60) + padding;
 
-		// Handle edge case where domain might be zero or negative span
-		const effectiveDomainMin = isNaN(rawDomainMin) ? 0 : rawDomainMin;
-		const effectiveDomainMax = isNaN(rawDomainMax) ? 10 : rawDomainMax; // Ensure a minimum span if data is identical or missing
-		
-		// Calculate a nice step size for exactly 8 ticks within the effective range
-		const step = d3.tickStep(effectiveDomainMin, effectiveDomainMax, 8);
+		// Define the x scale domain directly
+		const xDomain = [minMinutes, maxMinutes];
 
-		// Calculate the starting tick value (rounded down to the nearest nice step)
-		const startTick = Math.floor(effectiveDomainMin / step) * step;
+		// Force exactly 8 ticks, rounded to the nearest 5
+		const interval = (maxMinutes - minMinutes) / 7;
+		const ticks = Array.from({ length: 8 }, (_, i) =>
+		  Math.round((minMinutes + i * interval) / 5) * 5
+		);
 
-		// Generate exactly 8 nice, round tick values
-		const niceTickValues = d3.range(8).map(i => startTick + i * step);
-
-		// Calculate the final domain based on the generated tick values to ensure they fit perfectly
-		const finalDomainMin = niceTickValues[0];
-		const finalDomainMax = niceTickValues[niceTickValues.length - 1];
-
-		// Define the x scale with a range that starts after the legend and ends before the container edge
 		const x = d3.scaleLinear()
-			.domain([finalDomainMin, finalDomainMax]) // Use the final domain based on nice ticks
+			.domain(xDomain)
 			.range([legendWidthEstimate + horizontalPadding, width - horizontalPadding]);
 
 		const svg = d3.select(timelineDiv)
 			.append('svg')
-			.attr('width', width)
+			.attr('width', '100%')
 			.attr('height', height)
 			.attr('viewBox', `0 0 ${width} ${height}`);
 
@@ -167,7 +158,7 @@
 
 		// Add grid lines
 		const xAxis = d3.axisBottom(x)
-			.tickValues(niceTickValues) // Use the fixed set of nice tick values
+			.tickValues(ticks) // Use the fixed set of nice tick values
 			.tickFormat(d => `${Math.round(d as number)} min`); // Format the tick labels
 
 		const axisGroup = svg.append('g')
@@ -322,7 +313,7 @@
 			.attr('fill', '#666')
 			.text(`n = ${filteredCases.length} cases`);
 
-		const totalDuration = (finalDomainMax - finalDomainMin);
+		const totalDuration = (xDomain[1] - xDomain[0]);
 		svg.append<SVGTextElement>('text') // Add type annotation
 			.attr('x', width - horizontalPadding)
 			.attr('y', height - 10)
@@ -333,11 +324,9 @@
 	}
 
 	onMount(() => {
-		if (timelineDiv) renderTimeline();
-	});
-
-	afterUpdate(() => {
-		if (timelineDiv) renderTimeline();
+		if (timelineDiv) {
+			renderTimeline();
+		}
 	});
 </script>
 
