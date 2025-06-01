@@ -11,6 +11,7 @@ declare global {
 
 		/* surgery meta */
 		department: string;
+		optype: string;
 		asa: number;
 		emergency: number; // 0 = elective, 1 = emergency  ← unified name
 
@@ -19,6 +20,8 @@ declare global {
 		anestart: number;
 		opstart: number;
 		opend: number;
+		aneend: number;
+		caseend: number;
 		dis: number;
 
 		/* outcomes */
