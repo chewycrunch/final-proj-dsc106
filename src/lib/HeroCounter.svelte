@@ -1,31 +1,35 @@
+<!-- src/lib/HeroCounter.svelte -->
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { tweened } from 'svelte/motion';
 	import { cubicOut } from 'svelte/easing';
-	import { onMount } from 'svelte';
 
+	/* ------------------------------------------------------------ props */
+	interface Stat {
+		label: string;
+		value: number;
+	}
 	interface Props {
-		stats: { label: string; value: number }[];
+		stats: Stat[];
 		duration?: number;
 	}
 
-	/** items to display in sequence */
-	/** how long (ms) each number animates */
 	let { stats, duration = 1200 }: Props = $props();
 
-	// one tween per stat
+	/* ------------------------------------------------------- tween stores */
+	/* one tweened store per item so they animate independently           */
 	const tweens = $derived(stats.map(() => tweened(0, { duration, easing: cubicOut })));
 
+	/* -------------------------------------------------- kick off counts  */
 	onMount(() => {
-		console.log(stats, duration);
-		// animate sequentially
 		let delay = 0;
-		stats.forEach((s, i) => {
-			setTimeout(() => tweens[i].set(s.value), delay);
-			delay += duration + 400; // small pause between numbers
+		stats.forEach(({ value }, idx) => {
+			setTimeout(() => tweens[idx].set(value), delay);
+			delay += duration + 400; // small pause between each counter
 		});
 	});
 
-	const fmt = new Intl.NumberFormat();
+	const fmt = new Intl.NumberFormat(); // nice thousands-separator
 </script>
 
 <div class="mt-6 flex flex-wrap justify-center gap-8">
@@ -34,8 +38,11 @@
 			<h2 class="text-4xl font-extrabold tracking-tight tabular-nums">
 				{stats[i].value}
 				<!-- {fmt.format(Math.round(tweens[i]))} -->
+				<!-- <- 🔑 unwrap store -->
 			</h2>
-			<p class="text-sm tracking-wide text-gray-600 uppercase">{label}</p>
+			<p class="text-xs tracking-wide text-gray-500 uppercase">
+				{label}
+			</p>
 		</div>
 	{/each}
 </div>
