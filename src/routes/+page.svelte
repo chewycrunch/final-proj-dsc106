@@ -36,6 +36,54 @@
 		console.log('Emergency Low Alb Mortality:', (emergencyMortality * 100).toFixed(1) + '%');
 		console.log('Elective High Alb Mortality:', (electiveMortality * 100).toFixed(1) + '%');
 		console.log('Ratio:', (emergencyMortality / (electiveMortality || 0.001)).toFixed(1) + 'x');
+
+		// Analyze timing patterns by department and surgery type
+		const deptTiming = new Map<string, { count: number, avgWait: number, stdDev: number }>();
+		const surgeryTiming = new Map<string, { count: number, avgWait: number, stdDev: number }>();
+		
+		// Helper to calculate running standard deviation
+		function updateStats(stats: { count: number, avgWait: number, stdDev: number }, wait: number) {
+			const oldAvg = stats.avgWait;
+			stats.count++;
+			stats.avgWait = (oldAvg * (stats.count - 1) + wait) / stats.count;
+			// Simplified running standard deviation calculation
+			stats.stdDev = Math.sqrt(((stats.count - 2) * stats.stdDev * stats.stdDev + 
+				(wait - oldAvg) * (wait - stats.avgWait)) / (stats.count - 1));
+		}
+
+		cases.forEach(c => {
+			if (c.department && c.optype && c.anestart && c.opstart) {
+				const wait = (c.opstart - c.anestart) / 60; // convert to minutes
+				
+				// Update department stats
+				if (!deptTiming.has(c.department)) {
+					deptTiming.set(c.department, { count: 0, avgWait: 0, stdDev: 0 });
+				}
+				updateStats(deptTiming.get(c.department)!, wait);
+				
+				// Update surgery type stats
+				if (!surgeryTiming.has(c.optype)) {
+					surgeryTiming.set(c.optype, { count: 0, avgWait: 0, stdDev: 0 });
+				}
+				updateStats(surgeryTiming.get(c.optype)!, wait);
+			}
+		});
+
+		// Log timing patterns
+		console.log('\nDepartment Timing Patterns (sorted by case count):');
+		Array.from(deptTiming.entries())
+			.sort((a, b) => b[1].count - a[1].count)
+			.forEach(([dept, stats]) => {
+				console.log(`${dept}: ${stats.count} cases, avg wait ${stats.avgWait.toFixed(1)} ± ${stats.stdDev.toFixed(1)} min`);
+			});
+
+		console.log('\nSurgery Type Timing Patterns (top 10 by case count):');
+		Array.from(surgeryTiming.entries())
+			.sort((a, b) => b[1].count - a[1].count)
+			.slice(0, 10)
+			.forEach(([type, stats]) => {
+				console.log(`${type}: ${stats.count} cases, avg wait ${stats.avgWait.toFixed(1)} ± ${stats.stdDev.toFixed(1)} min`);
+			});
 	}
 
 	// Function to handle filtering by department
@@ -129,12 +177,15 @@
 		<!-- 3 · OR Phase Timeline ------------------------------------------------------ -->
 		<section>
 			<h2 class="text-center text-3xl font-bold mb-1 pb-4">Time on the Table</h2>
-			<p class="mb-4 text-center max-w-2xl mx-auto">
-				Each dot marks a key moment in surgery, from case start to end. The visualization shows <strong>mean, min, and max durations</strong> for each phase across our 6,388 cases. 
-				For instance, patients typically wait <strong>45 minutes</strong> between anesthesia and operation start. Filter by age or department to compare specialties. 
+			<p class="mb-4 text-center max-w-5xl mx-auto">
+				Each dot marks a key moment in surgery. The visualization shows <strong>mean, min, and max durations</strong> across our 6,388 cases. 
+				Try the filters above—switch between department and surgery type to see how <strong>different procedures have their own rhythm</strong>. 
+				For instance, breast surgeries average just <strong>34 minutes</strong> from anesthesia to incision, while transplantations take nearly twice as long, <strong>at 70 minutes</strong>. 
+				This pre-incision time matters, as longer anesthesia exposure before surgery increases risk of complications. If you're facing surgery, 
+				use these filters to see typical timing patterns for your procedure—knowledge that can help you understand and prepare for your own surgical journey. 
 				Hover over dots for exact timing stats.
 			</p>
-			<div class="max-w-4xl mx-auto">
+			<div>
 				<AggregatedTimeline {cases} />
 			</div>
 		</section>
@@ -171,13 +222,13 @@
 					doubles the chance of a ≥ 3-day ICU stay.
 				</li>
 				<li>
-					High-albumin (> 4 g/dL) patients rarely linger, anchoring the schedule “clockwork” we saw
+					High-albumin (> 4 g/dL) patients rarely linger, anchoring the schedule "clockwork" we saw
 					in the opening hook.
 				</li>
 			</ul>
 
 			<p>
-				<b>Take-away&nbsp;→</b> Albumin isn’t a guarantee of trouble, but a
+				<b>Take-away&nbsp;→</b> Albumin isn't a guarantee of trouble, but a
 				<em>silent gravity well</em>: the lower it drops, the harder it is to climb off the ICU
 				track. Even in apparently routine electives, nutrition can tip the balance from day-case
 				discharge to days of critical care.
