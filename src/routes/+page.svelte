@@ -9,10 +9,11 @@
 	import AgeDistribution from '$lib/AgeDistribution.svelte';
 	import DepartmentDistribution from '$lib/DepartmentDistribution.svelte';
 	import AggregatedTimeline from '$lib/AggregatedTimeline.svelte';
-	import AlbuminScatter from '$lib/AlbuminScatter.svelte';
+	import AlbuminScatter from '$lib/AlbuminRiskScatter.svelte';
 	import RiskRadar from '$lib/RiskRadar.svelte';
 	import BuildPatient from '$lib/BuildPatient.svelte';
 	import RiskDumbbell from '$lib/RiskDumbbell.svelte';
+	import AlbuminRiskScatter from '$lib/AlbuminRiskScatter.svelte';
 
 	/* ---------- dataset ---------- */
 	let cases: SurgeryCase[] = [];
@@ -140,21 +141,63 @@
 
 		<!-- 4 · Albumin vs ICU Scatter ------------------------------------------------- -->
 		<section>
-			<h2>Hidden Risk Factors — Albumin × Age</h2>
-			<p class="mb-4 max-w-xl">
-				Time in the OR matters, but some risks hide in plain sight. Albumin—a simple blood protein—hints at nutritional reserve. 
-				In the scatter below, each dot represents a patient: color shows ICU days, with emergency cases marked by triangles. The data reveals a striking pattern: 
-				emergency cases with low albumin (less than 3 g/dL) have a <strong>4.2x higher mortality rate</strong> compared to elective cases with normal albumin levels (greater than 3.5 g/dL). 
-				This means that a patient's nutritional status before surgery—something we can measure and often improve—can dramatically impact their survival odds in an emergency. 
-				Hover the pale-purple dots under 3 g/dL—these patients linger nearly <strong>three days longer</strong> in ICU. Switch between a robust
-				<strong>median-bin trend</strong> and a smooth <strong>LOESS curve</strong> to see how this risk factor interacts with age.
+			<!-- ───────────── 4 · Hidden Risk Factor ───────────── -->
+			<h2>Hidden Risk Factor — The Albumin Cliff</h2>
+
+			<p>
+				<strong>x-axis</strong> = pre-operative albumin (g/dL).
+				<strong>Dot colour</strong> = post-op ICU stay (<span style="color:#a50026"
+					>red ≈ ≥ 3 days</span
+				>,
+				<span style="color:#3288bd">deep-blue ≈ 0–1 day</span>). Use the radio buttons to flip
+				between routine <b>elective</b>, urgent
+				<b>emergency</b>, or <b>all</b> cases.
 			</p>
 
-			<AlbuminScatter patients={cases} />
+			<AlbuminRiskScatter patients={cases} />
+
+			<h3>What we actually see</h3>
+			<ul class="list-inside list-disc space-y-1">
+				<li>
+					<strong>Below ~3 g/dL the risk curve tilts upward, not a wall.</strong>
+					Elective patients with low albumin have a
+					<span class="font-semibold">median ICU stay of 2.1 days (IQR 1–4)</span>, versus
+					<span class="font-semibold">0.7 days (IQR 0–1)</span>
+					above the threshold. Blue outliers exist, but long-stayers (amber & red) become three times
+					as common.
+				</li>
+				<li>
+					In emergencies the spread widens, yet the colour trend persists: albumin &lt; 3 g/dL
+					doubles the chance of a ≥ 3-day ICU stay.
+				</li>
+				<li>
+					High-albumin (> 4 g/dL) patients rarely linger, anchoring the schedule “clockwork” we saw
+					in the opening hook.
+				</li>
+			</ul>
+
+			<p>
+				<b>Take-away&nbsp;→</b> Albumin isn’t a guarantee of trouble, but a
+				<em>silent gravity well</em>: the lower it drops, the harder it is to climb off the ICU
+				track. Even in apparently routine electives, nutrition can tip the balance from day-case
+				discharge to days of critical care.
+			</p>
 		</section>
 
 		<!-- 5 · High- vs Low-Risk Outcomes -------------------------------------------- -->
-		<section>
+		<!-- <section class="my-16">
+			<h2 class="mb-4 text-2xl font-semibold">The Big Contrast — High-Risk vs Low-Risk Patients</h2>
+			<p class="mb-4 max-w-xl">
+				The chart compares median outcomes for the sickest&nbsp;0.5 % of cases against the
+				healthiest&nbsp;10 % of survivors. One polygon balloons, the other hugs the centre — showing
+				how two patients in the same operating room can face radically different fates.
+			</p>
+
+			<RiskRadar patients={cases} />
+		</section> -->
+
+		<!-- The big contrast -->
+		<!-- <section>
 			<h2 class="mb-4 text-2xl font-semibold">The Big Contrast — High vs Routine Elective</h2>
 			<p class="mb-6 max-w-xl">
 				From our 6,388 surgeries, we've pulled the sickest 0.5% and the healthiest routine cases. This is where the story takes a turn: 
@@ -164,7 +207,7 @@
 			</p>
 
 			<RiskDumbbell patients={cases} />
-		</section>
+		</section> -->
 
 		<!-- 6 · Build Your Own Patient ------------------------------------------------- -->
 		<section>
