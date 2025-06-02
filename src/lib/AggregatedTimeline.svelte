@@ -382,12 +382,15 @@
 		margin-bottom: 1.5rem;
 		padding-bottom: 1rem;
 		border-bottom: 1px solid #eee;
+		justify-content: center;
 	}
 
 	.filter-group {
 		display: flex;
 		flex-direction: column;
 		gap: 0.5rem;
+		align-items: center;
+		text-align: center;
 	}
 
 	.filter-group label {
@@ -403,6 +406,7 @@
 		border-radius: 4px;
 		font-size: 0.875rem;
 		min-width: 120px;
+		text-align: center;
 	}
 
 	.age-inputs {
@@ -413,6 +417,7 @@
 
 	.age-inputs input {
 		width: 60px;
+		text-align: center;
 	}
 
 	.timeline-visualization {
