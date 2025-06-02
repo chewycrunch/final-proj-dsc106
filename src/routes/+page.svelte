@@ -23,16 +23,20 @@
 
 	// Calculate mortality rates for different groups
 	$: if (cases.length > 0) {
-		const emergencyLowAlb = cases.filter(c => c.emop === 1 && (c.preop_alb ?? 0) < 3);
-		const electiveHighAlb = cases.filter(c => c.emop === 0 && (c.preop_alb ?? 0) > 3.5);
-		
-		const emergencyMortality = emergencyLowAlb.length > 0 
-			? emergencyLowAlb.reduce((sum, c) => sum + (c.death_inhosp ?? 0), 0) / emergencyLowAlb.length
-			: 0;
-		const electiveMortality = electiveHighAlb.length > 0
-			? electiveHighAlb.reduce((sum, c) => sum + (c.death_inhosp ?? 0), 0) / electiveHighAlb.length
-			: 0;
-		
+		const emergencyLowAlb = cases.filter((c) => c.emop === 1 && (c.preop_alb ?? 0) < 3);
+		const electiveHighAlb = cases.filter((c) => c.emop === 0 && (c.preop_alb ?? 0) > 3.5);
+
+		const emergencyMortality =
+			emergencyLowAlb.length > 0
+				? emergencyLowAlb.reduce((sum, c) => sum + (c.death_inhosp ?? 0), 0) /
+					emergencyLowAlb.length
+				: 0;
+		const electiveMortality =
+			electiveHighAlb.length > 0
+				? electiveHighAlb.reduce((sum, c) => sum + (c.death_inhosp ?? 0), 0) /
+					electiveHighAlb.length
+				: 0;
+
 		console.log('Emergency Low Alb Mortality:', (emergencyMortality * 100).toFixed(1) + '%');
 		console.log('Elective High Alb Mortality:', (electiveMortality * 100).toFixed(1) + '%');
 		console.log('Ratio:', (emergencyMortality / (electiveMortality || 0.001)).toFixed(1) + 'x');
@@ -159,10 +163,12 @@
 		<section>
 			<h2>Who Steps Into the OR?</h2>
 			<p class="mb-4 max-w-xl">
-				Let's start by meeting our patients. The charts below reveal a striking pattern: while our patients span six decades, 
-				<strong>70% cluster in just two surgical departments</strong>. This concentration—combined with age and sex differences—creates 
-				wildly different baseline risks before the first incision. Click any department bar to filter the dashboard and see how 
-				demographics shift across specialties.
+				Let's start by meeting our patients. The charts below reveal a striking pattern: while our
+				patients span six decades,
+				<strong>70% cluster in just two surgical departments</strong>. This concentration—combined
+				with age and sex differences—creates wildly different baseline risks before the first
+				incision. Click any department bar to filter the dashboard and see how demographics shift
+				across specialties.
 			</p>
 			<div class="grid gap-8 md:grid-cols-2">
 				<AgeDistribution data={filteredDepartment ? filteredCases : cases} />
@@ -195,40 +201,61 @@
 			<!-- ───────────── 4 · Hidden Risk Factor ───────────── -->
 			<h2>Hidden Risk Factor — The Albumin Cliff</h2>
 
+			<!-- Intro paragraph about albumin and its relevance -->
+			<p>
+				Albumin is a blood protein that reflects nutritional reserve and overall physiological
+				resilience. In the pre-operative setting, low albumin levels often signal that a patient’s
+				body may struggle to recover. By highlighting albumin, we remind viewers that a seemingly
+				“routine” lab value—often checked before surgery—can quietly predict who sails through the
+				OR and who may end up in the ICU. It’s the kind of hidden detail that turns “routine” into
+				“unexpected” when no one is watching.
+			</p>
+			<br />
+			<!-- Dedicated paragraph explaining the graph itself -->
 			<p>
 				<strong>x-axis</strong> = pre-operative albumin (g/dL).
 				<strong>Dot colour</strong> = post-op ICU stay (<span style="color:#a50026"
 					>red ≈ ≥ 3 days</span
 				>,
 				<span style="color:#3288bd">deep-blue ≈ 0–1 day</span>). Use the radio buttons to flip
-				between routine <b>elective</b>, urgent
-				<b>emergency</b>, or <b>all</b> cases.
+				between routine
+				<b>elective</b>, urgent <b>emergency</b>, or <b>all</b> cases. Below a certain threshold, the
+				risk of prolonged ICU stay climbs sharply—our so-called “Albumin Cliff.”
 			</p>
+			<br />
 
 			<AlbuminRiskScatter patients={cases} />
 
 			<h3>What we actually see</h3>
 			<ul class="list-inside list-disc space-y-1">
 				<li>
-					<strong>Below ~3 g/dL the risk curve tilts upward, not a wall.</strong>
-					Elective patients with low albumin have a
-					<span class="font-semibold">median ICU stay of 2.1 days (IQR 1–4)</span>, versus
-					<span class="font-semibold">0.7 days (IQR 0–1)</span>
-					above the threshold. Blue outliers exist, but long-stayers (amber & red) become three times
-					as common.
+					<strong>In elective cases, a pronounced shift appears near 3 g/dL.</strong> Patients with
+					albumin just under 3 g/dL begin to light up orange and red, whereas above 3 g/dL most stay
+					deep-blue.
+					<span class="font-semibold"
+						>Median ICU stay below 3 g/dL is about 2.1 days (IQR 1–4),</span
+					>
+					compared to
+					<span class="font-semibold">0.7 days (IQR 0–1) above 3 g/dL</span>. A few low-albumin blue
+					outliers exist, but long-stayers (amber & red) become nearly three times more common once
+					you cross that cliff.
 				</li>
 				<li>
-					In emergencies the spread widens, yet the colour trend persists: albumin &lt; 3 g/dL
-					doubles the chance of a ≥ 3-day ICU stay.
+					<strong>In emergencies, the “cliff” shifts upward to around 3.5 g/dL.</strong> Because
+					urgent cases already carry extra risk, the median albumin threshold where ICU stays spike
+					is higher. Below ~3.5 g/dL,
+					<span class="font-semibold">the chance of ≥ 3-day ICU stay more than doubles</span> compared
+					to those with albumin above 3.5 g/dL. The spread of dots is wider, but the colour gradient
+					still tilts toward red as albumin drops.
 				</li>
 				<li>
-					High-albumin (> 4 g/dL) patients rarely linger, anchoring the schedule "clockwork" we saw
+					High-albumin (> 4 g/dL) patients rarely linger, anchoring the schedule “clockwork” we saw
 					in the opening hook.
 				</li>
 			</ul>
 
 			<p>
-				<b>Take-away&nbsp;→</b> Albumin isn't a guarantee of trouble, but a
+				<b>Take-away&nbsp;→</b> Albumin isn’t a guarantee of trouble, but a
 				<em>silent gravity well</em>: the lower it drops, the harder it is to climb off the ICU
 				track. Even in apparently routine electives, nutrition can tip the balance from day-case
 				discharge to days of critical care.
@@ -264,9 +291,10 @@
 		<section>
 			<h2>Interactive Risk Builder</h2>
 			<p class="mb-4 max-w-xl">
-				Now it's your turn. Build a patient profile using the sliders below. Watch how tiny shifts—a single ASA notch or clicking 
-				'Emergency'—can triple the mortality risk instantly. We'll show you how many similar historical cases we found, so you can 
-				trust the predictions. Try the "Make a Guess" mode to test your intuition against the data.
+				Now it's your turn. Build a patient profile using the sliders below. Watch how tiny shifts—a
+				single ASA notch or clicking 'Emergency'—can triple the mortality risk instantly. We'll show
+				you how many similar historical cases we found, so you can trust the predictions. Try the
+				"Make a Guess" mode to test your intuition against the data.
 			</p>
 			<BuildPatient {cases} bind:predictors />
 		</section>
@@ -276,10 +304,11 @@
 			<div class="mx-auto max-w-2xl rounded-lg bg-indigo-50 p-8">
 				<h2 class="mb-4 text-2xl font-semibold text-indigo-900">The Takeaway</h2>
 				<p class="text-lg text-indigo-800">
-					The data reveals three critical insights: First, pre-op albumin levels—easily measured and often correctable—strongly predict 
-					ICU stays. Second, emergency status and ASA score interact in ways that standard checklists miss. And third, while we can't 
-					change age, we can optimize timing, prepare blood products, and adjust recovery expectations based on these risk factors. 
-					The data tells us where to look—before the knife ever touches skin.
+					The data reveals three critical insights: First, pre-op albumin levels—easily measured and
+					often correctable—strongly predict ICU stays. Second, emergency status and ASA score
+					interact in ways that standard checklists miss. And third, while we can't change age, we
+					can optimize timing, prepare blood products, and adjust recovery expectations based on
+					these risk factors. The data tells us where to look—before the knife ever touches skin.
 				</p>
 			</div>
 		</section>
