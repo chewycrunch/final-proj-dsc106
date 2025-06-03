@@ -182,8 +182,8 @@
 
 		<!-- 3 · OR Phase Timeline ------------------------------------------------------ -->
 		<section>
-			<h2 class="text-center text-3xl font-bold mb-1 pb-4">Time on the Table</h2>
-			<p class="mb-4 text-center max-w-5xl mx-auto">
+			<h2 class="text-left text-3xl font-bold mb-1 pb-2">Time on the Table</h2>
+			<p class="mb-4 max-w-9xl mx-auto">
 				Each dot marks a key moment in surgery. The visualization shows <strong>mean, min, and max durations</strong> across our 6,388 cases. 
 				Try the filters above—switch between department and surgery type to see how <strong>different procedures have their own rhythm</strong>. 
 				For instance, breast surgeries average just <strong>34 minutes</strong> from anesthesia to incision, while transplantations take nearly twice as long, <strong>at 70 minutes</strong>. 
@@ -204,11 +204,11 @@
 			<!-- Intro paragraph about albumin and its relevance -->
 			<p>
 				Albumin is a blood protein that reflects nutritional reserve and overall physiological
-				resilience. In the pre-operative setting, low albumin levels often signal that a patient’s
+				resilience. In the pre-operative setting, low albumin levels often signal that a patient's
 				body may struggle to recover. By highlighting albumin, we remind viewers that a seemingly
-				“routine” lab value—often checked before surgery—can quietly predict who sails through the
-				OR and who may end up in the ICU. It’s the kind of hidden detail that turns “routine” into
-				“unexpected” when no one is watching.
+				"routine" lab value—often checked before surgery—can quietly predict who sails through the
+				OR and who may end up in the ICU. It's the kind of hidden detail that turns "routine" into
+				"unexpected" when no one is watching.
 			</p>
 			<br />
 			<!-- Dedicated paragraph explaining the graph itself -->
@@ -220,7 +220,7 @@
 				<span style="color:#3288bd">deep-blue ≈ 0–1 day</span>). Use the radio buttons to flip
 				between routine
 				<b>elective</b>, urgent <b>emergency</b>, or <b>all</b> cases. Below a certain threshold, the
-				risk of prolonged ICU stay climbs sharply—our so-called “Albumin Cliff.”
+				risk of prolonged ICU stay climbs sharply—our so-called "Albumin Cliff."
 			</p>
 			<br />
 
@@ -241,7 +241,7 @@
 					you cross that cliff.
 				</li>
 				<li>
-					<strong>In emergencies, the “cliff” shifts upward to around 3.5 g/dL.</strong> Because
+					<strong>In emergencies, the "cliff" shifts upward to around 3.5 g/dL.</strong> Because
 					urgent cases already carry extra risk, the median albumin threshold where ICU stays spike
 					is higher. Below ~3.5 g/dL,
 					<span class="font-semibold">the chance of ≥ 3-day ICU stay more than doubles</span> compared
@@ -249,13 +249,13 @@
 					still tilts toward red as albumin drops.
 				</li>
 				<li>
-					High-albumin (> 4 g/dL) patients rarely linger, anchoring the schedule “clockwork” we saw
+					High-albumin (> 4 g/dL) patients rarely linger, anchoring the schedule "clockwork" we saw
 					in the opening hook.
 				</li>
 			</ul>
 
 			<p>
-				<b>Take-away&nbsp;→</b> Albumin isn’t a guarantee of trouble, but a
+				<b>Take-away&nbsp;→</b> Albumin isn't a guarantee of trouble, but a
 				<em>silent gravity well</em>: the lower it drops, the harder it is to climb off the ICU
 				track. Even in apparently routine electives, nutrition can tip the balance from day-case
 				discharge to days of critical care.
