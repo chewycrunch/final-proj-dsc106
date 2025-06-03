@@ -11,8 +11,8 @@
 
     export let data: Array<{ age?: number; sex?: string }> = [];
     let svg: SVGSVGElement;
-    let showBySex = true; // Set to true by default to split by sex when page loads
-    export let showPercentage = false;
+    let showBySex = false;
+    let showPercentage = false;
     let ageRange: [number | null, number | null] = [null, null];
     
     // Set up event dispatcher to communicate with parent components
@@ -58,7 +58,7 @@
         if (!data.length) return;
         select(svg).selectAll('*').remove();
 
-        const margin = { top: 30, right: 40, bottom: 70, left: 70 };
+        const margin = { top: 30, right: 30, bottom: 60, left: 50 };
         const width = 600 - margin.left - margin.right;
         const height = 350 - margin.top - margin.bottom;
 
@@ -379,9 +379,9 @@
         g.append('text')
             .attr('transform', 'rotate(-90)')
             .attr('x', -height / 2)
-            .attr('y', -45) // Increased spacing
+            .attr('y', -35)
             .attr('text-anchor', 'middle')
-            .text(showPercentage ? 'Percentage of Cases (%)' : 'Number of Cases')
+            .text(showPercentage ? 'Percentage of Patients (%)' : 'Number of Patients')
             .style('font-size', '14px');
             
         // Add title
@@ -534,7 +534,6 @@
                 // Hide any tooltips when changing view mode
                 select('body').select('.age-tooltip').style('opacity', 0);
                 draw();
-                dispatch('percentageChange', { showPercentage });
             }} />
             Show percentages
         </label>
@@ -559,7 +558,7 @@
     </div>
     
     <div class="chart">
-        <svg bind:this={svg} class="h-auto w-full" style="height: 350px;"></svg>
+        <svg bind:this={svg} class="h-auto w-full"></svg>
     </div>
     
     <div class="insights">
