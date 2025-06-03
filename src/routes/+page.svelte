@@ -3,18 +3,74 @@
 	import { onMount } from 'svelte';
 	import { csv } from 'd3-fetch';
 	import { base } from '$app/paths';
+	
+	// Define the SurgeryCase type to fix TypeScript errors
+	interface SurgeryCase {
+		age?: number;
+		sex?: string;
+		department: string;
+		[key: string]: any; // Allow any other properties
+	}
 
 	/* ---------- visual sections (they each do their own processing) ---------- */
 	import AgeDistribution from '$lib/AgeDistribution.svelte';
 	import DepartmentDistribution from '$lib/DepartmentDistribution.svelte';
-	import AggregatedTimeline from '$lib/AggregatedTimeline.svelte';
-	import AlbuminScatter from '$lib/AlbuminScatter.svelte';
-	import RiskRadar from '$lib/RiskRadar.svelte';
-	import BuildPatient from '$lib/BuildPatient.svelte';
+	// import AggregatedTimeline from '$lib/AggregatedTimeline.svelte';
+	// import AlbuminScatter from '$lib/AlbuminScatter.svelte';
+	// import RiskRadar from '$lib/RiskRadar.svelte';
+	// import BuildPatient from '$lib/BuildPatient.svelte';
 
 	/* ---------- dataset ---------- */
 	let cases: SurgeryCase[] = [];
+	let filteredCases: SurgeryCase[] = [];
+	let filteredDepartment: string | null = null;
+	let filteredAgeRange: [number, number] | null = null;
+	let showPercentage = false; // Shared state for both charts
 	let loading = true;
+	
+	// Function to trigger a redraw when the percentage view changes
+	function draw() {
+		// This will be called when showPercentage changes to update both charts
+	}
+	
+	// Function to handle filtering by department
+	function handleDepartmentFilter(event: CustomEvent) {
+		const { department } = event.detail;
+		filteredDepartment = department;
+		
+		applyFilters();
+	}
+	
+	// Function to handle filtering by age range
+	function handleAgeFilter(event: CustomEvent) {
+		const { ageRange } = event.detail;
+		filteredAgeRange = ageRange;
+		
+		applyFilters();
+	}
+	
+	// Apply all active filters
+	function applyFilters() {
+		// Start with all cases
+		let result = [...cases];
+		
+		// Apply department filter if active
+		if (filteredDepartment) {
+			result = result.filter(c => c.department === filteredDepartment);
+		}
+		
+		// Apply age filter if active
+		if (filteredAgeRange) {
+			result = result.filter(c => 
+				c.age !== undefined && 
+				c.age >= filteredAgeRange[0] && 
+				c.age <= filteredAgeRange[1]
+			);
+		}
+		
+		// Update filtered cases
+		filteredCases = result;
+	}
 
 	/** helper - cast numeric-looking strings to Number, leave others as string */
 	function coerce(v: string | undefined): string | number {
@@ -24,14 +80,17 @@
 
 	onMount(async () => {
 		const url = `${base}/cases.csv`;
-
 		cases = await csv<SurgeryCase>(url, (row) => {
 			// iterate over every header present in the CSV row
 			const rec: any = {};
 			for (const k in row) rec[k] = coerce(row[k]);
+			// Ensure department is always present as a string (fallback to empty string if missing)
+			rec.department = typeof rec.department === 'string' ? rec.department : '';
 			return rec as SurgeryCase; // keep full schema; components will pick what they need
 		});
-
+		
+		// Initialize filtered cases with all cases
+		filteredCases = [...cases];
 		loading = false;
 	});
 
@@ -58,8 +117,8 @@
 		<section>
 			<h2>Who Steps Into the OR?</h2>
 			<div class="grid gap-8 md:grid-cols-2">
-				<AgeDistribution {cases} />
-				<DepartmentDistribution {cases} />
+				<AgeDistribution data={filteredDepartment ? filteredCases : cases} bind:showPercentage />
+				<DepartmentDistribution data={cases} {filteredDepartment} {showPercentage} on:filter={handleDepartmentFilter} />
 			</div>
 		</section>
 
@@ -69,25 +128,25 @@
 			<p class="mb-4">
 				Compare anaesthesia, incision, and recovery time across departments or surgery types.
 			</p>
-			<AggregatedTimeline {cases} />
+			<!-- <AggregatedTimeline {cases} /> -->
 		</section>
 
 		<!-- 4 · Albumin vs ICU Scatter ------------------------------------------------- -->
 		<section>
 			<h2>Low Albumin ↔ Long ICU Stay?</h2>
-			<AlbuminScatter {cases} />
+			<!-- <AlbuminScatter {cases} /> -->
 		</section>
 
 		<!-- 5 · High- vs Low-Risk Outcomes -------------------------------------------- -->
 		<section>
 			<h2>High-Risk vs Low-Risk Profiles</h2>
-			<RiskRadar {cases} />
+			<!-- <RiskRadar {cases} /> -->
 		</section>
 
 		<!-- 6 · Build Your Own Patient ------------------------------------------------- -->
 		<section>
 			<h2>Interactive Risk Builder</h2>
-			<BuildPatient {cases} bind:predictors />
+			<!-- <BuildPatient {cases} bind:predictors /> -->
 		</section>
 	</article>
 {/if}
