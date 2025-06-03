@@ -10,9 +10,9 @@
     import { transition } from 'd3-transition';
 
     export let data: Array<{ age?: number; sex?: string }> = [];
+    export let showPercentage = false; // Now this can be controlled externally
     let svg: SVGSVGElement;
-    let showBySex = false;
-    let showPercentage = false;
+    let showBySex = true;
     let ageRange: [number | null, number | null] = [null, null];
     
     // Set up event dispatcher to communicate with parent components
@@ -352,7 +352,6 @@
                     tooltip.transition()
                         .duration(500)
                         .style('opacity', 0);
-                        
                     select(this).attr('stroke', 'white').attr('stroke-width', 0.5);
                 });
         }
@@ -373,7 +372,7 @@
             .attr('x', width / 2)
             .attr('y', height + 40)
             .attr('text-anchor', 'middle')
-            .text('Age (years)')
+            .text(showBySex ? 'Age (years)' : 'Number of Cases')
             .style('font-size', '14px');
 
         g.append('text')
@@ -381,7 +380,7 @@
             .attr('x', -height / 2)
             .attr('y', -35)
             .attr('text-anchor', 'middle')
-            .text(showPercentage ? 'Percentage of Patients (%)' : 'Number of Patients')
+            .text(showPercentage ? 'Percentage of Cases (%)' : 'Number of Cases')
             .style('font-size', '14px');
             
         // Add title
@@ -391,7 +390,7 @@
             .attr('text-anchor', 'middle')
             .style('font-size', '16px')
             .style('font-weight', 'bold')
-            .text('Age Distribution of Surgical Patients');
+            .text('Age Distribution of Surgical Cases');
 
         // Add median line and IQR
         const medianX = x(stats.median);
@@ -533,6 +532,10 @@
             <input type="checkbox" bind:checked={showPercentage} on:change={() => {
                 // Hide any tooltips when changing view mode
                 select('body').select('.age-tooltip').style('opacity', 0);
+                
+                // Dispatch event to notify other components of percentage view change
+                dispatch('percentageChange', { showPercentage });
+                
                 draw();
             }} />
             Show percentages
@@ -553,7 +556,7 @@
         </div>
         {/if}
         <p class="scale-note">
-            <i>Tip: Click and drag on the chart to filter by age range</i>
+            <i>Tip: Click and drag on this chart to filter by age range. You can also click on department bars in the chart below to filter by department.</i>
         </p>
     </div>
     
@@ -563,11 +566,11 @@
     
     <div class="insights">
         <p class="insight-text">
-            Our surgical patients span six decades of life. The median age of {medianAge.toFixed(1)}
+            Our surgical cases span six decades of life. The median age of {medianAge.toFixed(1)}
             suggests an aging population, with implications for surgical risk and recovery considerations.
             {#if showBySex}
             <span class="hint">
-                Up through the 40-to-50 age range, female patients slightly outnumber males—likely reflecting a higher volume of elective and gynecologic‐related procedures in middle-aged women. After age 60, male surgical cases begin to exceed female, which may be driven by increased cardiovascular and oncologic interventions in older men.
+                Up through the 40-to-50 age range, female cases slightly outnumber males—likely reflecting a higher volume of elective and gynecologic‐related procedures in middle-aged women. After age 60, male surgical cases begin to exceed female, which may be driven by increased cardiovascular and oncologic interventions in older men.
             </span>
             {/if}
         </p>
