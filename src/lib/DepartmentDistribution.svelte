@@ -8,10 +8,10 @@
 
 	export let data: Array<{ department: string; age?: number; sex?: string }> = [];
 	export let filteredDepartment: string | null = null;
+	export let showPercentage = false; // Now a prop that can be controlled from parent
 	
 	let svg: SVGSVGElement;
-	let title = "2.2 Department Volume";
-	let showPercentage = false; // State variable for toggling display mode
+	let title = "Distribution by Surgical Department";
 	
 	// Set up event dispatcher to communicate with parent components
 	const dispatch = createEventDispatcher();
@@ -20,8 +20,8 @@
 		if (!data.length) return;
 		select(svg).selectAll('*').remove();
 
-		// Match dimensions with AgeDistribution component
-		const margin = { top: 30, right: 30, bottom: 60, left: 50 };
+		// Match dimensions with AgeDistribution component - increased margins for better label spacing
+		const margin = { top: 30, right: 40, bottom: 70, left: 70 };
 		const width = 600 - margin.left - margin.right;
 		const height = 350 - margin.top - margin.bottom;
 
@@ -51,10 +51,14 @@
 			.range([0, width])
 			.padding(0.2);
 
+		// Get the maximum values for both raw counts and percentages
+		const maxCount = max(entries, d => d.value) as number;
+		const maxPercent = max(entriesWithPercent, d => d.percent) as number;
+			
+		// Calculate a consistent scale factor to maintain bar heights
+		// We'll maintain the same relative heights between bars regardless of view mode
 		const y = scaleLinear()
-			.domain([0, showPercentage ? 
-				max(entriesWithPercent, (d) => d.percent) as number : 
-				max(entries, (d) => d.value) as number])
+			.domain([0, maxCount])
 			.nice()
 			.range([height, 0]);
 
@@ -69,7 +73,7 @@
 		// Add title
 		g.append('text')
 			.attr('x', width / 2)
-			.attr('y', -15)
+			.attr('y', -10)
 			.attr('text-anchor', 'middle')
 			.attr('class', 'chart-title')
 			.style('font-size', '16px')
@@ -139,6 +143,7 @@
 			.attr('stroke-width', 1)
 			.attr('class', 'dept-bar')
 			.style('cursor', 'pointer')
+			.style('transition', 'all 0.2s ease')
 			.on('mouseover', function(event, d) {
 				// Highlight bar
 				select(this)
@@ -162,7 +167,9 @@
 						<div>Median age: <b>${format(".1f")(stats.medianAge)}</b> years</div>
 						<div>IQR: <b>${format(".1f")(stats.q1)} - ${format(".1f")(stats.q3)}</b></div>
 					</div>
-					<div style="margin-top: 5px; font-size: 10px; color: #666;">Click to filter dashboard by department</div>
+					<div style="margin-top: 5px; font-size: 10px; color: #666;">
+						<span style="color: #ff7f50; font-weight: bold;">Click</span> to filter age distribution by this department
+					</div>
 				`)
 				.style('visibility', 'visible')
 				.style('left', (event.pageX + 15) + 'px')
@@ -217,18 +224,20 @@
 			.selectAll('text')
 			.attr('transform', 'rotate(-45)')
 			.attr('text-anchor', 'end')
-			.style('font-size', '12px');
+			.attr('dx', '-.5em')
+			.attr('dy', '.15em')
+			.style('font-size', '11px');
 
 		g.append('g')
 			.call(axisLeft(y).tickFormat(d => showPercentage ? 
 				format(".1f")(d as number) + "%" : 
 				format(",.0f")(d as number)))
-			.style('font-size', '12px');
+			.style('font-size', '11px');
 
 		// Add axis labels
 		g.append('text')
 			.attr('x', width / 2)
-			.attr('y', height + 50)
+			.attr('y', height + 65)
 			.attr('text-anchor', 'middle')
 			.style('font-size', '14px')
 			.text('Surgical Department');
@@ -236,42 +245,10 @@
 		g.append('text')
 			.attr('transform', 'rotate(-90)')
 			.attr('x', -height / 2)
-			.attr('y', -40)
+			.attr('y', -50)
 			.attr('text-anchor', 'middle')
 			.style('font-size', '14px')
 			.text(showPercentage ? 'Percentage of Cases' : 'Number of Cases');
-			
-		// Add insight annotation for the top two departments
-		const topX = width * 0.75;
-		const topY = height * 0.25;
-		
-		g.append('rect')
-			.attr('x', topX - 100)
-			.attr('y', topY - 40)
-			.attr('width', 200)
-			.attr('height', 60)
-			.attr('fill', '#f8f9fa')
-			.attr('stroke', '#2a6d7c')
-			.attr('stroke-width', 1)
-			.attr('rx', 5)
-			.attr('opacity', 0.9);
-			
-		g.append('text')
-			.attr('x', topX)
-			.attr('y', topY - 15)
-			.attr('text-anchor', 'middle')
-			.style('font-size', '14px')
-			.style('font-weight', 'bold')
-			.style('fill', '#2a6d7c')
-			.text(`${format(".0f")(topTwoPercent)}% of cases`);
-			
-		g.append('text')
-			.attr('x', topX)
-			.attr('y', topY + 5)
-			.attr('text-anchor', 'middle')
-			.style('font-size', '12px')
-			.style('fill', '#333')
-			.text('in just 2 departments');
 	}
 
 	// Function to handle clearing filters when clicking outside the bars
@@ -321,21 +298,12 @@
     {:else}
     <div class="insight-box">
         <p class="insight-text">
-            Our patients span six decades, but <strong>70% of them cluster in just two surgical departments</strong>, 
+            Our patients span six decades, but <strong>95% of them cluster in just two surgical departments</strong>, 
             setting the stage for wildly different baseline risks.
+            <span class="interaction-hint">Click any department bar to filter the age distribution →</span>
         </p>
     </div>
     {/if}
-    
-    <!-- Toggle button for count/percentage view -->
-    <div class="toggle-view">
-        <button class="toggle-btn {showPercentage ? 'active' : ''}" on:click={() => { showPercentage = true; draw(); }}>
-            % View
-        </button>
-        <button class="toggle-btn {showPercentage === false ? 'active' : ''}" on:click={() => { showPercentage = false; draw(); }}>
-            Count View
-        </button>
-    </div>
 </div>
 
 <style>
@@ -358,6 +326,14 @@
         line-height: 1.4;
         margin: 0;
         color: #333;
+    }
+    
+    .interaction-hint {
+        display: block;
+        margin-top: 0.5rem;
+        font-style: italic;
+        color: #666;
+        font-size: 0.85rem;
     }
     
     .filter-notice {
@@ -401,33 +377,6 @@
     
     .clear-filter:hover {
         background-color: #ddd;
-    }
-    
-    .toggle-view {
-        display: flex;
-        justify-content: flex-end;
-        gap: 0.5rem;
-        margin-top: 0.5rem;
-    }
-    
-    .toggle-btn {
-        background-color: #f1f1f1;
-        border: 1px solid #ccc;
-        border-radius: 3px;
-        padding: 0.4rem 0.8rem;
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-    
-    .toggle-btn:hover {
-        background-color: #e1e1e1;
-    }
-    
-    .toggle-btn.active {
-        background-color: #2a6d7c;
-        color: white;
-        border-color: #2a6d7c;
     }
     
     :global(.chart-title) {
