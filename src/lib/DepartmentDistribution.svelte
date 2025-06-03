@@ -8,10 +8,10 @@
 
 	export let data: Array<SurgeryCase> = [];
 	export let filteredDepartment: string | null = null;
+	export let showPercentage = false; // Now this can be controlled externally
 
 	let svg: SVGSVGElement;
-	let title = '2.2 Department Volume';
-	let showPercentage = false; // State variable for toggling display mode
+	let title = 'Department Distribution of Surgical Cases';
 
 	// Set up event dispatcher to communicate with parent components
 	const dispatch = createEventDispatcher();
@@ -21,7 +21,7 @@
 		select(svg).selectAll('*').remove();
 
 		// Match dimensions with AgeDistribution component
-		const margin = { top: 30, right: 30, bottom: 60, left: 50 };
+		const margin = { top: 30, right: 30, bottom: 90, left: 60 };
 		const width = 600 - margin.left - margin.right;
 		const height = 350 - margin.top - margin.bottom;
 
@@ -244,7 +244,7 @@
 		// Add axis labels
 		g.append('text')
 			.attr('x', width / 2)
-			.attr('y', height + 50)
+			.attr('y', height + 75)
 			.attr('text-anchor', 'middle')
 			.style('font-size', '14px')
 			.text('Surgical Department');
@@ -252,42 +252,12 @@
 		g.append('text')
 			.attr('transform', 'rotate(-90)')
 			.attr('x', -height / 2)
-			.attr('y', -40)
+			.attr('y', -50)
 			.attr('text-anchor', 'middle')
 			.style('font-size', '14px')
 			.text(showPercentage ? 'Percentage of Cases' : 'Number of Cases');
 
-		// Add insight annotation for the top two departments
-		const topX = width * 0.75;
-		const topY = height * 0.25;
-
-		g.append('rect')
-			.attr('x', topX - 100)
-			.attr('y', topY - 40)
-			.attr('width', 200)
-			.attr('height', 60)
-			.attr('fill', '#f8f9fa')
-			.attr('stroke', '#2a6d7c')
-			.attr('stroke-width', 1)
-			.attr('rx', 5)
-			.attr('opacity', 0.9);
-
-		g.append('text')
-			.attr('x', topX)
-			.attr('y', topY - 15)
-			.attr('text-anchor', 'middle')
-			.style('font-size', '14px')
-			.style('font-weight', 'bold')
-			.style('fill', '#2a6d7c')
-			.text(`${format('.0f')(topTwoPercent)}% of cases`);
-
-		g.append('text')
-			.attr('x', topX)
-			.attr('y', topY + 5)
-			.attr('text-anchor', 'middle')
-			.style('font-size', '12px')
-			.style('fill', '#333')
-			.text('in just 2 departments');
+		// Insight annotation removed as requested
 	}
 
 	// Function to handle clearing filters when clicking outside the bars
@@ -318,6 +288,18 @@
 		};
 	});
 
+	// Reactive statement to respond to showPercentage changes
+	$: if (svg) {
+		// Redraw the chart when showPercentage changes
+		draw();
+	}
+	
+	// Reactive statement to respond to data changes (when age filtering is applied)
+	$: if (svg && data) {
+		// Redraw the chart when data changes due to filtering
+		draw();
+	}
+
 	afterUpdate(draw);
 </script>
 
@@ -336,33 +318,13 @@
 		<div class="insight-box">
 			<p class="insight-text">
 				Our patients span six decades, but <strong
-					>70% of them cluster in just two surgical departments</strong
+					>95% of them cluster in just two surgical departments</strong
 				>, setting the stage for wildly different baseline risks.
 			</p>
 		</div>
 	{/if}
 
-	<!-- Toggle button for count/percentage view -->
-	<div class="toggle-view">
-		<button
-			class="toggle-btn {showPercentage ? 'active' : ''}"
-			on:click={() => {
-				showPercentage = true;
-				draw();
-			}}
-		>
-			% View
-		</button>
-		<button
-			class="toggle-btn {showPercentage === false ? 'active' : ''}"
-			on:click={() => {
-				showPercentage = false;
-				draw();
-			}}
-		>
-			Count View
-		</button>
-	</div>
+	<!-- Percentage toggle removed - now controlled by AgeDistribution -->
 </div>
 
 <style>
@@ -428,33 +390,6 @@
 
 	.clear-filter:hover {
 		background-color: #ddd;
-	}
-
-	.toggle-view {
-		display: flex;
-		justify-content: flex-end;
-		gap: 0.5rem;
-		margin-top: 0.5rem;
-	}
-
-	.toggle-btn {
-		background-color: #f1f1f1;
-		border: 1px solid #ccc;
-		border-radius: 3px;
-		padding: 0.4rem 0.8rem;
-		font-size: 0.8rem;
-		cursor: pointer;
-		transition: background-color 0.3s;
-	}
-
-	.toggle-btn:hover {
-		background-color: #e1e1e1;
-	}
-
-	.toggle-btn.active {
-		background-color: #2a6d7c;
-		color: white;
-		border-color: #2a6d7c;
 	}
 
 	:global(.chart-title) {

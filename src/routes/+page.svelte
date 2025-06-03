@@ -20,6 +20,8 @@
 	let loading = true;
 	let filteredCases: SurgeryCase[] = [];
 	let filteredDepartment: string | null = null;
+	let filteredAgeRange: [number, number] | null = null;
+	let showPercentage = false; // Shared state for percentage view
 
 	// Calculate mortality rates for different groups
 	$: if (cases.length > 0) {
@@ -94,12 +96,44 @@
 	function handleDepartmentFilter(event: CustomEvent) {
 		const { department } = event.detail;
 		filteredDepartment = department;
-
-		if (department) {
-			filteredCases = cases.filter((c) => c.department === department);
-		} else {
-			filteredCases = [...cases];
+		
+		applyFilters();
+	}
+	
+	// Function to handle percentage view changes
+	function handlePercentageChange(event: CustomEvent) {
+		showPercentage = event.detail.showPercentage;
+	}
+	
+	// Function to handle age range filtering
+	function handleAgeFilter(event: CustomEvent) {
+		const { ageRange } = event.detail;
+		filteredAgeRange = ageRange;
+		
+		applyFilters();
+	}
+	
+	// Apply both department and age filters together
+	function applyFilters() {
+		// Start with all cases
+		let filtered = [...cases];
+		
+		// Apply department filter if active
+		if (filteredDepartment) {
+			filtered = filtered.filter(c => c.department === filteredDepartment);
 		}
+		
+		// Apply age range filter if active
+		if (filteredAgeRange) {
+			filtered = filtered.filter(c => 
+				c.age !== undefined && 
+				c.age >= filteredAgeRange[0] && 
+				c.age <= filteredAgeRange[1]
+			);
+		}
+		
+		// Update filtered cases
+		filteredCases = filtered;
 	}
 
 	/** helper - cast numeric-looking strings to Number, leave others as string */
@@ -167,14 +201,20 @@
 				patients span six decades,
 				<strong>70% cluster in just two surgical departments</strong>. This concentration—combined
 				with age and sex differences—creates wildly different baseline risks before the first
-				incision. Click any department bar to filter the dashboard and see how demographics shift
+				incision. Click any department bar or select an age range to filter the dashboard and see how demographics shift
 				across specialties.
 			</p>
 			<div class="grid gap-8 md:grid-cols-2">
-				<AgeDistribution data={filteredDepartment ? filteredCases : cases} />
+				<AgeDistribution 
+					data={filteredDepartment ? filteredCases : cases} 
+					bind:showPercentage={showPercentage}
+					on:percentageChange={handlePercentageChange}
+					on:filter={handleAgeFilter}
+				/>
 				<DepartmentDistribution
-					data={cases}
+					data={filteredAgeRange ? filteredCases : cases}
 					{filteredDepartment}
+					{showPercentage}
 					on:filter={handleDepartmentFilter}
 				/>
 			</div>
