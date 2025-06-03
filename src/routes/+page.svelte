@@ -3,22 +3,17 @@
 	import { onMount } from 'svelte';
 	import { csv } from 'd3-fetch';
 	import { base } from '$app/paths';
-	
-	// Define the SurgeryCase type to fix TypeScript errors
-	interface SurgeryCase {
-		age?: number;
-		sex?: string;
-		department: string;
-		[key: string]: any; // Allow any other properties
-	}
+	import HeroCounter from '$lib/HeroCounter.svelte';
 
 	/* ---------- visual sections (they each do their own processing) ---------- */
 	import AgeDistribution from '$lib/AgeDistribution.svelte';
 	import DepartmentDistribution from '$lib/DepartmentDistribution.svelte';
-	// import AggregatedTimeline from '$lib/AggregatedTimeline.svelte';
-	// import AlbuminScatter from '$lib/AlbuminScatter.svelte';
-	// import RiskRadar from '$lib/RiskRadar.svelte';
-	// import BuildPatient from '$lib/BuildPatient.svelte';
+	import AggregatedTimeline from '$lib/AggregatedTimeline.svelte';
+	import AlbuminScatter from '$lib/AlbuminRiskScatter.svelte';
+	import RiskRadar from '$lib/RiskRadar.svelte';
+	import BuildPatient from '$lib/BuildPatient.svelte';
+	import RiskDumbbell from '$lib/RiskDumbbell.svelte';
+	import AlbuminRiskScatter from '$lib/AlbuminRiskScatter.svelte';
 
 	/* ---------- dataset ---------- */
 	let cases: SurgeryCase[] = [];
@@ -27,50 +22,6 @@
 	let filteredAgeRange: [number, number] | null = null;
 	let showPercentage = false; // Shared state for both charts
 	let loading = true;
-	
-	// Function to trigger a redraw when the percentage view changes
-	function draw() {
-		// This will be called when showPercentage changes to update both charts
-	}
-	
-	// Function to handle filtering by department
-	function handleDepartmentFilter(event: CustomEvent) {
-		const { department } = event.detail;
-		filteredDepartment = department;
-		
-		applyFilters();
-	}
-	
-	// Function to handle filtering by age range
-	function handleAgeFilter(event: CustomEvent) {
-		const { ageRange } = event.detail;
-		filteredAgeRange = ageRange;
-		
-		applyFilters();
-	}
-	
-	// Apply all active filters
-	function applyFilters() {
-		// Start with all cases
-		let result = [...cases];
-		
-		// Apply department filter if active
-		if (filteredDepartment) {
-			result = result.filter(c => c.department === filteredDepartment);
-		}
-		
-		// Apply age filter if active
-		if (filteredAgeRange) {
-			result = result.filter(c => 
-				c.age !== undefined && 
-				c.age >= filteredAgeRange[0] && 
-				c.age <= filteredAgeRange[1]
-			);
-		}
-		
-		// Update filtered cases
-		filteredCases = result;
-	}
 
 	/** helper - cast numeric-looking strings to Number, leave others as string */
 	function coerce(v: string | undefined): string | number {
@@ -103,50 +54,96 @@
 {:else}
 	<article class="prose mx-auto space-y-20 py-10">
 		<!-- 1 · Hook ------------------------------------------------------------------ -->
-		<section>
-			<h1 class="text-3xl font-semibold">
-				Vitals Unveiled: Building Patient Profiles to Forecast Surgical Risk
+		<section class="space-y-6 text-center">
+			<h1 class="text-4xl leading-tight font-semibold md:text-5xl">
+				Vitals&nbsp;Unveiled:<br />
+				<span class="text-indigo-600">Why Some "Routine" Surgeries Aren't</span>
 			</h1>
-			<p>
-				Surgeries feel routine—until they’re not. Scroll to uncover hidden patterns in
-				<strong>{cases.length}</strong> operations.
+
+			<p class="mx-auto max-w-2xl text-lg md:text-xl">
+				Every morning an OR schedule hums like clockwork. <strong>6 388</strong> patients arrive,
+				expecting a smooth ride through anesthesia and stitched-up certainty. Yet buried in those
+				charts are <em>blood-loss spikes, surprise ICU transfers, and silent tragedies</em> that no checklist
+				predicted. What separates the happy recoveries from the heart-stopping detours?
 			</p>
+
+			<p class="mx-auto max-w-2xl text-lg md:text-xl">
+				Scroll on 👇 as we crack open the VitalDB dataset to follow every heartbeat, incision, and
+				lab value—then build <strong>interactive risk profiles</strong> that may one day warn us before
+				routine turns to critical.
+			</p>
+
+			<!-- hero counter ---------------------------------------------------------- -->
+			<HeroCounter
+				stats={[
+					{ label: 'Total Surgeries', value: cases.length },
+					{ label: 'ICU Transfers', value: cases.filter((c) => (c.icu_days ?? 0) > 0).length },
+					{ label: 'In-hospital Deaths', value: cases.filter((c) => c.death_inhosp == 1).length }
+				]}
+			/>
 		</section>
 
 		<!-- 2 · Demographics ----------------------------------------------------------- -->
 		<section>
 			<h2>Who Steps Into the OR?</h2>
+			<p class="mb-4 max-w-xl">
+				Let's start by meeting our patients. The charts below reveal a striking pattern: while our
+				patients span six decades,
+				<strong>70% cluster in just two surgical departments</strong>. This concentration—combined
+				with age and sex differences—creates wildly different baseline risks before the first
+				incision. Click any department bar to filter the dashboard and see how demographics shift
+				across specialties.
+			</p>
 			<div class="grid gap-8 md:grid-cols-2">
-				<AgeDistribution data={filteredDepartment ? filteredCases : cases} bind:showPercentage />
-				<DepartmentDistribution data={cases} {filteredDepartment} {showPercentage} on:filter={handleDepartmentFilter} />
+				<AgeDistribution {cases} />
+				<DepartmentDistribution {cases} />
 			</div>
 		</section>
 
 		<!-- 3 · OR Phase Timeline ------------------------------------------------------ -->
 		<section>
-			<h2>Time on the Table</h2>
-			<p class="mb-4">
-				Compare anaesthesia, incision, and recovery time across departments or surgery types.
+			<h2 class="text-center text-3xl font-bold mb-1 pb-4">Time on the Table</h2>
+			<p class="mb-4 text-center max-w-5xl mx-auto">
+				Each dot marks a key moment in surgery. The visualization shows <strong>mean, min, and max durations</strong> across our 6,388 cases. 
+				Try the filters above—switch between department and surgery type to see how <strong>different procedures have their own rhythm</strong>. 
+				For instance, breast surgeries average just <strong>34 minutes</strong> from anesthesia to incision, while transplantations take nearly twice as long, <strong>at 70 minutes</strong>. 
+				This pre-incision time matters, as longer anesthesia exposure before surgery increases risk of complications. If you're facing surgery, 
+				use these filters to see typical timing patterns for your procedure—knowledge that can help you understand and prepare for your own surgical journey. 
+				Hover over dots for exact timing stats.
 			</p>
-			<!-- <AggregatedTimeline {cases} /> -->
+			<AggregatedTimeline {cases} />
 		</section>
 
 		<!-- 4 · Albumin vs ICU Scatter ------------------------------------------------- -->
 		<section>
 			<h2>Low Albumin ↔ Long ICU Stay?</h2>
-			<!-- <AlbuminScatter {cases} /> -->
+			<AlbuminScatter {cases} />
 		</section>
 
 		<!-- 5 · High- vs Low-Risk Outcomes -------------------------------------------- -->
 		<section>
 			<h2>High-Risk vs Low-Risk Profiles</h2>
-			<!-- <RiskRadar {cases} /> -->
+			<RiskRadar {cases} />
 		</section>
 
 		<!-- 6 · Build Your Own Patient ------------------------------------------------- -->
 		<section>
 			<h2>Interactive Risk Builder</h2>
-			<!-- <BuildPatient {cases} bind:predictors /> -->
+			<BuildPatient {cases} bind:predictors />
+		</section>
+
+		<!-- 7 · Final Takeaway -------------------------------------------------------- -->
+		<section class="text-center">
+			<div class="mx-auto max-w-2xl rounded-lg bg-indigo-50 p-8">
+				<h2 class="mb-4 text-2xl font-semibold text-indigo-900">The Takeaway</h2>
+				<p class="text-lg text-indigo-800">
+					The data reveals three critical insights: First, pre-op albumin levels—easily measured and
+					often correctable—strongly predict ICU stays. Second, emergency status and ASA score
+					interact in ways that standard checklists miss. And third, while we can't change age, we
+					can optimize timing, prepare blood products, and adjust recovery expectations based on
+					these risk factors. The data tells us where to look—before the knife ever touches skin.
+				</p>
+			</div>
 		</section>
 	</article>
 {/if}

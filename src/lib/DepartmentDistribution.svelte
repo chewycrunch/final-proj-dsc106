@@ -6,7 +6,7 @@
 	import { rollup, max, sum, descending, median, quantile } from 'd3-array';
 	import { format } from 'd3-format';
 
-	export let data: Array<{ department: string; age?: number; sex?: string }> = [];
+	export let data: Array<SurgeryCase> = [];
 	export let filteredDepartment: string | null = null;
 	export let showPercentage = false; // Now a prop that can be controlled from parent
 	
@@ -30,24 +30,25 @@
 			(v) => v.length,
 			(d) => d.department
 		);
-		
+
 		// Sort departments by case count (descending)
-		const entries = Array.from(counts, ([key, value]) => ({ key, value }))
-			.sort((a, b) => descending(a.value, b.value));
-			
+		const entries = Array.from(counts, ([key, value]) => ({ key, value })).sort((a, b) =>
+			descending(a.value, b.value)
+		);
+
 		// Calculate total cases and percentage distribution
-		const totalCases = sum(entries, d => d.value);
-		const entriesWithPercent = entries.map(d => ({
-			...d, 
-			percent: (d.value / totalCases * 100)
+		const totalCases = sum(entries, (d) => d.value);
+		const entriesWithPercent = entries.map((d) => ({
+			...d,
+			percent: (d.value / totalCases) * 100
 		}));
-		
+
 		// Calculate cumulative percentage for top departments
 		const topTwoDepts = entriesWithPercent.slice(0, 2);
 		const topTwoPercent = topTwoDepts.reduce((acc, curr) => acc + curr.percent, 0);
 
 		const x = scaleBand<string>()
-			.domain(entries.map((d) => d.key))
+			.domain(entries.map((d) => d.key!))
 			.range([0, width])
 			.padding(0.2);
 
@@ -69,7 +70,7 @@
 			)
 			.append('g')
 			.attr('transform', `translate(${margin.left},${margin.top})`);
-			
+
 		// Add title
 		g.append('text')
 			.attr('x', width / 2)
@@ -82,19 +83,20 @@
 
 		// Calculate department-specific statistics for tooltips
 		const deptStats = new Map();
-		entries.forEach(entry => {
-			const deptData = data.filter(d => d.department === entry.key);
-			const maleCount = deptData.filter(d => d.sex === 'M').length;
-			const femaleCount = deptData.filter(d => d.sex === 'F').length;
-			const malePercent = maleCount / entry.value * 100;
-			const femalePercent = femaleCount / entry.value * 100;
-			
-			const ages = deptData.filter(d => d.age !== undefined && !isNaN(d.age))
-				.map(d => d.age as number);
+		entries.forEach((entry) => {
+			const deptData = data.filter((d) => d.department === entry.key);
+			const maleCount = deptData.filter((d) => d.sex === 'M').length;
+			const femaleCount = deptData.filter((d) => d.sex === 'F').length;
+			const malePercent = (maleCount / entry.value) * 100;
+			const femalePercent = (femaleCount / entry.value) * 100;
+
+			const ages = deptData
+				.filter((d) => d.age !== undefined && !isNaN(d.age))
+				.map((d) => d.age as number);
 			const medianAge = ages.length ? median(ages) || 0 : 0;
 			const q1 = ages.length ? quantile(ages, 0.25) || 0 : 0;
 			const q3 = ages.length ? quantile(ages, 0.75) || 0 : 0;
-			
+
 			deptStats.set(entry.key, {
 				maleCount,
 				femaleCount,
@@ -105,7 +107,7 @@
 				q3
 			});
 		});
-		
+
 		// Create tooltip div for detailed hover information
 		const tooltip = select('body')
 			.selectAll('.dept-tooltip')
@@ -123,17 +125,18 @@
 			.style('pointer-events', 'none')
 			.style('font-size', '12px')
 			.style('z-index', '10');
-		
+
 		// Create bars with enhanced interactions
-		const bars = g.append('g')
+		const bars = g
+			.append('g')
 			.selectAll('rect')
 			.data(entriesWithPercent)
 			.enter()
 			.append('rect')
-			.attr('x', (d) => x(d.key)!)
-			.attr('y', (d) => showPercentage ? y(d.percent) : y(d.value))
+			.attr('x', (d) => x(d.key!)!)
+			.attr('y', (d) => (showPercentage ? y(d.percent) : y(d.value)))
 			.attr('width', x.bandwidth())
-			.attr('height', (d) => showPercentage ? height - y(d.percent) : height - y(d.value))
+			.attr('height', (d) => (showPercentage ? height - y(d.percent) : height - y(d.value)))
 			.attr('fill', (d) => {
 				// Highlight the selected department or top two if none selected
 				if (filteredDepartment === d.key) return '#ff7f50';
@@ -146,26 +149,28 @@
 			.style('transition', 'all 0.2s ease')
 			.on('mouseover', function(event, d) {
 				// Highlight bar
-				select(this)
-					.transition()
-					.duration(200)
-					.attr('fill', '#ff7f50'); // Coral highlight
-					
+				select(this).transition().duration(200).attr('fill', '#ff7f50'); // Coral highlight
+
 				// Get department stats
 				const stats = deptStats.get(d.key);
-				
+
 				// Show enhanced tooltip with mini-stats
-				tooltip.html(`
+				tooltip
+					.html(
+						`
 					<div style="font-weight: bold; margin-bottom: 5px; color: #2a6d7c;">${d.key}</div>
-					<div>Total cases: <b>${d.value}</b> (${format(".1f")(d.percent)}% of all)</div>
-					${showPercentage ? 
-						`<div style="font-weight: bold; color: #2a6d7c; margin-top: 3px;">
-							Showing as percentage: ${format(".1f")(d.percent)}%
-						</div>` : ''}
+					<div>Total cases: <b>${d.value}</b> (${format('.1f')(d.percent)}% of all)</div>
+					${
+						showPercentage
+							? `<div style="font-weight: bold; color: #2a6d7c; margin-top: 3px;">
+							Showing as percentage: ${format('.1f')(d.percent)}%
+						</div>`
+							: ''
+					}
 					<div style="margin-top: 5px;">
-						<div>Sex ratio: <b>${format(".0f")(stats.malePercent)}% M / ${format(".0f")(stats.femalePercent)}% F</b></div>
-						<div>Median age: <b>${format(".1f")(stats.medianAge)}</b> years</div>
-						<div>IQR: <b>${format(".1f")(stats.q1)} - ${format(".1f")(stats.q3)}</b></div>
+						<div>Sex ratio: <b>${format('.0f')(stats.malePercent)}% M / ${format('.0f')(stats.femalePercent)}% F</b></div>
+						<div>Median age: <b>${format('.1f')(stats.medianAge)}</b> years</div>
+						<div>IQR: <b>${format('.1f')(stats.q1)} - ${format('.1f')(stats.q3)}</b></div>
 					</div>
 					<div style="margin-top: 5px; font-size: 10px; color: #666;">
 						<span style="color: #ff7f50; font-weight: bold;">Click</span> to filter age distribution by this department
@@ -175,46 +180,51 @@
 				.style('left', (event.pageX + 15) + 'px')
 				.style('top', (event.pageY - 10) + 'px');
 			})
-			.on('mousemove', function(event) {
+			.on('mousemove', function (event) {
 				// Move tooltip with cursor
-				tooltip
-					.style('left', (event.pageX + 15) + 'px')
-					.style('top', (event.pageY - 10) + 'px');
+				tooltip.style('left', event.pageX + 15 + 'px').style('top', event.pageY - 10 + 'px');
 			})
-			.on('mouseout', function() {
+			.on('mouseout', function () {
 				const d = select(this).datum() as any;
 				// Return to normal color unless it's the filtered department
 				select(this)
 					.transition()
 					.duration(200)
-					.attr('fill', filteredDepartment === d.key ? '#ff7f50' : 
-						  topTwoDepts.includes(d) ? '#2a6d7c' : '#5eb1c6');
-				
+					.attr(
+						'fill',
+						filteredDepartment === d.key
+							? '#ff7f50'
+							: topTwoDepts.includes(d)
+								? '#2a6d7c'
+								: '#5eb1c6'
+					);
+
 				// Hide tooltip
 				tooltip.style('visibility', 'hidden');
 			})
-			.on('click', function(event, d) {
+			.on('click', function (event, d) {
 				event.stopPropagation(); // Prevent click from propagating
-				
+
 				// If clicking the already filtered department, clear the filter
 				const newFilter = filteredDepartment === d.key ? null : d.key;
-				
+
 				// Dispatch filter event to parent component
 				dispatch('filter', {
 					department: newFilter,
 					name: d.key
 				});
-				
+
 				// Update highlight
-				select(svg).selectAll('.dept-bar')
+				select(svg)
+					.selectAll('.dept-bar')
 					.transition()
 					.duration(300)
-					.attr('fill', (b: any) => 
-						b.key === newFilter ? '#ff7f50' : 
-						topTwoDepts.includes(b) ? '#2a6d7c' : '#5eb1c6');
-				
+					.attr('fill', (b: any) =>
+						b.key === newFilter ? '#ff7f50' : topTwoDepts.includes(b) ? '#2a6d7c' : '#5eb1c6'
+					);
+
 				// Update local state
-				filteredDepartment = newFilter;
+				filteredDepartment = newFilter!;
 			});
 
 		// Add x and y axes
@@ -259,16 +269,16 @@
 			draw(); // Redraw the chart
 		}
 	}
-	
+
 	onMount(() => {
 		draw();
-		
+
 		// Add event listener to clear filters when clicking the background/chart area
 		const svgElement = svg;
 		if (svgElement) {
 			svgElement.addEventListener('click', handleBackgroundClick);
 		}
-		
+
 		return () => {
 			// Clean up event listeners
 			if (svgElement) {
@@ -278,7 +288,7 @@
 			select('body').selectAll('.dept-tooltip').remove();
 		};
 	});
-	
+
 	afterUpdate(draw);
 </script>
 

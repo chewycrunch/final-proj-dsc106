@@ -93,19 +93,25 @@
 	let icuIQR = { q1: 0, q3: 0 };
 	let bloodLossIQR = { q1: 0, q3: 0 };
 
-	// Calculate percentile rank for user's guess
-	function calculatePercentileRank(guess: number, actual: number, allValues: number[]): number {
-		const sorted = [...allValues].sort((a, b) => a - b);
-		const actualRank = sorted.indexOf(actual);
-		const guessRank = sorted.indexOf(guess);
-		return Math.abs(actualRank - guessRank) / sorted.length;
+	// Calculate accuracy score for a prediction
+	function calculateAccuracyScore(guess: number, actual: number, allValues: number[]): number {
+		// Handle zero or very small values
+		if (actual === 0 && guess === 0) return 1;
+		if (actual === 0 || guess === 0) return 0;
+		
+		// Calculate relative error
+		const relativeError = Math.abs(guess - actual) / Math.max(actual, 1);
+		
+		// Convert to accuracy score (1 - normalized error)
+		// Using exponential decay to make it more sensitive to differences
+		return Math.exp(-relativeError);
 	}
 
 	// Single reactive block to handle all calculations
 	$: {
 		if (cases.length > 0) {
 			// Calculate matches with similarity criteria
-			const ageMatches = activeFilters.age 
+			const ageMatches = activeFilters.age
 				? cases.filter((c) => Math.abs(c.age - predictors.age) <= 5)
 				: cases;
 			const bmiMatches = activeFilters.bmi
@@ -138,7 +144,9 @@
 				};
 
 				// Mortality calculations
-				mortalityRate = finalMatches.reduce((sum, case_) => sum + (case_.death_inhosp || 0), 0) / finalMatches.length;
+				mortalityRate =
+					finalMatches.reduce((sum, case_) => sum + (case_.death_inhosp || 0), 0) /
+					finalMatches.length;
 
 				// Blood loss calculations
 				const bloodLossValues = finalMatches
@@ -151,12 +159,14 @@
 					q3: bloodLossValues[Math.floor(bloodLossValues.length * 0.75)]
 				};
 
-				// Calculate percentile rank if in guessing mode
+				// Calculate accuracy if in guessing mode
 				if (isGuessing && showResults) {
-					const icuPercentile = calculatePercentileRank(userGuess.icuDays, avgICUStay, icuValues);
-					const mortalityPercentile = calculatePercentileRank(userGuess.mortality, mortalityRate, finalMatches.map(c => c.death_inhosp));
-					const bloodLossPercentile = calculatePercentileRank(userGuess.bloodLoss, avgBloodLoss, bloodLossValues);
-					percentileRank = (icuPercentile + mortalityPercentile + bloodLossPercentile) / 3;
+					const icuAccuracy = calculateAccuracyScore(userGuess.icuDays, avgICUStay, icuValues);
+					const mortalityAccuracy = calculateAccuracyScore(userGuess.mortality, mortalityRate * 100, finalMatches.map(c => c.death_inhosp * 100));
+					const bloodLossAccuracy = calculateAccuracyScore(userGuess.bloodLoss, avgBloodLoss, bloodLossValues);
+					
+					// Weight the accuracies
+					percentileRank = (icuAccuracy * 0.4 + mortalityAccuracy * 0.3 + bloodLossAccuracy * 0.3);
 				}
 			} else {
 				avgICUStay = 0;
@@ -185,32 +195,33 @@
 		2: '#a3e635', // greenish yellow
 		3: '#eab308', // yellow
 		4: '#f97316', // orange
-		5: '#ef4444'  // red
+		5: '#ef4444' // red
 	};
 
 	// Calculate stick figure dimensions based on height
 	$: figureScale = (predictors.height - heightRange.min) / (heightRange.max - heightRange.min);
-	$: figureHeight = 250 + (figureScale * 150); // Base height 250px, can grow up to 400px
+	$: figureHeight = 250 + figureScale * 150; // Base height 250px, can grow up to 400px
 
 	// Calculate stick thickness based on BMI
-	$: stickThickness = 2 + (predictors.bmi - bmiRange.min) / (bmiRange.max - bmiRange.min) * 4; // 2px to 6px
-	
+	$: stickThickness = 2 + ((predictors.bmi - bmiRange.min) / (bmiRange.max - bmiRange.min)) * 4; // 2px to 6px
+
 	// Calculate stomach size based on BMI
 	$: stomachScale = (predictors.bmi - bmiRange.min) / (bmiRange.max - bmiRange.min);
-	$: stomachWidth = 10 + (stomachScale * 25); // 10px to 35px
+	$: stomachWidth = 10 + stomachScale * 25; // 10px to 35px
 	$: stomachHeight = figureHeight * 0.2; // Constant height
 
 	// Calculate hair whiteness based on age
-	$: hairColor = `rgb(${(predictors.age - ageRange.min) / (ageRange.max - ageRange.min) * 255}, ${(predictors.age - ageRange.min) / (ageRange.max - ageRange.min) * 255}, ${(predictors.age - ageRange.min) / (ageRange.max - ageRange.min) * 255})`;
+	$: hairColor = `rgb(${((predictors.age - ageRange.min) / (ageRange.max - ageRange.min)) * 255}, ${((predictors.age - ageRange.min) / (ageRange.max - ageRange.min)) * 255}, ${((predictors.age - ageRange.min) / (ageRange.max - ageRange.min)) * 255})`;
 
 	// Calculate ASA color
 	$: asaColor = asaColors[predictors.asa as keyof typeof asaColors] || asaColors[1];
 
 	// Function to get active filter count
 	$: activeFilterCount = Object.values(activeFilters).filter(Boolean).length;
-	$: activeFilterText = activeFilterCount === 4 
-		? "all filters" 
-		: `${activeFilterCount} filter${activeFilterCount === 1 ? '' : 's'}`;
+	$: activeFilterText =
+		activeFilterCount === 4
+			? 'all filters'
+			: `${activeFilterCount} filter${activeFilterCount === 1 ? '' : 's'}`;
 </script>
 
 <div class="space-y-6 rounded-lg bg-gray-50 p-4">
@@ -223,15 +234,11 @@
 					<span>Active: {activeFilterText}</span>
 				</div>
 			</div>
-			
+
 			<!-- Filter Toggles -->
 			<div class="grid grid-cols-2 gap-4">
 				<label class="flex items-center gap-2">
-					<input
-						type="checkbox"
-						bind:checked={activeFilters.age}
-						class="rounded border-gray-300"
-					/>
+					<input type="checkbox" bind:checked={activeFilters.age} class="rounded border-gray-300" />
 					<span class="text-sm">Age Filter</span>
 				</label>
 				<label class="flex items-center gap-2">
@@ -243,23 +250,15 @@
 					<span class="text-sm">Height Filter</span>
 				</label>
 				<label class="flex items-center gap-2">
-					<input
-						type="checkbox"
-						bind:checked={activeFilters.bmi}
-						class="rounded border-gray-300"
-					/>
+					<input type="checkbox" bind:checked={activeFilters.bmi} class="rounded border-gray-300" />
 					<span class="text-sm">BMI Filter</span>
 				</label>
 				<label class="flex items-center gap-2">
-					<input
-						type="checkbox"
-						bind:checked={activeFilters.asa}
-						class="rounded border-gray-300"
-					/>
+					<input type="checkbox" bind:checked={activeFilters.asa} class="rounded border-gray-300" />
 					<span class="text-sm">ASA Filter</span>
 				</label>
 			</div>
-			
+
 			<!-- Sliders -->
 			<div class="space-y-6">
 				<div class={activeFilters.age ? '' : 'opacity-50'}>
@@ -277,7 +276,8 @@
 
 				<div class={activeFilters.height ? '' : 'opacity-50'}>
 					<label class="block text-sm text-gray-600">
-						Height: {cmToFeetInches(predictors.height).feet}' {cmToFeetInches(predictors.height).inches}"
+						Height: {cmToFeetInches(predictors.height).feet}' {cmToFeetInches(predictors.height)
+							.inches}"
 					</label>
 					<input
 						type="range"
@@ -288,7 +288,8 @@
 						disabled={!activeFilters.height}
 					/>
 					<p class="text-xs text-gray-500">
-						Range: {heightRangeFtIn.min.feet}'{heightRangeFtIn.min.inches}" - {heightRangeFtIn.max.feet}'{heightRangeFtIn.max.inches}"
+						Range: {heightRangeFtIn.min.feet}'{heightRangeFtIn.min.inches}" - {heightRangeFtIn.max
+							.feet}'{heightRangeFtIn.max.inches}"
 					</p>
 				</div>
 
@@ -303,7 +304,9 @@
 						class="w-full"
 						disabled={!activeFilters.bmi}
 					/>
-					<p class="text-xs text-gray-500">Range: {bmiRange.min.toFixed(1)} - {bmiRange.max.toFixed(1)}</p>
+					<p class="text-xs text-gray-500">
+						Range: {bmiRange.min.toFixed(1)} - {bmiRange.max.toFixed(1)}
+					</p>
 				</div>
 
 				<div class={activeFilters.asa ? '' : 'opacity-50'}>
@@ -318,27 +321,25 @@
 						disabled={!activeFilters.asa}
 					/>
 					<p class="text-xs text-gray-500">
-						ASA {predictors.asa}: {
-							predictors.asa === 1
-								? 'Healthy patient'
-								: predictors.asa === 2
+						ASA {predictors.asa}: {predictors.asa === 1
+							? 'Healthy patient'
+							: predictors.asa === 2
 								? 'Mild systemic disease'
 								: predictors.asa === 3
-								? 'Severe systemic disease'
-								: predictors.asa === 4
-								? 'Severe systemic disease that is a constant threat to life'
-								: 'Moribund patient not expected to survive without the operation'
-						}
+									? 'Severe systemic disease'
+									: predictors.asa === 4
+										? 'Severe systemic disease that is a constant threat to life'
+										: 'Moribund patient not expected to survive without the operation'}
 					</p>
 				</div>
 			</div>
 		</div>
 
 		<!-- Right side: Stick Figure -->
-		<div class="flex-1 flex items-center justify-center">
+		<div class="flex flex-1 items-center justify-center">
 			<svg
 				viewBox="0 0 200 {figureHeight}"
-				class="w-full h-full"
+				class="h-full w-full"
 				style="min-height: 350px; max-height: 500px;"
 			>
 				<!-- Head -->
@@ -427,15 +428,29 @@
 
 	<!-- Similarity Bar -->
 	<div class="mt-4 rounded bg-blue-50 p-3 text-sm text-blue-800">
-		Found {matchingCasesCount} historical patients within {
-			[
-				activeFilters.age && '±5 years age',
-				activeFilters.height && '±2 inches height',
-				activeFilters.bmi && '±5 BMI',
-				activeFilters.asa && '±2 ASA score'
-			].filter(Boolean).join(', ')
-		}
+		Found {matchingCasesCount} historical patients with similar characteristics
 	</div>
+
+	{#if matchingCasesCount === 0}
+		<div class="mt-4 rounded bg-red-100 p-4 text-red-800">
+			<h4 class="font-bold mb-2">⚠️ No Matching Cases Found</h4>
+			<p>There are no historical cases that match your current patient profile. Consider:</p>
+			<ul class="list-disc ml-6 mt-2">
+				<li>Relaxing some of your filters</li>
+				<li>Adjusting the patient's characteristics to more common values</li>
+				<li>Using a broader range for age, BMI, or ASA score</li>
+			</ul>
+		</div>
+	{:else if matchingCasesCount < 10}
+		<div class="mt-4 rounded bg-yellow-100 p-4 text-yellow-800">
+			<h4 class="font-bold mb-2">⚠️ Limited Data Available</h4>
+			<p>Only {matchingCasesCount} cases match your current filters. The predictions may not be reliable. Consider:</p>
+			<ul class="list-disc ml-6 mt-2">
+				<li>Relaxing some filters to get more comparable cases</li>
+				<li>Adjusting the patient profile to match more common characteristics</li>
+			</ul>
+		</div>
+	{/if}
 
 	<div class="mt-4 flex space-x-4">
 		{#if !isGuessing}
@@ -539,9 +554,17 @@
 
 		{#if isGuessing && showResults}
 			<div class="mt-4 rounded bg-yellow-50 p-3 text-sm text-yellow-800">
-				Your guess was within the {((1 - percentileRank) * 100).toFixed(1)}th percentile of accuracy!
+				Your guess was {((percentileRank) * 100).toFixed(1)}% accurate!
+				{#if percentileRank <= 0.25}
+					<p class="mt-2 text-red-600">Your predictions were quite far from the actual outcomes. Consider reviewing the patient's risk factors more carefully.</p>
+				{:else if percentileRank <= 0.5}
+					<p class="mt-2 text-orange-600">Your predictions were somewhat off. Try to consider how different factors might interact to affect outcomes.</p>
+				{:else if percentileRank <= 0.75}
+					<p class="mt-2 text-yellow-600">Good predictions! You're getting better at understanding how patient characteristics influence outcomes.</p>
+				{:else}
+					<p class="mt-2 text-green-600">Excellent predictions! You have a strong understanding of how patient factors correlate with surgical outcomes.</p>
+				{/if}
 			</div>
 		{/if}
 	{/if}
 </div>
-
