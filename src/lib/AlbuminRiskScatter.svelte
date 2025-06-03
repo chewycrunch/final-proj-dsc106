@@ -85,22 +85,22 @@
 		// X scale (albumin)
 		const x = d3
 			.scaleLinear()
-			.domain([2, d3.max(groupedData, d => d.albumin) || 6])
+			.domain([2, d3.max(groupedData, (d) => d.albumin) || 6])
 			.nice()
 			.range([pad, W - pad]);
 
 		// Y scale (ICU days)
 		const y = d3
 			.scaleLinear()
-			.domain([0, d3.max(groupedData, d => d.icuDays) || 5])
+			.domain([0, d3.max(groupedData, (d) => d.icuDays) || 5])
 			.nice()
 			.range([H - pad, pad]);
 
 		// Add grid lines
 		const gridGroup = root.append('g');
-		
+
 		// Horizontal grid lines
-		y.ticks(5).forEach(tick => {
+		y.ticks(5).forEach((tick) => {
 			gridGroup
 				.append('line')
 				.attr('x1', pad)
@@ -112,7 +112,7 @@
 		});
 
 		// Vertical grid lines
-		x.ticks(6).forEach(tick => {
+		x.ticks(6).forEach((tick) => {
 			gridGroup
 				.append('line')
 				.attr('x1', x(tick))
@@ -147,15 +147,15 @@
 
 		// Calculate regression line
 		const regression = regressionLinear()
-			.x(d => d.albumin)
-			.y(d => d.icuDays)
+			.x((d) => d.albumin)
+			.y((d) => d.icuDays)
 			.domain(x.domain() as [number, number])(groupedData);
 
 		// Draw regression line
 		const line = d3
 			.line<[number, number]>()
-			.x(d => x(d[0]))
-			.y(d => y(d[1]));
+			.x((d) => x(d[0]))
+			.y((d) => y(d[1]));
 
 		root
 			.append('path')
@@ -163,7 +163,7 @@
 			.attr('fill', 'none')
 			.attr('stroke', '#4b5563')
 			.attr('stroke-width', 2)
-			.attr('d', d => line(d));
+			.attr('d', (d) => line(d));
 
 		// Plot dots
 		root
@@ -172,22 +172,24 @@
 			.data(groupedData)
 			.enter()
 			.append('circle')
-			.attr('cx', d => x(d.albumin))
-			.attr('cy', d => y(d.icuDays))
-			.attr('r', d => Math.sqrt(d.count) * 2)
-			.attr('fill', d => colour(Math.min(d.icuDays, 5)))
+			.attr('cx', (d) => x(d.albumin))
+			.attr('cy', (d) => y(d.icuDays))
+			.attr('r', (d) => Math.sqrt(d.count) * 2)
+			.attr('fill', (d) => colour(Math.min(d.icuDays, 5)))
 			.attr('stroke', '#374151')
 			.attr('stroke-opacity', 0.15)
 			.append('title')
-			.text(d => `Average Albumin: ${d.albumin.toFixed(2)} g/dL
+			.text(
+				(d) => `Average Albumin: ${d.albumin.toFixed(2)} g/dL
 Average ICU Stay: ${d.icuDays.toFixed(1)} days
-Number of Cases: ${d.count}`);
+Number of Cases: ${d.count}`
+			);
 
 		// X axis
 		const xAxis = d3
 			.axisBottom(x)
 			.ticks(6)
-			.tickFormat(v => (v as number) + ' g/dL');
+			.tickFormat((v) => (v as number) + ' g/dL');
 
 		root
 			.append('g')
@@ -201,7 +203,7 @@ Number of Cases: ${d.count}`);
 		const yAxis = d3
 			.axisLeft(y)
 			.ticks(5)
-			.tickFormat(d => d + ' days');
+			.tickFormat((d) => d + ' days');
 
 		root
 			.append('g')
@@ -224,7 +226,7 @@ Number of Cases: ${d.count}`);
 		// Y axis label
 		root
 			.append('text')
-			.attr('transform', `translate(${pad - 36}, ${H/2}) rotate(-90)`)
+			.attr('transform', `translate(${pad - 36}, ${H / 2}) rotate(-90)`)
 			.attr('text-anchor', 'middle')
 			.attr('font-size', '14px')
 			.attr('fill', '#374151')
@@ -257,7 +259,7 @@ Number of Cases: ${d.count}`);
 			.attr('y', 0)
 			.attr('width', stopW)
 			.attr('height', 10)
-			.attr('fill', d => colour(d));
+			.attr('fill', (d) => colour(d));
 
 		legendGroup
 			.append('text')
