@@ -288,10 +288,14 @@
 		};
 	});
 
-	// Reactive statement to respond to showPercentage changes
-	$: if (svg) {
-		// Redraw the chart when showPercentage changes
-		draw();
+	// Track changes in showPercentage prop for redraw
+	$: if (showPercentage !== undefined) {
+		// Only redraw if we have the SVG element
+		if (svg) {
+			// Hide any tooltips when changing view mode
+			select('body').selectAll('.dept-tooltip').style('visibility', 'hidden');
+			draw();
+		}
 	}
 	
 	// Reactive statement to respond to data changes (when age filtering is applied)
@@ -348,6 +352,7 @@
 		background-color: #f8f9fa;
 		border-radius: 5px;
 		border-left: 4px solid #2a6d7c;
+		min-height: 80px; /* Consistent height with the age chart */
 	}
 
 	.insight-text {

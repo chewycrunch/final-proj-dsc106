@@ -22,6 +22,7 @@
 	let filteredDepartment: string | null = null;
 	let filteredAgeRange: [number, number] | null = null;
 	let showPercentage = false; // Shared state for percentage view
+	let showBySex = true; // Initialize to true to match AgeDistribution component's initial state
 
 	// Calculate mortality rates for different groups
 	$: if (cases.length > 0) {
@@ -210,18 +211,24 @@
 				.visualization-grid > :global(div) {
 					display: flex;
 					flex-direction: column;
-					min-height: 500px; /* Set a minimum height for both chart containers */
+					min-height: 520px; /* Set a minimum height for both chart containers */
 				}
 				
 				.visualization-grid > :global(div) > :global(.chart) {
 					flex: 1;
 					display: flex;
 					flex-direction: column;
+					min-height: 400px; /* Fixed height for chart containers */
 				}
 				
 				.visualization-grid > :global(div) > :global(.chart) > :global(svg) {
 					flex: 1;
-					min-height: 350px; /* Ensure SVG has minimum height */
+					min-height: 380px; /* Ensure SVG has minimum height */
+				}
+				
+				/* Make insights sections the same height */
+				.visualization-grid > :global(div) > :global(.insights) {
+					min-height: 80px;
 				}
 			</style>
 			
@@ -236,15 +243,7 @@
 					</label>
 					
 					<label class="flex items-center gap-2 cursor-pointer">
-						<input type="checkbox" on:change={(e) => {
-							const showBySex = e.target.checked;
-							// Forward this to AgeDistribution's internal state
-							const ageDistComponent = document.querySelector('input[name="showBySexInternal"]');
-							if (ageDistComponent) {
-								ageDistComponent.checked = showBySex;
-								ageDistComponent.dispatchEvent(new Event('change'));
-							}
-						}} />
+						<input type="checkbox" bind:checked={showBySex} />
 						Split by sex
 					</label>
 					
@@ -258,6 +257,7 @@
 				<AgeDistribution 
 					data={filteredDepartment ? filteredCases : cases} 
 					bind:showPercentage={showPercentage}
+					bind:showBySex={showBySex}
 					on:percentageChange={handlePercentageChange}
 					on:filter={handleAgeFilter}
 				/>

@@ -11,8 +11,8 @@
 
     export let data: Array<{ age?: number; sex?: string }> = [];
     export let showPercentage = false; // Now this can be controlled externally
+    export let showBySex = true; // Now this can also be controlled externally
     let svg: SVGSVGElement;
-    let showBySex = true;
     let ageRange: [number | null, number | null] = [null, null];
     
     // Set up event dispatcher to communicate with parent components
@@ -58,7 +58,7 @@
         if (!data.length) return;
         select(svg).selectAll('*').remove();
 
-        const margin = { top: 30, right: 30, bottom: 60, left: 50 };
+        const margin = { top: 30, right: 30, bottom: 60, left: 60 };
         const width = 600 - margin.left - margin.right;
         const height = 350 - margin.top - margin.bottom;
 
@@ -504,6 +504,16 @@
             );
         }
     }
+    
+    // Track changes in props for redraw
+    $: if (showPercentage !== undefined || showBySex !== undefined) {
+        // Only redraw if we have the SVG element
+        if (svg) {
+            // Hide any tooltips when changing view mode
+            select('body').select('.age-tooltip').style('opacity', 0);
+            draw();
+        }
+    }
 
     onMount(() => {
         draw();
@@ -519,17 +529,8 @@
 </script>
 
 <div class="age-distribution">
-    <!-- Hidden input to control the showBySex state from parent component -->
-    <input 
-        type="checkbox" 
-        name="showBySexInternal" 
-        style="display: none;" 
-        bind:checked={showBySex} 
-        on:change={() => {
-            select('body').select('.age-tooltip').style('opacity', 0);
-            draw();
-        }} 
-    />
+    <!-- Hidden input no longer needed since we use two-way binding -->
+    <!-- We now use bind:showBySex with the parent component -->
     
     {#if ageRange[0] !== null}
     <div class="age-range-indicator">
@@ -583,6 +584,7 @@
         background-color: #f8f9fa;
         border-radius: 5px;
         border-left: 4px solid steelblue;
+        min-height: 80px; /* Consistent height with the department chart */
     }
     
     .insight-text {
