@@ -519,46 +519,33 @@
 </script>
 
 <div class="age-distribution">
-    <div class="controls">
-        <label>
-            <input type="checkbox" bind:checked={showBySex} on:change={() => {
-                // Hide any tooltips when changing view mode
-                select('body').select('.age-tooltip').style('opacity', 0);
-                draw();
-            }} />
-            Split by sex
-        </label>
-        <label>
-            <input type="checkbox" bind:checked={showPercentage} on:change={() => {
-                // Hide any tooltips when changing view mode
-                select('body').select('.age-tooltip').style('opacity', 0);
-                
-                // Dispatch event to notify other components of percentage view change
-                dispatch('percentageChange', { showPercentage });
-                
-                draw();
-            }} />
-            Show percentages
-        </label>
-        {#if ageRange[0] !== null}
-        <div class="age-range">
-            <span>Age range: {ageRange[0]}–{ageRange[1]}</span>
-            <button class="clear-btn" on:click={() => { 
-                // Hide any tooltips that might be visible
-                select('body').select('.age-tooltip').style('opacity', 0);
-                
-                ageRange = [null, null]; 
-                // Force a timeout to ensure the state updates before redrawing
-                setTimeout(() => draw(), 0); 
-            }}>
-                Clear filter
-            </button>
-        </div>
-        {/if}
-        <p class="scale-note">
-            <i>Tip: Click and drag on this chart to filter by age range. You can also click on department bars in the chart below to filter by department.</i>
-        </p>
+    <!-- Hidden input to control the showBySex state from parent component -->
+    <input 
+        type="checkbox" 
+        name="showBySexInternal" 
+        style="display: none;" 
+        bind:checked={showBySex} 
+        on:change={() => {
+            select('body').select('.age-tooltip').style('opacity', 0);
+            draw();
+        }} 
+    />
+    
+    {#if ageRange[0] !== null}
+    <div class="age-range-indicator">
+        <span>Age range: {ageRange[0]}–{ageRange[1]}</span>
+        <button class="clear-btn" on:click={() => { 
+            // Hide any tooltips that might be visible
+            select('body').select('.age-tooltip').style('opacity', 0);
+            
+            ageRange = [null, null]; 
+            // Force a timeout to ensure the state updates before redrawing
+            setTimeout(() => draw(), 0); 
+        }}>
+            Clear filter
+        </button>
     </div>
+    {/if}
     
     <div class="chart">
         <svg bind:this={svg} class="h-auto w-full"></svg>
@@ -584,24 +571,10 @@
         gap: 1rem;
     }
     
-    .controls {
+    .chart {
+        flex: 1;
         display: flex;
-        flex-wrap: wrap;
-        gap: 1rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .scale-note {
-        font-size: 0.8rem;
-        color: #666;
-        font-style: italic;
-    }
-    
-    label {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        cursor: pointer;
+        flex-direction: column;
     }
     
     .insights {
@@ -625,7 +598,7 @@
         color: #555;
     }
     
-    .age-range {
+    .age-range-indicator {
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -633,6 +606,7 @@
         background: #f0f4f8;
         border-radius: 4px;
         font-size: 0.9rem;
+        margin-bottom: 0.5rem;
     }
     
     .clear-btn {

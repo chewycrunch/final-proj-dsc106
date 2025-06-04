@@ -20,8 +20,8 @@
 		if (!data.length) return;
 		select(svg).selectAll('*').remove();
 
-		// Match dimensions with AgeDistribution component
-		const margin = { top: 30, right: 30, bottom: 90, left: 60 };
+		// Match dimensions with AgeDistribution component - slightly taller to match
+		const margin = { top: 30, right: 30, bottom: 60, left: 60 };
 		const width = 600 - margin.left - margin.right;
 		const height = 350 - margin.top - margin.bottom;
 
@@ -304,7 +304,9 @@
 </script>
 
 <div class="department-distribution">
-	<svg bind:this={svg} class="h-auto w-full"></svg>
+	<div class="chart">
+		<svg bind:this={svg} class="h-auto w-full"></svg>
+	</div>
 
 	{#if filteredDepartment}
 		<div class="filter-notice">
@@ -332,6 +334,12 @@
 		display: flex;
 		flex-direction: column;
 		gap: 1rem;
+	}
+	
+	.chart {
+		flex: 1;
+		display: flex;
+		flex-direction: column;
 	}
 
 	.insight-box {

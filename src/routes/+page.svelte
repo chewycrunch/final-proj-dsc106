@@ -204,7 +204,57 @@
 				incision. Click any department bar or select an age range to filter the dashboard and see how demographics shift
 				across specialties.
 			</p>
-			<div class="grid gap-8 md:grid-cols-2">
+			
+			<style>
+				/* Ensure both charts have the same height */
+				.visualization-grid > :global(div) {
+					display: flex;
+					flex-direction: column;
+					min-height: 500px; /* Set a minimum height for both chart containers */
+				}
+				
+				.visualization-grid > :global(div) > :global(.chart) {
+					flex: 1;
+					display: flex;
+					flex-direction: column;
+				}
+				
+				.visualization-grid > :global(div) > :global(.chart) > :global(svg) {
+					flex: 1;
+					min-height: 350px; /* Ensure SVG has minimum height */
+				}
+			</style>
+			
+			<!-- Chart controls for both charts - spans full width -->
+			<div class="controls-container mb-4">
+				<div class="flex flex-wrap gap-4">
+					<label class="flex items-center gap-2 cursor-pointer">
+						<input type="checkbox" bind:checked={showPercentage} on:change={() => {
+							handlePercentageChange({ detail: { showPercentage } });
+						}} />
+						Show percentages
+					</label>
+					
+					<label class="flex items-center gap-2 cursor-pointer">
+						<input type="checkbox" on:change={(e) => {
+							const showBySex = e.target.checked;
+							// Forward this to AgeDistribution's internal state
+							const ageDistComponent = document.querySelector('input[name="showBySexInternal"]');
+							if (ageDistComponent) {
+								ageDistComponent.checked = showBySex;
+								ageDistComponent.dispatchEvent(new Event('change'));
+							}
+						}} />
+						Split by sex
+					</label>
+					
+					<p class="text-xs italic text-gray-600">
+						<i>Tip: Click and drag on the age chart to filter by age range. Click on department bars to filter by department.</i>
+					</p>
+				</div>
+			</div>
+			
+			<div class="grid gap-8 md:grid-cols-2 visualization-grid">
 				<AgeDistribution 
 					data={filteredDepartment ? filteredCases : cases} 
 					bind:showPercentage={showPercentage}
