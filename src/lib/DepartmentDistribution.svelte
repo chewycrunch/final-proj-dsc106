@@ -257,7 +257,7 @@
 			.attr('y', -50)
 			.attr('text-anchor', 'middle')
 			.style('font-size', '14px')
-			.text(showPercentage ? 'Percentage of Cases' : 'Number of Cases');
+			.text(showPercentage ? 'Percentage of Cases (%)' : 'Number of Cases');
 
 		// Insight annotation removed as requested
 	}

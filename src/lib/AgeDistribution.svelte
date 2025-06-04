@@ -161,7 +161,9 @@
             .style('padding', '8px')
             .style('pointer-events', 'none')
             .style('font-size', '12px')
-            .style('box-shadow', '0 2px 4px rgba(0,0,0,0.1)');
+            .style('box-shadow', '0 2px 5px rgba(0,0,0,0.2)')
+            .style('text-align', 'center')
+            .style('z-index', '10');
         
         // Create SVG and main group
         const g = select(svg)
@@ -372,7 +374,7 @@
             .attr('x', width / 2)
             .attr('y', height + 40)
             .attr('text-anchor', 'middle')
-            .text(showBySex ? 'Age (years)' : 'Number of Cases')
+            .text('Age (years)') // Always show Age (years) for x-axis
             .style('font-size', '14px');
 
         g.append('text')
@@ -442,6 +444,28 @@
                 .text("Aging patient population");
         }
         
+        // Create a special brush tooltip at the bottom of the chart
+        const brushTooltip = select('body')
+            .selectAll('.age-brush-tooltip')
+            .data([0])
+            .enter()
+            .append('div')
+            .attr('class', 'age-brush-tooltip')
+            .style('opacity', 0)
+            .style('position', 'fixed') // Changed from 'absolute' to 'fixed' for better positioning
+            .style('background-color', 'rgba(70, 130, 180, 0.9)')
+            .style('color', 'white')
+            .style('border-radius', '4px')
+            .style('padding', '6px 12px')
+            .style('pointer-events', 'none')
+            .style('font-size', '13px')
+            .style('font-weight', 'bold')
+            .style('text-align', 'center')
+            .style('z-index', '20')
+            .style('transform', 'translateX(-50%)')
+            .style('box-shadow', '0 2px 5px rgba(0,0,0,0.3)') // Added shadow for better visibility
+            .style('border', '1px solid rgba(255,255,255,0.2)'); // Added subtle border
+            
         // Add brush for age selection
         const brush = brushX()
             .extent([[0, 0], [width, height]])
@@ -450,22 +474,27 @@
                 if (event.selection) {
                     // Display a temporary tooltip showing the current selection
                     const [x0, x1] = event.selection.map((d: number) => Math.round(x.invert(d)));
-                    const tooltip = select('body').select('.age-tooltip');
+                    const tooltip = select('body').select('.age-brush-tooltip');
                     
-                    tooltip.transition()
-                        .duration(0)
-                        .style('opacity', 0.9);
-                        
-                    tooltip.html(`
-                        <strong>Selecting Ages: ${x0} - ${x1}</strong>
-                    `)
-                    .style('left', (event.sourceEvent?.pageX + 10) + 'px')
-                    .style('top', (event.sourceEvent?.pageY - 28) + 'px');
+                    // Position the tooltip at the bottom of the chart
+                    const chartRect = svg.getBoundingClientRect();
+                    const tooltipContent = `Selecting Ages: ${x0} - ${x1} years`;
+                    
+                    // Calculate position - centered horizontally, fixed at the bottom
+                    const tooltipX = chartRect.left + chartRect.width/2;
+                    const tooltipY = chartRect.bottom - 20; // Position slightly higher from the bottom
+                    
+                    tooltip.html(tooltipContent)
+                        .style('left', tooltipX + 'px')
+                        .style('top', tooltipY + 'px')
+                        .style('opacity', 1);
                 }
             })
             .on("end", (event) => {
-                // Hide the tooltip when done brushing
-                select('body').select('.age-tooltip').style('opacity', 0);
+                // Hide the brush tooltip with a slight delay for better UX
+                setTimeout(() => {
+                    select('body').select('.age-brush-tooltip').style('opacity', 0);
+                }, 500);
                 
                 if (!event.selection) {
                     if (ageRange[0] !== null) {
@@ -526,11 +555,23 @@
     });
     
     afterUpdate(draw);
+    
+    // Cleanup function to remove tooltips on unmount
+    onMount(() => {
+        return () => {
+            select('body').selectAll('.age-tooltip').remove();
+            select('body').selectAll('.age-brush-tooltip').remove();
+        };
+    });
 </script>
 
 <div class="age-distribution">
     <!-- Hidden input no longer needed since we use two-way binding -->
     <!-- We now use bind:showBySex with the parent component -->
+    
+    <div class="chart">
+        <svg bind:this={svg} class="h-auto w-full"></svg>
+    </div>
     
     {#if ageRange[0] !== null}
     <div class="age-range-indicator">
@@ -547,10 +588,6 @@
         </button>
     </div>
     {/if}
-    
-    <div class="chart">
-        <svg bind:this={svg} class="h-auto w-full"></svg>
-    </div>
     
     <div class="insights">
         <p class="insight-text">
@@ -603,25 +640,30 @@
     .age-range-indicator {
         display: flex;
         align-items: center;
+        justify-content: center;
         gap: 0.5rem;
         padding: 0.25rem 0.5rem;
         background: #f0f4f8;
         border-radius: 4px;
         font-size: 0.9rem;
+        margin-top: 0.5rem;
         margin-bottom: 0.5rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
     }
     
     .clear-btn {
-        padding: 0.125rem 0.375rem;
-        background-color: #e0e0e0;
+        padding: 0.125rem 0.5rem;
+        background-color: #4682b4;
+        color: white;
         border: none;
         border-radius: 3px;
         font-size: 0.8rem;
         cursor: pointer;
+        transition: background-color 0.2s;
     }
     
     .clear-btn:hover {
-        background-color: #d0d0d0;
+        background-color: #366a99;
     }
     
     :global(.brush .selection) {
@@ -639,5 +681,10 @@
     
     :global(.brush .overlay) {
         cursor: crosshair;
+    }
+    
+    /* Style for the age brush tooltip that appears at the bottom of the chart */
+    :global(.age-brush-tooltip) {
+        transition: opacity 0.2s ease-in-out;
     }
 </style>
