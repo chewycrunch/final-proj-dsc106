@@ -199,7 +199,7 @@
 			<p class="mb-4 max-w-xl">
 				Let's start by meeting our patients. The charts below reveal a striking pattern: while our
 				patients span six decades,
-				<strong>70% cluster in just two surgical departments</strong>. This concentration—combined
+				<strong>95% cluster in just two surgical departments</strong>. This concentration—combined
 				with age and sex differences—creates wildly different baseline risks before the first
 				incision. Click any department bar or select an age range to filter the dashboard and see how demographics shift
 				across specialties.
