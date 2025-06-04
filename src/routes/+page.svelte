@@ -45,29 +45,32 @@
 		console.log('Ratio:', (emergencyMortality / (electiveMortality || 0.001)).toFixed(1) + 'x');
 
 		// Analyze timing patterns by department and surgery type
-		const deptTiming = new Map<string, { count: number, avgWait: number, stdDev: number }>();
-		const surgeryTiming = new Map<string, { count: number, avgWait: number, stdDev: number }>();
-		
+		const deptTiming = new Map<string, { count: number; avgWait: number; stdDev: number }>();
+		const surgeryTiming = new Map<string, { count: number; avgWait: number; stdDev: number }>();
+
 		// Helper to calculate running standard deviation
-		function updateStats(stats: { count: number, avgWait: number, stdDev: number }, wait: number) {
+		function updateStats(stats: { count: number; avgWait: number; stdDev: number }, wait: number) {
 			const oldAvg = stats.avgWait;
 			stats.count++;
 			stats.avgWait = (oldAvg * (stats.count - 1) + wait) / stats.count;
 			// Simplified running standard deviation calculation
-			stats.stdDev = Math.sqrt(((stats.count - 2) * stats.stdDev * stats.stdDev + 
-				(wait - oldAvg) * (wait - stats.avgWait)) / (stats.count - 1));
+			stats.stdDev = Math.sqrt(
+				((stats.count - 2) * stats.stdDev * stats.stdDev +
+					(wait - oldAvg) * (wait - stats.avgWait)) /
+					(stats.count - 1)
+			);
 		}
 
-		cases.forEach(c => {
+		cases.forEach((c) => {
 			if (c.department && c.optype && c.anestart && c.opstart) {
 				const wait = (c.opstart - c.anestart) / 60; // convert to minutes
-				
+
 				// Update department stats
 				if (!deptTiming.has(c.department)) {
 					deptTiming.set(c.department, { count: 0, avgWait: 0, stdDev: 0 });
 				}
 				updateStats(deptTiming.get(c.department)!, wait);
-				
+
 				// Update surgery type stats
 				if (!surgeryTiming.has(c.optype)) {
 					surgeryTiming.set(c.optype, { count: 0, avgWait: 0, stdDev: 0 });
@@ -81,7 +84,9 @@
 		Array.from(deptTiming.entries())
 			.sort((a, b) => b[1].count - a[1].count)
 			.forEach(([dept, stats]) => {
-				console.log(`${dept}: ${stats.count} cases, avg wait ${stats.avgWait.toFixed(1)} ± ${stats.stdDev.toFixed(1)} min`);
+				console.log(
+					`${dept}: ${stats.count} cases, avg wait ${stats.avgWait.toFixed(1)} ± ${stats.stdDev.toFixed(1)} min`
+				);
 			});
 
 		console.log('\nSurgery Type Timing Patterns (top 10 by case count):');
@@ -89,7 +94,9 @@
 			.sort((a, b) => b[1].count - a[1].count)
 			.slice(0, 10)
 			.forEach(([type, stats]) => {
-				console.log(`${type}: ${stats.count} cases, avg wait ${stats.avgWait.toFixed(1)} ± ${stats.stdDev.toFixed(1)} min`);
+				console.log(
+					`${type}: ${stats.count} cases, avg wait ${stats.avgWait.toFixed(1)} ± ${stats.stdDev.toFixed(1)} min`
+				);
 			});
 	}
 
@@ -97,42 +104,40 @@
 	function handleDepartmentFilter(event: CustomEvent) {
 		const { department } = event.detail;
 		filteredDepartment = department;
-		
+
 		applyFilters();
 	}
-	
+
 	// Function to handle percentage view changes
 	function handlePercentageChange(event: CustomEvent) {
 		showPercentage = event.detail.showPercentage;
 	}
-	
+
 	// Function to handle age range filtering
 	function handleAgeFilter(event: CustomEvent) {
 		const { ageRange } = event.detail;
 		filteredAgeRange = ageRange;
-		
+
 		applyFilters();
 	}
-	
+
 	// Apply both department and age filters together
 	function applyFilters() {
 		// Start with all cases
 		let filtered = [...cases];
-		
+
 		// Apply department filter if active
 		if (filteredDepartment) {
-			filtered = filtered.filter(c => c.department === filteredDepartment);
+			filtered = filtered.filter((c) => c.department === filteredDepartment);
 		}
-		
+
 		// Apply age range filter if active
 		if (filteredAgeRange) {
-			filtered = filtered.filter(c => 
-				c.age !== undefined && 
-				c.age >= filteredAgeRange[0] && 
-				c.age <= filteredAgeRange[1]
+			filtered = filtered.filter(
+				(c) => c.age !== undefined && c.age >= filteredAgeRange[0] && c.age <= filteredAgeRange[1]
 			);
 		}
-		
+
 		// Update filtered cases
 		filteredCases = filtered;
 	}
@@ -202,10 +207,10 @@
 				patients span six decades,
 				<strong>95% cluster in just two surgical departments</strong>. This concentration—combined
 				with age and sex differences—creates wildly different baseline risks before the first
-				incision. Click any department bar or select an age range to filter the dashboard and see how demographics shift
-				across specialties.
+				incision. Click any department bar or select an age range to filter the dashboard and see
+				how demographics shift across specialties.
 			</p>
-			
+
 			<style>
 				/* Ensure both charts have the same height */
 				.visualization-grid > :global(div) {
@@ -213,51 +218,58 @@
 					flex-direction: column;
 					min-height: 520px; /* Set a minimum height for both chart containers */
 				}
-				
+
 				.visualization-grid > :global(div) > :global(.chart) {
 					flex: 1;
 					display: flex;
 					flex-direction: column;
 					min-height: 420px; /* Increased height to accommodate larger bottom margin */
 				}
-				
+
 				.visualization-grid > :global(div) > :global(.chart) > :global(svg) {
 					flex: 1;
 					min-height: 400px; /* Increased minimum height to match */
 				}
-				
+
 				/* Make insights sections the same height */
 				.visualization-grid > :global(div) > :global(.insights) {
 					min-height: 80px;
 				}
 			</style>
-			
+
 			<!-- Chart controls for both charts - spans full width -->
 			<div class="controls-container mb-4">
 				<div class="flex flex-wrap gap-4">
-					<label class="flex items-center gap-2 cursor-pointer">
-						<input type="checkbox" bind:checked={showPercentage} on:change={() => {
-							handlePercentageChange({ detail: { showPercentage } });
-						}} />
+					<label class="flex cursor-pointer items-center gap-2">
+						<input
+							type="checkbox"
+							bind:checked={showPercentage}
+							on:change={() => {
+								handlePercentageChange({ detail: { showPercentage } });
+							}}
+						/>
 						Show percentages
 					</label>
-					
-					<label class="flex items-center gap-2 cursor-pointer">
+
+					<label class="flex cursor-pointer items-center gap-2">
 						<input type="checkbox" bind:checked={showBySex} />
 						Split by sex
 					</label>
-					
-					<p class="text-xs italic text-gray-600">
-						<i>Tip: Click and drag on the age chart to filter by age range. Click on department bars to filter by department.</i>
+
+					<p class="text-xs text-gray-600 italic">
+						<i
+							>Tip: Click and drag on the age chart to filter by age range. Click on department bars
+							to filter by department.</i
+						>
 					</p>
 				</div>
 			</div>
-			
-			<div class="grid gap-8 md:grid-cols-2 visualization-grid">
-				<AgeDistribution 
-					data={filteredDepartment ? filteredCases : cases} 
-					bind:showPercentage={showPercentage}
-					bind:showBySex={showBySex}
+
+			<div class="visualization-grid grid gap-8 md:grid-cols-2">
+				<AgeDistribution
+					data={filteredDepartment ? filteredCases : cases}
+					bind:showPercentage
+					bind:showBySex
 					on:percentageChange={handlePercentageChange}
 					on:filter={handleAgeFilter}
 				/>
@@ -272,14 +284,19 @@
 
 		<!-- 3 · OR Phase Timeline ------------------------------------------------------ -->
 		<section>
-			<h2 class="text-left text-3xl font-bold mb-1 pb-2">Time on the Table</h2>
-			<p class="mb-4 max-w-9xl mx-auto">
-				Each dot marks a key moment in surgery. The visualization shows <strong>mean, min, and max durations</strong> across our 6,388 cases. 
-				Try the filters above—switch between department and surgery type to see how <strong>different procedures have their own rhythm</strong>. 
-				For instance, breast surgeries average just <strong>34 minutes</strong> from anesthesia to incision, while transplantations take nearly twice as long, <strong>at 70 minutes</strong>. 
-				This pre-incision time matters, as longer anesthesia exposure before surgery increases risk of complications. If you're facing surgery, 
-				use these filters to see typical timing patterns for your procedure—knowledge that can help you understand and prepare for your own surgical journey. 
-				Hover over dots for exact timing stats.
+			<h2 class="mb-1 pb-2 text-left text-3xl font-bold">Time on the Table</h2>
+			<p class="max-w-9xl mx-auto mb-4">
+				Each dot marks a key moment in surgery. The visualization shows <strong
+					>mean, min, and max durations</strong
+				>
+				across our 6,388 cases. Try the filters above—switch between department and surgery type to see
+				how <strong>different procedures have their own rhythm</strong>. For instance, breast
+				surgeries average just <strong>34 minutes</strong> from anesthesia to incision, while
+				transplantations take nearly twice as long, <strong>at 70 minutes</strong>. This
+				pre-incision time matters, as longer anesthesia exposure before surgery increases risk of
+				complications. If you're facing surgery, use these filters to see typical timing patterns
+				for your procedure—knowledge that can help you understand and prepare for your own surgical
+				journey. Hover over dots for exact timing stats.
 			</p>
 			<div>
 				<AggregatedTimeline {cases} />
@@ -403,6 +420,38 @@
 			</div>
 		</section>
 	</article>
+
+	<section>
+		1. What have you done so far? So far, we’ve built a comprehensive exploratory analysis of our
+		surgical patient population to lay the groundwork for outcome-based modeling. We began by
+		visualizing age distribution, revealing a wide range of patients from their twenties to their
+		eighties. This range emphasizes the variation in baseline risk and physiological resilience
+		across the cohort. We then created a department-wise breakdown of surgical cases, showing that
+		general surgery dominates in volume, with notable contributions from thoracic surgery and
+		urology.
+		<br /><br />In addition to demographic insights, we constructed a line chart to compare the
+		average duration of each surgical phase (anesthesia, surgery, and recovery) across departments.
+		This helps contextualize how time and resource demands vary by specialty. We also explored risk
+		stratification through a radar chart comparing median outcomes for high- and low-risk cohorts.
+		Metrics like mortality, ICU stay, and blood loss were visualized, clearly showing that
+		pre-operative risk factors correlate with worse outcomes. Finally, we built an interactive tool
+		that allows users to manipulate variables like age, ASA status, and emergency status to simulate
+		predicted risks, making the data both accessible and actionable.
+		<br /><br />2. What will be the most challenging part of your project to design and why? The
+		most challenging component of the project will likely be the design and refinement of the “Build
+		Your Own Patient” predictive interface. While the tool currently visualizes model output based
+		on user-selected inputs, accurately modeling risk for ICU stay and in-hospital mortality from
+		such a small set of parameters introduces complexity. Capturing the nuances of surgical
+		risk—especially interactions between variables like age and ASA score—requires both careful
+		feature engineering and robust validation against clinical outcomes.
+		<br /><br />Additionally, designing an interface that is intuitive yet scientifically accurate
+		presents a UI/UX challenge. Users must understand the sensitivity of predictions without
+		misinterpreting them as deterministic. Balancing simplicity with explanatory power, and ensuring
+		the tool reflects real-world risk distributions without bias, will require tight integration
+		between the front-end experience and the underlying model logic. Finally, scaling the model for
+		more granular or department-specific predictions while maintaining speed and clarity will
+		require thoughtful architectural decisions as the project evolves.
+	</section>
 {/if}
 
 <style>
