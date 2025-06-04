@@ -218,12 +218,12 @@
 					flex: 1;
 					display: flex;
 					flex-direction: column;
-					min-height: 400px; /* Fixed height for chart containers */
+					min-height: 420px; /* Increased height to accommodate larger bottom margin */
 				}
 				
 				.visualization-grid > :global(div) > :global(.chart) > :global(svg) {
 					flex: 1;
-					min-height: 380px; /* Ensure SVG has minimum height */
+					min-height: 400px; /* Increased minimum height to match */
 				}
 				
 				/* Make insights sections the same height */

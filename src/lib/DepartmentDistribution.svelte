@@ -20,8 +20,8 @@
 		if (!data.length) return;
 		select(svg).selectAll('*').remove();
 
-		// Match dimensions with AgeDistribution component - slightly taller to match
-		const margin = { top: 30, right: 30, bottom: 60, left: 60 };
+		// Match dimensions with AgeDistribution component - with increased bottom margin
+		const margin = { top: 30, right: 30, bottom: 90, left: 60 };
 		const width = 600 - margin.left - margin.right;
 		const height = 350 - margin.top - margin.bottom;
 
@@ -224,13 +224,15 @@
 				filteredDepartment = newFilter!;
 			});
 
-		// Add x and y axes
+		// Add x and y axes with improved label placement
 		g.append('g')
 			.attr('transform', `translate(0,${height})`)
 			.call(axisBottom(x))
 			.selectAll('text')
-			.attr('transform', 'rotate(-45)')
+			.attr('transform', 'rotate(-35)')  // Less steep angle
 			.attr('text-anchor', 'end')
+			.attr('dy', '0.5em')  // Adjust vertical position
+			.attr('dx', '-0.8em')  // Adjust horizontal position
 			.style('font-size', '12px');
 
 		g.append('g')
@@ -241,10 +243,10 @@
 			)
 			.style('font-size', '12px');
 
-		// Add axis labels
+		// Add axis labels with better positioning
 		g.append('text')
 			.attr('x', width / 2)
-			.attr('y', height + 75)
+			.attr('y', height + 65)  // Adjusted position for the axis label
 			.attr('text-anchor', 'middle')
 			.style('font-size', '14px')
 			.text('Surgical Department');
