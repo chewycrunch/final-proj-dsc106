@@ -354,7 +354,7 @@
 	<br />
 	<p>
 		<strong>x-axis</strong> = pre-operative albumin (g/dL).
-		<strong>Dot colour</strong> = post-op ICU stay (<span style="color:#a50026">red ≈ ≥ 3 days</span
+		<strong>Dot color</strong> = post-op ICU stay (<span style="color:#a50026">red ≈ ≥ 3 days</span
 		>,
 		<span style="color:#3288bd">deep-blue ≈ 0–1 day</span>). Use the radio buttons to flip between
 		routine <b>elective</b>, urgent <b>emergency</b>, or <b>all</b> cases. Below a certain threshold,
@@ -381,7 +381,7 @@
 			Because urgent cases already carry extra risk, the median albumin threshold where ICU stays spike
 			is higher. Below ~3.5 g/dL,
 			<span class="font-semibold">the chance of ≥ 3-day ICU stay more than doubles</span>
-			compared to those with albumin above 3.5 g/dL. The spread of dots is wider, but the colour gradient
+			compared to those with albumin above 3.5 g/dL. The spread of dots is wider, but the color gradient
 			still tilts toward red as albumin drops.
 		</li>
 		<li>

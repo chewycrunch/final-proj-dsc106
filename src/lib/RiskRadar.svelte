@@ -135,16 +135,16 @@
 				'fixed z-30 mt-2 rounded bg-gray-900 px-2 py-1 text-xs text-white pointer-events-none opacity-0'
 			);
 
-		function addDots(vals: number[], colour: string, cohort: 'High-risk' | 'Routine') {
-			g.selectAll(`.dot-${colour}`)
+		function addDots(vals: number[], color: string, cohort: 'High-risk' | 'Routine') {
+			g.selectAll(`.dot-${color}`)
 				.data(vals)
 				.enter()
 				.append('circle')
-				.attr('class', `dot-${colour}`)
+				.attr('class', `dot-${color}`)
 				.attr('cx', (_d, i) => radius(vals[i]) * Math.cos(angle(i)))
 				.attr('cy', (_d, i) => radius(vals[i]) * Math.sin(angle(i)) * -1)
 				.attr('r', 5)
-				.attr('fill', colour)
+				.attr('fill', color)
 				.on('mousemove', (e, d) => {
 					const idx = vals.indexOf(d);
 					tip

@@ -39,8 +39,8 @@
 	const H = 320;
 	const pad = 48;
 
-	// Colour scale (ICU days capped at 5)
-	const colour = d3.scaleSequential(d3.interpolateRdYlBu).domain([5, 0]);
+	// color scale (ICU days capped at 5)
+	const color = d3.scaleSequential(d3.interpolateRdYlBu).domain([5, 0]);
 
 	// Whenever `slice` changes, redraw
 	$: if (svg) {
@@ -175,7 +175,7 @@
 			.attr('cx', (d) => x(d.albumin))
 			.attr('cy', (d) => y(d.icuDays))
 			.attr('r', (d) => Math.sqrt(d.count) * 2)
-			.attr('fill', (d) => colour(Math.min(d.icuDays, 5)))
+			.attr('fill', (d) => color(Math.min(d.icuDays, 5)))
 			.attr('stroke', '#374151')
 			.attr('stroke-opacity', 0.15)
 			.append('title')
@@ -259,7 +259,7 @@ Number of Cases: ${d.count}`
 			.attr('y', 0)
 			.attr('width', stopW)
 			.attr('height', 10)
-			.attr('fill', (d) => colour(d));
+			.attr('fill', (d) => color(d));
 
 		legendGroup
 			.append('text')
