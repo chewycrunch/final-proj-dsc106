@@ -14,7 +14,8 @@
 </svelte:head>
 
 <main>
-	<Container class="space-y-16 py-8">
-		{@render children()}
-	</Container>
+	{@render children()}
+	<!-- <Container class="space-y-16 py-8">
+	
+	</Container> -->
 </main>

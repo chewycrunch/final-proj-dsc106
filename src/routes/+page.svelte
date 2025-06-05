@@ -322,7 +322,7 @@
 {/snippet}
 
 {#snippet timelineSlide()}
-	<h2 class="mb-1 pb-2 text-left text-3xl font-bold">Time on the Table</h2>
+	<h2>Time on the Table</h2>
 	<p class="max-w-9xl mx-auto mb-4">
 		Each dot marks a key moment in surgery. The visualization shows <strong
 			>mean, min, and max durations</strong
@@ -411,7 +411,7 @@
 
 {#snippet takeawaySlide()}
 	<div class="mx-auto max-w-2xl rounded-lg bg-indigo-50 p-8">
-		<h2 class="mb-4 text-2xl font-semibold text-indigo-900">The Takeaway</h2>
+		<h2>The Takeaway</h2>
 		<p class="text-lg text-indigo-800">
 			The data reveals three critical insights: First, pre-op albumin levels—easily measured and
 			often correctable—strongly predict ICU stays. Second, emergency status and ASA score interact
@@ -423,7 +423,8 @@
 {/snippet}
 
 {#snippet writeupSlide()}
-	<div>
+	<h2>Writeup</h2>
+	<p>
 		1. What have you done so far? So far, we’ve built a comprehensive exploratory analysis of our
 		surgical patient population to lay the groundwork for outcome-based modeling. We began by
 		visualizing age distribution, revealing a wide range of patients from their twenties to their
@@ -453,7 +454,7 @@
 		between the front-end experience and the underlying model logic. Finally, scaling the model for
 		more granular or department-specific predictions while maintaining speed and clarity will
 		require thoughtful architectural decisions as the project evolves.
-	</div>
+	</p>
 {/snippet}
 
 {#snippet slideContent(slide)}
@@ -465,72 +466,70 @@
 {#if loading}
 	<p class="py-16 text-center text-lg">Loading VitalDB dataset …</p>
 {:else}
-	<div class="fixed inset-0 overflow-hidden">
-		<!-- Navigation Buttons -->
-		<button
-			class="absolute top-1/2 left-4 z-50 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-lg hover:bg-white"
-			on:click={prevSlide}
-			disabled={currentSlide === 0 || isTransitioning}
+	<!-- Navigation Buttons -->
+	<button
+		class="absolute top-1/2 left-4 z-50 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-lg hover:bg-white"
+		on:click={prevSlide}
+		disabled={currentSlide === 0 || isTransitioning}
+	>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			class="h-6 w-6"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="h-6 w-6"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-			>
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-			</svg>
-		</button>
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+		</svg>
+	</button>
 
-		<button
-			class="absolute top-1/2 right-4 z-50 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-lg hover:bg-white"
-			on:click={nextSlide}
-			disabled={currentSlide === totalSlides - 1 || isTransitioning}
+	<button
+		class="absolute top-1/2 right-4 z-50 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-lg hover:bg-white"
+		on:click={nextSlide}
+		disabled={currentSlide === totalSlides - 1 || isTransitioning}
+	>
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			class="h-6 w-6"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
 		>
-			<svg
-				xmlns="http://www.w3.org/2000/svg"
-				class="h-6 w-6"
-				fill="none"
-				viewBox="0 0 24 24"
-				stroke="currentColor"
-			>
-				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-			</svg>
-		</button>
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+		</svg>
+	</button>
 
-		<!-- Dot Navigation (Bottom dots) -->
-		<div class="absolute bottom-4 left-1/2 z-50 flex -translate-x-1/2 gap-2">
-			{#each slides as _, i}
-				<button
-					class="h-3 w-3 rounded-full transition-all duration-300 {currentSlide === i
-						? 'bg-indigo-600'
-						: 'bg-gray-300 hover:bg-gray-400'}"
-					on:click={() => goToSlide(i)}
-					disabled={isTransitioning}
-				/>
-			{/each}
-		</div>
-
-		<!-- Sections Container -->
-		<div class="relative h-full">
-			{#each slides as slide, i}
-				{#if currentSlide === i}
-					<div
-						class="absolute inset-0 overflow-y-auto transition-opacity duration-300"
-						style="opacity: {isTransitioning ? 0 : 1}"
-					>
-						<Container>
-							{@render slideContent(slide)}
-						</Container>
-					</div>
-				{/if}
-			{/each}
-		</div>
+	<!-- Dot Navigation (Bottom dots) -->
+	<div class="absolute bottom-4 left-1/2 z-50 flex -translate-x-1/2 gap-2">
+		{#each slides as _, i}
+			<button
+				class="h-3 w-3 rounded-full transition-all duration-300 {currentSlide === i
+					? 'bg-indigo-600'
+					: 'bg-gray-300 hover:bg-gray-400'}"
+				on:click={() => goToSlide(i)}
+				disabled={isTransitioning}
+			/>
+		{/each}
 	</div>
+
+	<!-- Sections Container -->
+	{#each slides as slide, i}
+		{#if currentSlide === i}
+			<div
+				class="absolute inset-0 overflow-y-auto transition-opacity duration-300"
+				style="opacity: {isTransitioning ? 0 : 1}"
+			>
+				<Container>
+					{@render slideContent(slide)}
+				</Container>
+			</div>
+		{/if}
+	{/each}
 {/if}
 
 <style>
+	@reference '$lib/../app.css';
+
 	:global(svg) {
 		max-width: 100%;
 	}
@@ -557,5 +556,9 @@
 	.overflow-y-auto::-webkit-scrollbar-thumb {
 		background-color: #cbd5e1;
 		border-radius: 4px;
+	}
+
+	h2 {
+		@apply mb-4 text-2xl font-semibold text-indigo-900;
 	}
 </style>
