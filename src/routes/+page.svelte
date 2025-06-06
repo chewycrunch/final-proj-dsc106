@@ -16,6 +16,7 @@
 	import BuildPatient from '$lib/BuildPatient.svelte';
 	import RiskDumbbell from '$lib/RiskDumbbell.svelte';
 	import AlbuminRiskScatter from '$lib/AlbuminRiskScatter.svelte';
+	import Tbd from '$lib/Tbd.svelte';
 
 	/* ---------- dataset ---------- */
 	let cases: SurgeryCase[] = [];
@@ -40,7 +41,8 @@
 		{ id: 'albumin', content: albuminSlide },
 		{ id: 'buildPatient', content: buildPatientSlide },
 		{ id: 'takeaway', content: takeawaySlide },
-		{ id: 'writeup', content: writeupSlide }
+		{ id: 'writeup', content: writeupSlide },
+		{ id: 'tbd', content: tbdslide }
 	];
 
 	const totalSlides = slides.length;
@@ -455,6 +457,14 @@
 		more granular or department-specific predictions while maintaining speed and clarity will
 		require thoughtful architectural decisions as the project evolves.
 	</p>
+{/snippet}
+
+{#snippet tbdslide()}
+	<h2>To Be Determined</h2>
+	<p class="text-lg text-gray-600">
+		We are still working on this section. Stay tuned for updates!
+	</p>
+	<Tbd/>
 {/snippet}
 
 {#snippet slideContent(slide)}
