@@ -46,7 +46,7 @@ h3 {
 }
 
 p {
-	@apply font-sans text-base font-normal;
+	@apply font-sans text-lg font-normal;
 }
 
 h2 {
