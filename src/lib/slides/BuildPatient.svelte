@@ -7,7 +7,7 @@
 
 	let { cases }: Props = $props();
 
-	let predictors = { age: 60, bmi: 25, asa: 2, emergency: 0, height: 170 };
+	let predictors = $state({ age: 60, bmi: 25, asa: 2, emergency: 0, height: 170 });
 </script>
 
 <h2>Interactive Risk Builder</h2>
