@@ -3,7 +3,6 @@
 	import { onMount } from 'svelte';
 	import { csv } from 'd3-fetch';
 	import { base } from '$app/paths';
-	import HeroCounter from '$lib/HeroCounter.svelte';
 	import Container from '$lib/Container.svelte';
 	import type { Snippet } from 'svelte';
 	import type { SvelteComponent } from 'svelte';
@@ -19,17 +18,16 @@
 	import WriteupSlide from '$lib/slides/WriteupSlide.svelte';
 	import BuildPatient from '$lib/slides/BuildPatient.svelte';
 	import TransitionSlide from '$lib/slides/TransitionSlide.svelte';
-
+	import RadarSlide from '$lib/slides/RadarSlide.svelte';
 	/* ---------- dataset ---------- */
 	let cases: SurgeryCase[] = [];
 	let loading = true;
-	let predictors = { age: 60, bmi: 25, asa: 2, emergency: 0 };
 
 	let currentSlide = 0;
 	let isTransitioning = false;
 	const TRANSITION_DURATION = 300; // Reduced from 500ms to 300ms
 
-	// Define slides array
+	// Slides
 	const slides = [
 		{ id: 'hook', content: HookSlide },
 		{ id: 'transition', content: TransitionSlide, props: { lines: [
@@ -43,11 +41,14 @@
 		]}},
 		{ id: 'timeline', content: TimelineSlide },
 		{ id: 'albumin', content: AlbuminSlide },
+		{ id: 'radar', content: RadarSlide },
 		{ id: 'buildPatient', content: BuildPatient },
 		{ id: 'takeaway', content: TakeawaySlide },
 		{ id: 'writeup', content: WriteupSlide }
+		
 	];
 
+	// Slides functions
 	const totalSlides = slides.length;
 
 	function nextSlide() {
