@@ -1,3 +1,25 @@
+// User made risk profile
+const userProfile = $state({ age: 60, bmi: 25, asa: 2, emergency: 0, height: 170 });
+
+export const useUserProfile = () => {
+	return userProfile;
+};
+export const resetUserProfile = () => {
+	userProfile.age = 60;
+	userProfile.bmi = 25;
+	userProfile.asa = 2;
+	userProfile.emergency = 0;
+	userProfile.height = 170;
+};
+export const setProfileInput = (newPredictors: typeof userProfile) => {
+	userProfile.age = newPredictors.age;
+	userProfile.bmi = newPredictors.bmi;
+	userProfile.asa = newPredictors.asa;
+	userProfile.emergency = newPredictors.emergency;
+	userProfile.height = newPredictors.height;
+};
+
+// Actual results
 const predictions = $state({
 	avgICUStay: 0,
 	mortalityRate: 0,

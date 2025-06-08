@@ -264,7 +264,6 @@
 			>
 				<Container class="min-h-full py-10">
 					<svelte:component this={slide.content} {cases} {...slide.props || {}} />
-					<!-- {@render slideContent(slide)} -->
 				</Container>
 			</div>
 		{/if}

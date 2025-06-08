@@ -314,21 +314,23 @@
 	// Individual risk level calculations for each metric
 	function getICURiskLevel(icuStay: number) {
 		const percentage = icuStay / maxICUStay;
-		if (percentage < 0.3) return { 
-			level: 'Low', 
-			bgColor: 'bg-green-50', 
-			textColor: 'text-green-700',
-			borderColor: 'border-green-200'
-		};
-		if (percentage < 0.7) return { 
-			level: 'Medium', 
-			bgColor: 'bg-yellow-50', 
-			textColor: 'text-yellow-700',
-			borderColor: 'border-yellow-200'
-		};
-		return { 
-			level: 'High', 
-			bgColor: 'bg-red-50', 
+		if (percentage < 0.3)
+			return {
+				level: 'Low',
+				bgColor: 'bg-green-50',
+				textColor: 'text-green-700',
+				borderColor: 'border-green-200'
+			};
+		if (percentage < 0.7)
+			return {
+				level: 'Medium',
+				bgColor: 'bg-yellow-50',
+				textColor: 'text-yellow-700',
+				borderColor: 'border-yellow-200'
+			};
+		return {
+			level: 'High',
+			bgColor: 'bg-red-50',
 			textColor: 'text-red-700',
 			borderColor: 'border-red-200'
 		};
@@ -336,21 +338,23 @@
 
 	function getMortalityRiskLevel(mortality: number) {
 		const percentage = mortality / maxMortalityRate;
-		if (percentage < 0.3) return { 
-			level: 'Low', 
-			bgColor: 'bg-green-50', 
-			textColor: 'text-green-700',
-			borderColor: 'border-green-200'
-		};
-		if (percentage < 0.7) return { 
-			level: 'Medium', 
-			bgColor: 'bg-yellow-50', 
-			textColor: 'text-yellow-700',
-			borderColor: 'border-yellow-200'
-		};
-		return { 
-			level: 'High', 
-			bgColor: 'bg-red-50', 
+		if (percentage < 0.3)
+			return {
+				level: 'Low',
+				bgColor: 'bg-green-50',
+				textColor: 'text-green-700',
+				borderColor: 'border-green-200'
+			};
+		if (percentage < 0.7)
+			return {
+				level: 'Medium',
+				bgColor: 'bg-yellow-50',
+				textColor: 'text-yellow-700',
+				borderColor: 'border-yellow-200'
+			};
+		return {
+			level: 'High',
+			bgColor: 'bg-red-50',
 			textColor: 'text-red-700',
 			borderColor: 'border-red-200'
 		};
@@ -358,21 +362,23 @@
 
 	function getBloodLossRiskLevel(bloodLoss: number) {
 		const percentage = bloodLoss / maxBloodLoss;
-		if (percentage < 0.3) return { 
-			level: 'Low', 
-			bgColor: 'bg-green-50', 
-			textColor: 'text-green-700',
-			borderColor: 'border-green-200'
-		};
-		if (percentage < 0.7) return { 
-			level: 'Medium', 
-			bgColor: 'bg-yellow-50', 
-			textColor: 'text-yellow-700',
-			borderColor: 'border-yellow-200'
-		};
-		return { 
-			level: 'High', 
-			bgColor: 'bg-red-50', 
+		if (percentage < 0.3)
+			return {
+				level: 'Low',
+				bgColor: 'bg-green-50',
+				textColor: 'text-green-700',
+				borderColor: 'border-green-200'
+			};
+		if (percentage < 0.7)
+			return {
+				level: 'Medium',
+				bgColor: 'bg-yellow-50',
+				textColor: 'text-yellow-700',
+				borderColor: 'border-yellow-200'
+			};
+		return {
+			level: 'High',
+			bgColor: 'bg-red-50',
 			textColor: 'text-red-700',
 			borderColor: 'border-red-200'
 		};
@@ -666,7 +672,7 @@
 		</div>
 
 		<!-- All Sliders in Grid Layout -->
-		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
 			<div class={activeFilters.age ? '' : 'opacity-50'}>
 				<label class="block text-sm opacity-80">Age: {predictors.age} years</label>
 				<input
@@ -752,7 +758,9 @@
 						{matchingCasesCount === 0 ? 'No Matching Cases Found' : 'Limited Data Available'}
 					</h4>
 					{#if matchingCasesCount === 0}
-						<p class="mb-3 text-sm opacity-80">There are no historical cases that match your current patient profile.</p>
+						<p class="mb-3 text-sm opacity-80">
+							There are no historical cases that match your current patient profile.
+						</p>
 						<div class="space-y-1">
 							<p class="text-sm font-medium opacity-80">Consider:</p>
 							<ul class="ml-4 space-y-1 text-sm opacity-70">
@@ -763,7 +771,8 @@
 						</div>
 					{:else}
 						<p class="mb-3 text-sm opacity-80">
-							Only {matchingCasesCount} cases match your current filters. The predictions may not be reliable.
+							Only {matchingCasesCount} cases match your current filters. The predictions may not be
+							reliable.
 						</p>
 						<div class="space-y-1">
 							<p class="text-sm font-medium opacity-80">Consider:</p>
@@ -815,10 +824,10 @@
 	</div>
 
 	<!-- Main Visualization Section: Stick Figure and Radar Chart Side by Side -->
-	<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+	<div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
 		<!-- Left side: Stick Figure -->
 		<div class="space-y-4">
-			<h4 class="text-lg font-semibold text-center">Patient Visualization</h4>
+			<h4 class="text-center text-lg font-semibold">Patient Visualization</h4>
 			<div class="flex items-center justify-center">
 				<svg
 					viewBox="0 0 200 {figureHeight}"
@@ -911,7 +920,7 @@
 
 		<!-- Right side: Radar Chart -->
 		<div class="space-y-4">
-			<h4 class="text-lg font-semibold text-center">Patient Outcomes Radar</h4>
+			<h4 class="text-center text-lg font-semibold">Patient Outcomes Radar</h4>
 			<div class="flex justify-center">
 				<svg bind:this={radarSvg} class="radar-chart"></svg>
 			</div>
@@ -919,7 +928,8 @@
 	</div>
 
 	<!-- Chart Explanation Panels -->
-	<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+
+	<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
 		<div class="rounded-lg p-4 shadow-sm">
 			<h4 class="mb-3 font-semibold">How to Read This Chart</h4>
 			<div class="space-y-2 text-sm opacity-80">
@@ -964,43 +974,56 @@
 	</div>
 
 	<!-- Individual Outcome Cards -->
-	<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-		<div class="rounded-lg p-6 shadow-sm">
-			<div class="flex items-center gap-3">
-				<div class="h-10 w-10 rounded-full {icuRisk.bgColor} flex items-center justify-center">
-					<span class="text-white text-lg">🏥</span>
-				</div>
-				<div>
-					<h3 class="font-medium opacity-80">ICU Stay</h3>
-					<p class="text-2xl font-bold {icuRisk.textColor}">{radarOutcomes.icuStay.toFixed(1)} days</p>
-				</div>
-			</div>
-		</div>
 
-		<div class="rounded-lg p-6 shadow-sm">
-			<div class="flex items-center gap-3">
-				<div class="h-10 w-10 rounded-full {mortalityRisk.bgColor} flex items-center justify-center">
-					<span class="text-white text-lg">💗</span>
-				</div>
-				<div>
-					<h3 class="font-medium opacity-80">Mortality Rate</h3>
-					<p class="text-2xl font-bold {mortalityRisk.textColor}">{(radarOutcomes.mortality * 100).toFixed(1)}%</p>
+	{#if matchingCasesCount != 0}
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+			<div class="rounded-lg p-6 shadow-sm">
+				<div class="flex items-center gap-3">
+					<div class="h-10 w-10 rounded-full {icuRisk.bgColor} flex items-center justify-center">
+						<span class="text-lg text-white">🏥</span>
+					</div>
+					<div>
+						<h3 class="font-medium opacity-80">ICU Stay</h3>
+						<p class="text-2xl font-bold {icuRisk.textColor}">
+							{radarOutcomes.icuStay.toFixed(1)} days
+						</p>
+					</div>
 				</div>
 			</div>
-		</div>
 
-		<div class="rounded-lg p-6 shadow-sm">
-			<div class="flex items-center gap-3">
-				<div class="h-10 w-10 rounded-full {bloodLossRisk.bgColor} flex items-center justify-center">
-					<span class="text-white text-lg">🩸</span>
+			<div class="rounded-lg p-6 shadow-sm">
+				<div class="flex items-center gap-3">
+					<div
+						class="h-10 w-10 rounded-full {mortalityRisk.bgColor} flex items-center justify-center"
+					>
+						<span class="text-lg text-white">💗</span>
+					</div>
+					<div>
+						<h3 class="font-medium opacity-80">Mortality Rate</h3>
+						<p class="text-2xl font-bold {mortalityRisk.textColor}">
+							{(radarOutcomes.mortality * 100).toFixed(1)}%
+						</p>
+					</div>
 				</div>
-				<div>
-					<h3 class="font-medium opacity-80">Blood Loss</h3>
-					<p class="text-2xl font-bold {bloodLossRisk.textColor}">{Math.round(radarOutcomes.bloodLoss)} mL</p>
+			</div>
+
+			<div class="rounded-lg p-6 shadow-sm">
+				<div class="flex items-center gap-3">
+					<div
+						class="h-10 w-10 rounded-full {bloodLossRisk.bgColor} flex items-center justify-center"
+					>
+						<span class="text-lg text-white">🩸</span>
+					</div>
+					<div>
+						<h3 class="font-medium opacity-80">Blood Loss</h3>
+						<p class="text-2xl font-bold {bloodLossRisk.textColor}">
+							{Math.round(radarOutcomes.bloodLoss)} mL
+						</p>
+					</div>
 				</div>
 			</div>
 		</div>
-	</div>
+	{/if}
 
 	<!-- 
 	<div class="mt-4 flex space-x-4">
