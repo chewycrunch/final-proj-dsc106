@@ -1,7 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 @import 'tailwindcss';
 
 @theme {
 	--font-sans: DM Sans, sans-serif;
+	--font-serif: Arvo, serif;
 
 	--color-background-1: #0a0c10;
 	--color-background-2: #07080c;
@@ -44,5 +46,9 @@ h3 {
 }
 
 p {
-	@apply font-sans text-base font-normal;
+	@apply font-sans text-lg font-normal;
+}
+
+h2 {
+	@apply text-text-accent mb-4 text-2xl font-semibold;
 }

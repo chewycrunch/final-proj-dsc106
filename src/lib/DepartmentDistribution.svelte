@@ -321,8 +321,10 @@
 		<div class="filter-notice">
 			<p>
 				<span class="filter-badge">Filtered</span>
-				Viewing <strong>{filteredDepartment}</strong> cases only
-				<button class="clear-filter" on:click={handleBackgroundClick}> Clear filter × </button>
+				<span class="text-black">Viewing <strong>{filteredDepartment}</strong> cases only</span>
+				<button class="clear-filter text-black" on:click={handleBackgroundClick}>
+					Clear filter ×
+				</button>
 			</p>
 		</div>
 	{:else}

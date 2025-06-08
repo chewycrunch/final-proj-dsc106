@@ -4,8 +4,6 @@
 	import { csv } from 'd3-fetch';
 	import { base } from '$app/paths';
 	import Container from '$lib/Container.svelte';
-	import type { Snippet } from 'svelte';
-	import type { SvelteComponent } from 'svelte';
 
 	/* ---------- visual sections (they each do their own processing) ---------- */
 
@@ -19,6 +17,8 @@
 	import BuildPatient from '$lib/slides/BuildPatient.svelte';
 	import TransitionSlide from '$lib/slides/TransitionSlide.svelte';
 	import RadarSlide from '$lib/slides/RadarSlide.svelte';
+	import MakeAGuessSlide from '$lib/slides/MakeAGuessSlide.svelte';
+
 	/* ---------- dataset ---------- */
 	let cases: SurgeryCase[] = [];
 	let loading = true;
@@ -52,6 +52,7 @@
 		{ id: 'albumin', content: AlbuminSlide },
 		{ id: 'radar', content: RadarSlide },
 		{ id: 'buildPatient', content: BuildPatient },
+		{ id: 'makeAGuess', content: MakeAGuessSlide },
 		{ id: 'takeaway', content: TakeawaySlide },
 		{ id: 'writeup', content: WriteupSlide }
 	];
@@ -205,38 +206,42 @@
 	<p class="py-16 text-center text-lg">Loading VitalDB dataset …</p>
 {:else}
 	<!-- Left Nav Button -->
-	<button
-		class="absolute top-1/2 left-4 z-50 -translate-y-1/2 cursor-pointer rounded-full bg-gray-800/80 p-2 shadow-lg hover:bg-gray-700"
-		on:click={prevSlide}
-		disabled={currentSlide === 0 || isTransitioning}
-	>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			class="h-6 w-6 text-gray-200"
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke="currentColor"
+	{#if currentSlide > 0}
+		<button
+			class="absolute top-1/2 left-4 z-50 -translate-y-1/2 cursor-pointer rounded-full bg-gray-800/80 p-2 shadow-lg hover:bg-gray-700"
+			on:click={prevSlide}
+			disabled={currentSlide === 0 || isTransitioning}
 		>
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-		</svg>
-	</button>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				class="h-6 w-6 text-gray-200"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+			>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+			</svg>
+		</button>
+	{/if}
 
 	<!-- Right Nav Button -->
-	<button
-		class="absolute top-1/2 right-4 z-50 -translate-y-1/2 cursor-pointer rounded-full bg-gray-800/80 p-2 shadow-lg hover:bg-gray-700"
-		on:click={nextSlide}
-		disabled={currentSlide === totalSlides - 1 || isTransitioning}
-	>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			class="h-6 w-6 text-gray-200"
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke="currentColor"
+	{#if currentSlide < totalSlides - 1}
+		<button
+			class="absolute top-1/2 right-4 z-50 -translate-y-1/2 cursor-pointer rounded-full bg-gray-800/80 p-2 shadow-lg hover:bg-gray-700"
+			on:click={nextSlide}
+			disabled={currentSlide === totalSlides - 1 || isTransitioning}
 		>
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-		</svg>
-	</button>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				class="h-6 w-6 text-gray-200"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+			>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+			</svg>
+		</button>
+	{/if}
 
 	<!-- Dot Navigation (Bottom dots) -->
 	<div class="absolute bottom-4 left-1/2 z-50 flex -translate-x-1/2 gap-2">
@@ -257,7 +262,7 @@
 				class="absolute inset-0 overflow-y-auto transition-opacity duration-300"
 				style="opacity: {isTransitioning ? 0 : 1}"
 			>
-				<Container class="py-10">
+				<Container class="min-h-full py-10">
 					<svelte:component this={slide.content} {cases} {...slide.props || {}} />
 					<!-- {@render slideContent(slide)} -->
 				</Container>
@@ -295,9 +300,5 @@
 	.overflow-y-auto::-webkit-scrollbar-thumb {
 		background-color: #cbd5e1;
 		border-radius: 4px;
-	}
-
-	h2 {
-		@apply mb-4 text-2xl font-semibold text-indigo-900;
 	}
 </style>
