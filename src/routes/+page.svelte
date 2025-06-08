@@ -204,15 +204,15 @@
 {#if loading}
 	<p class="py-16 text-center text-lg">Loading VitalDB dataset …</p>
 {:else}
-	<!-- Navigation Buttons -->
+	<!-- Left Nav Button -->
 	<button
-		class="absolute top-1/2 left-4 z-50 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-lg hover:bg-white"
+		class="absolute top-1/2 left-4 z-50 -translate-y-1/2 cursor-pointer rounded-full bg-gray-800/80 p-2 shadow-lg hover:bg-gray-700"
 		on:click={prevSlide}
 		disabled={currentSlide === 0 || isTransitioning}
 	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			class="h-6 w-6"
+			class="h-6 w-6 text-gray-200"
 			fill="none"
 			viewBox="0 0 24 24"
 			stroke="currentColor"
@@ -221,14 +221,15 @@
 		</svg>
 	</button>
 
+	<!-- Right Nav Button -->
 	<button
-		class="absolute top-1/2 right-4 z-50 -translate-y-1/2 rounded-full bg-white/80 p-2 shadow-lg hover:bg-white"
+		class="absolute top-1/2 right-4 z-50 -translate-y-1/2 cursor-pointer rounded-full bg-gray-800/80 p-2 shadow-lg hover:bg-gray-700"
 		on:click={nextSlide}
 		disabled={currentSlide === totalSlides - 1 || isTransitioning}
 	>
 		<svg
 			xmlns="http://www.w3.org/2000/svg"
-			class="h-6 w-6"
+			class="h-6 w-6 text-gray-200"
 			fill="none"
 			viewBox="0 0 24 24"
 			stroke="currentColor"
@@ -241,9 +242,8 @@
 	<div class="absolute bottom-4 left-1/2 z-50 flex -translate-x-1/2 gap-2">
 		{#each slides as _, i}
 			<button
-				class="h-3 w-3 rounded-full transition-all duration-300 {currentSlide === i
-					? 'bg-text-accent'
-					: 'bg-gray-300 hover:bg-gray-400'}"
+				class="h-3 w-3 rounded-full transition-all duration-300
+					{currentSlide === i ? 'bg-text-accent ' : 'bg-gray-700 hover:bg-gray-500'}"
 				on:click={() => goToSlide(i)}
 				disabled={isTransitioning}
 			/>
