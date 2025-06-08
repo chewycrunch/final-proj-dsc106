@@ -30,22 +30,30 @@
 	// Slides
 	const slides = [
 		{ id: 'hook', content: HookSlide },
-		{ id: 'transition', content: TransitionSlide, props: { lines: [
-			"First, let's meet our patients:",
-			"who are they, and where do they come from?"
-		]}},
+		{
+			id: 'transition',
+			content: TransitionSlide,
+			props: {
+				lines: ["First, let's meet our patients:", 'who are they, and where do they come from?']
+			}
+		},
 		{ id: 'demographics', content: DemographicsSlide },
-		{ id: 'transition', content: TransitionSlide, props: { lines: [
-			"Knowing who our patients are, the next question is:",
-			"how long do we spend on each phase of their care?"
-		]}},
+		{
+			id: 'transition',
+			content: TransitionSlide,
+			props: {
+				lines: [
+					'Knowing who our patients are, the next question is:',
+					'how long do we spend on each phase of their care?'
+				]
+			}
+		},
 		{ id: 'timeline', content: TimelineSlide },
 		{ id: 'albumin', content: AlbuminSlide },
 		{ id: 'radar', content: RadarSlide },
 		{ id: 'buildPatient', content: BuildPatient },
 		{ id: 'takeaway', content: TakeawaySlide },
 		{ id: 'writeup', content: WriteupSlide }
-		
 	];
 
 	// Slides functions
@@ -234,7 +242,7 @@
 		{#each slides as _, i}
 			<button
 				class="h-3 w-3 rounded-full transition-all duration-300 {currentSlide === i
-					? 'bg-indigo-600'
+					? 'bg-text-accent'
 					: 'bg-gray-300 hover:bg-gray-400'}"
 				on:click={() => goToSlide(i)}
 				disabled={isTransitioning}
@@ -250,7 +258,7 @@
 				style="opacity: {isTransitioning ? 0 : 1}"
 			>
 				<Container class="py-10">
-					<svelte:component this={slide.content} {cases} {...(slide.props || {})} />
+					<svelte:component this={slide.content} {cases} {...slide.props || {}} />
 					<!-- {@render slideContent(slide)} -->
 				</Container>
 			</div>

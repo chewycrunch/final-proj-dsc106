@@ -78,7 +78,8 @@
 			.attr('class', 'chart-title')
 			.style('font-size', '16px')
 			.style('font-weight', 'bold')
-			.text(title);
+			.text(title)
+			.attr('class', 'fill-text-primary');
 
 		// Calculate department-specific statistics for tooltips
 		const deptStats = new Map();
@@ -229,10 +230,10 @@
 			.attr('transform', `translate(0,${height})`)
 			.call(axisBottom(x))
 			.selectAll('text')
-			.attr('transform', 'rotate(-35)')  // Less steep angle
+			.attr('transform', 'rotate(-35)') // Less steep angle
 			.attr('text-anchor', 'end')
-			.attr('dy', '0.5em')  // Adjust vertical position
-			.attr('dx', '-0.8em')  // Adjust horizontal position
+			.attr('dy', '0.5em') // Adjust vertical position
+			.attr('dx', '-0.8em') // Adjust horizontal position
 			.style('font-size', '12px');
 
 		g.append('g')
@@ -246,10 +247,11 @@
 		// Add axis labels with better positioning
 		g.append('text')
 			.attr('x', width / 2)
-			.attr('y', height + 65)  // Adjusted position for the axis label
+			.attr('y', height + 65) // Adjusted position for the axis label
 			.attr('text-anchor', 'middle')
 			.style('font-size', '14px')
-			.text('Surgical Department');
+			.text('Surgical Department')
+			.attr('class', 'fill-text-primary');
 
 		g.append('text')
 			.attr('transform', 'rotate(-90)')
@@ -257,7 +259,8 @@
 			.attr('y', -50)
 			.attr('text-anchor', 'middle')
 			.style('font-size', '14px')
-			.text(showPercentage ? 'Percentage of Cases (%)' : 'Number of Cases');
+			.text(showPercentage ? 'Percentage of Cases (%)' : 'Number of Cases')
+			.attr('class', 'fill-text-primary');
 
 		// Insight annotation removed as requested
 	}
@@ -299,7 +302,7 @@
 			draw();
 		}
 	}
-	
+
 	// Reactive statement to respond to data changes (when age filtering is applied)
 	$: if (svg && data) {
 		// Redraw the chart when data changes due to filtering
@@ -341,7 +344,7 @@
 		flex-direction: column;
 		gap: 1rem;
 	}
-	
+
 	.chart {
 		flex: 1;
 		display: flex;

@@ -165,7 +165,7 @@
 			Split by sex
 		</label>
 
-		<p class="text-xs text-gray-600 italic">
+		<p class="text-text-secondary text-xs italic">
 			<i
 				>Tip: Click and drag on the age chart to filter by age range. Click on department bars to
 				filter by department.</i

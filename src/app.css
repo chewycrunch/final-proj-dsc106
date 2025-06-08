@@ -2,12 +2,25 @@
 
 @theme {
 	--font-sans: DM Sans, sans-serif;
+
+	--color-background-1: #0a0c10;
+	--color-background-2: #07080c;
+
+	--color-text-primary: #ededed;
+	--color-text-secondary: #a1a1a1;
+	--color-text-accent: rgb(127, 157, 201);
+
+	--color-item-background: #1a1c20;
+	--color-item-background-hover: #25272c;
+	--color-item-background-active: #2f3238;
+	--color-oneoff-extrablue: #6baed6;
 }
 
 @layer utilities {
 	/* The html element */
 	:root {
-		/* @apply text-text-primary; */
+		@apply bg-gray-800;
+		@apply text-text-primary;
 	}
 }
 

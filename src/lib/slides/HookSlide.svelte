@@ -11,7 +11,7 @@
 <div class="space-y-6 text-center">
 	<h1 class="text-4xl leading-tight font-semibold md:text-5xl">
 		Vitals&nbsp;Unveiled:<br />
-		<span class="text-indigo-600">When “Routine” Surgeries Take Unexpected Turns</span>
+		<span class="text-text-accent">When “Routine” Surgeries Take Unexpected Turns</span>
 	</h1>
 
 	<p class="mx-auto max-w-2xl text-lg md:text-xl">

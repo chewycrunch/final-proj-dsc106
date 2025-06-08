@@ -1,29 +1,31 @@
 <script lang="ts">
-	
-    interface Props {
-        lines: string[];
-    }
+	interface Props {
+		lines: string[];
+	}
 
-    let { lines }: Props = $props();
-
-
+	let { lines }: Props = $props();
 </script>
 
-	<div class="flex min-h-screen items-center justify-center">
-		<div class="flex-1 flex items-center justify-center">
-			<div class="text-4xl md:text-5xl font-semibold text-indigo-900 text-center max-w-5xl mx-auto px-4">
-				<div class="typing-container">
-					<div class="typing-wrapper">
-						{#each lines as line, i}
-						<div class="typing-line">
-							<span class="typing-text" class:first-line={i === 0} class:second-line={i === 1} style="--delay: {i * 1.5}s">{line}</span>
-						</div>
-						{/each}
+<div class="flex h-full flex-1 items-center justify-center">
+	<div
+		class="text-text-primary mx-auto max-w-5xl px-4 text-center text-4xl font-semibold md:text-5xl"
+	>
+		<div class="typing-container">
+			<div class="typing-wrapper">
+				{#each lines as line, i}
+					<div class="typing-line">
+						<span
+							class="typing-text"
+							class:first-line={i === 0}
+							class:second-line={i === 1}
+							style="--delay: {i * 1.5}s">{line}</span
+						>
 					</div>
-				</div>
+				{/each}
 			</div>
 		</div>
 	</div>
+</div>
 
 <style>
 	.typing-container {
@@ -31,7 +33,7 @@
 		justify-content: center;
 		align-items: center;
 		width: 100%;
-		min-height: 100vh;
+		min-height: 100%;
 	}
 
 	.typing-wrapper {
@@ -74,20 +76,33 @@
 
 	.typing-text.first-line::after,
 	.typing-text.second-line::after {
-		animation: blink 0.75s step-end infinite, show-cursor 0s var(--delay) forwards;
+		animation:
+			blink 0.75s step-end infinite,
+			show-cursor 0s var(--delay) forwards;
 	}
 
 	@keyframes typing {
-		from { width: 0 }
-		to { width: 100% }
+		from {
+			width: 0;
+		}
+		to {
+			width: 100%;
+		}
 	}
 
 	@keyframes blink {
-		from, to { opacity: 1 }
-		50% { opacity: 0 }
+		from,
+		to {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0;
+		}
 	}
 
 	@keyframes show-cursor {
-		to { opacity: 1 }
+		to {
+			opacity: 1;
+		}
 	}
 </style>
