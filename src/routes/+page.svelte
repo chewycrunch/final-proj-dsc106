@@ -205,38 +205,42 @@
 	<p class="py-16 text-center text-lg">Loading VitalDB dataset …</p>
 {:else}
 	<!-- Left Nav Button -->
-	<button
-		class="absolute top-1/2 left-4 z-50 -translate-y-1/2 cursor-pointer rounded-full bg-gray-800/80 p-2 shadow-lg hover:bg-gray-700"
-		on:click={prevSlide}
-		disabled={currentSlide === 0 || isTransitioning}
-	>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			class="h-6 w-6 text-gray-200"
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke="currentColor"
+	{#if currentSlide > 0}
+		<button
+			class="absolute top-1/2 left-4 z-50 -translate-y-1/2 cursor-pointer rounded-full bg-gray-800/80 p-2 shadow-lg hover:bg-gray-700"
+			on:click={prevSlide}
+			disabled={currentSlide === 0 || isTransitioning}
 		>
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-		</svg>
-	</button>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				class="h-6 w-6 text-gray-200"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+			>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+			</svg>
+		</button>
+	{/if}
 
 	<!-- Right Nav Button -->
-	<button
-		class="absolute top-1/2 right-4 z-50 -translate-y-1/2 cursor-pointer rounded-full bg-gray-800/80 p-2 shadow-lg hover:bg-gray-700"
-		on:click={nextSlide}
-		disabled={currentSlide === totalSlides - 1 || isTransitioning}
-	>
-		<svg
-			xmlns="http://www.w3.org/2000/svg"
-			class="h-6 w-6 text-gray-200"
-			fill="none"
-			viewBox="0 0 24 24"
-			stroke="currentColor"
+	{#if currentSlide < totalSlides - 1}
+		<button
+			class="absolute top-1/2 right-4 z-50 -translate-y-1/2 cursor-pointer rounded-full bg-gray-800/80 p-2 shadow-lg hover:bg-gray-700"
+			on:click={nextSlide}
+			disabled={currentSlide === totalSlides - 1 || isTransitioning}
 		>
-			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-		</svg>
-	</button>
+			<svg
+				xmlns="http://www.w3.org/2000/svg"
+				class="h-6 w-6 text-gray-200"
+				fill="none"
+				viewBox="0 0 24 24"
+				stroke="currentColor"
+			>
+				<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+			</svg>
+		</button>
+	{/if}
 
 	<!-- Dot Navigation (Bottom dots) -->
 	<div class="absolute bottom-4 left-1/2 z-50 flex -translate-x-1/2 gap-2">
