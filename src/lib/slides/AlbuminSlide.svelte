@@ -27,6 +27,8 @@
 
 <AlbuminRiskScatter patients={cases} />
 
+<div class="h-7"></div>
+
 <h3>What we actually see</h3>
 <ul class="list-inside list-disc space-y-1">
 	<li>
@@ -59,3 +61,5 @@
 	Even in apparently routine electives, nutrition can tip the balance from day-case discharge to
 	days of critical care.
 </p>
+
+<div class="h-16"></div>
