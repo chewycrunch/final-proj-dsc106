@@ -4,6 +4,10 @@
 	import { csv } from 'd3-fetch';
 	import { base } from '$app/paths';
 	import Container from '$lib/Container.svelte';
+	import type { Snippet } from 'svelte';
+	import type { SvelteComponent } from 'svelte';
+
+	/* ---------- visual sections (they each do their own processing) ---------- */
 
 	// Slides
 	import HookSlide from '$lib/slides/HookSlide.svelte';
@@ -13,6 +17,7 @@
 	import TakeawaySlide from '$lib/slides/TakeawaySlide.svelte';
 	import WriteupSlide from '$lib/slides/WriteupSlide.svelte';
 	import BuildPatient from '$lib/slides/BuildPatient.svelte';
+	import TransitionSlide from '$lib/slides/TransitionSlide.svelte';
 	import RadarSlide from '$lib/slides/RadarSlide.svelte';
 	/* ---------- dataset ---------- */
 	let cases: SurgeryCase[] = [];
@@ -25,7 +30,15 @@
 	// Slides
 	const slides = [
 		{ id: 'hook', content: HookSlide },
+		{ id: 'transition', content: TransitionSlide, props: { lines: [
+			"First, let's meet our patients:",
+			"who are they, and where do they come from?"
+		]}},
 		{ id: 'demographics', content: DemographicsSlide },
+		{ id: 'transition', content: TransitionSlide, props: { lines: [
+			"Knowing who our patients are, the next question is:",
+			"how long do we spend on each phase of their care?"
+		]}},
 		{ id: 'timeline', content: TimelineSlide },
 		{ id: 'albumin', content: AlbuminSlide },
 		{ id: 'radar', content: RadarSlide },
@@ -237,7 +250,7 @@
 				style="opacity: {isTransitioning ? 0 : 1}"
 			>
 				<Container class="py-10">
-					<svelte:component this={slide.content} {cases} />
+					<svelte:component this={slide.content} {cases} {...(slide.props || {})} />
 					<!-- {@render slideContent(slide)} -->
 				</Container>
 			</div>
