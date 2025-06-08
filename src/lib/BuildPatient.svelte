@@ -472,7 +472,7 @@
 			.attr('y', 0)
 			.attr('text-anchor', 'start')
 			.attr('dominant-baseline', 'middle')
-			.attr('fill', '#6b7280')
+			.attr('fill', '#ffffff')
 			.attr('font-size', 10)
 			.attr('font-weight', '500')
 			.text((d) => Math.round(d * 100) + '%');
@@ -497,10 +497,10 @@
 			})
 			.attr('text-anchor', 'middle')
 			.attr('dominant-baseline', 'middle')
-			.attr('fill', '#374151')
+			.attr('fill', '#ffffff')
 			.attr('font-size', 13)
 			.attr('font-weight', '600')
-			.style('text-shadow', '1px 1px 2px rgba(255,255,255,0.8)')
+			.style('text-shadow', '1px 1px 2px rgba(0,0,0,0.5)')
 			.text((d) => d.label);
 
 		// Calculate triangle vertices
@@ -637,7 +637,7 @@
 	});
 </script>
 
-<div class="space-y-6 rounded-lg p-4 shadow-sm">
+<div class="space-y-6 rounded-lg p-4 shadow-sm bg-[#0e192b]">
 	<!-- Header and Filter Controls Section -->
 	<div class="space-y-6">
 		<div class="flex items-center justify-between">
@@ -748,7 +748,7 @@
 	</div>
 
 	{#if matchingCasesCount < 10}
-		<div class="mt-4 rounded-lg p-4 shadow-sm">
+		<div class="mt-4 rounded-lg p-4 shadow-sm bg-slate-700">
 			<div class="flex items-start gap-3">
 				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
 					<span class="text-lg">⚠️</span>
@@ -786,7 +786,7 @@
 			</div>
 		</div>
 	{:else if matchingCasesCount < 50}
-		<div class="mt-4 rounded-lg p-4 shadow-sm">
+		<div class="mt-4 rounded-lg p-4 shadow-sm bg-slate-700">
 			<div class="flex items-start gap-3">
 				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
 					<span class="text-lg">👍</span>
@@ -800,7 +800,7 @@
 			</div>
 		</div>
 	{:else if matchingCasesCount >= 50}
-		<div class="mt-4 rounded-lg p-4 shadow-sm">
+		<div class="mt-4 rounded-lg p-4 shadow-sm bg-slate-700">
 			<div class="flex items-start gap-3">
 				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
 					<span class="text-lg">✅</span>
@@ -816,7 +816,7 @@
 	{/if}
 
 	<!-- Risk Assessment -->
-	<div class="mb-4 rounded-lg p-3 shadow-sm">
+	<div class="mb-4 rounded-lg p-3 shadow-sm bg-slate-700">
 		<div class="flex items-center justify-between">
 			<span class="text-sm font-medium">Overall Risk Level:</span>
 			<span class="font-semibold {riskAssessment.color}">{riskAssessment.level}</span>
@@ -930,7 +930,7 @@
 	<!-- Chart Explanation Panels -->
 
 	<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-		<div class="rounded-lg p-4 shadow-sm">
+		<div class="rounded-lg p-4 shadow-sm bg-slate-700">
 			<h4 class="mb-3 font-semibold">How to Read This Chart</h4>
 			<div class="space-y-2 text-sm opacity-80">
 				<p>• <strong>Distance from center</strong> = Risk level (0-100%)</p>
@@ -939,7 +939,7 @@
 			</div>
 		</div>
 
-		<div class="rounded-lg p-4 shadow-sm">
+		<div class="rounded-lg p-4 shadow-sm bg-slate-700">
 			<h4 class="mb-3 font-semibold">Scale Ranges</h4>
 			<div class="space-y-2 text-sm opacity-80">
 				<div>
@@ -954,7 +954,7 @@
 			</div>
 		</div>
 
-		<div class="rounded-lg p-4 shadow-sm">
+		<div class="rounded-lg p-4 shadow-sm bg-slate-700">
 			<h4 class="mb-3 font-semibold">Risk Levels</h4>
 			<div class="space-y-1 text-sm">
 				<div class="flex items-center gap-2">
@@ -967,7 +967,7 @@
 				</div>
 				<div class="flex items-center gap-2">
 					<span class="h-3 w-3 rounded-full bg-red-500"></span>
-					<span class="font-medium text-red-700">High Risk</span>
+					<span class="font-medium text-red-500">High Risk</span>
 				</div>
 			</div>
 		</div>
@@ -977,7 +977,7 @@
 
 	{#if matchingCasesCount != 0}
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-			<div class="rounded-lg p-6 shadow-sm">
+			<div class="rounded-lg p-6 shadow-sm bg-slate-700">
 				<div class="flex items-center gap-3">
 					<div class="h-10 w-10 rounded-full {icuRisk.bgColor} flex items-center justify-center">
 						<span class="text-lg text-white">🏥</span>
@@ -991,7 +991,7 @@
 				</div>
 			</div>
 
-			<div class="rounded-lg p-6 shadow-sm">
+			<div class="rounded-lg p-6 shadow-sm bg-slate-700">
 				<div class="flex items-center gap-3">
 					<div
 						class="h-10 w-10 rounded-full {mortalityRisk.bgColor} flex items-center justify-center"
@@ -1007,7 +1007,7 @@
 				</div>
 			</div>
 
-			<div class="rounded-lg p-6 shadow-sm">
+			<div class="rounded-lg p-6 shadow-sm bg-slate-700">
 				<div class="flex items-center gap-3">
 					<div
 						class="h-10 w-10 rounded-full {bloodLossRisk.bgColor} flex items-center justify-center"
