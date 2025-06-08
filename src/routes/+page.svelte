@@ -19,7 +19,7 @@
 	import TransitionSlide from '$lib/slides/TransitionSlide.svelte';
 	import RadarSlide from '$lib/slides/RadarSlide.svelte';
 	import MakeAGuessSlide from '$lib/slides/MakeAGuessSlide.svelte';
-
+	import WaterfallSlide from '$lib/slides/WaterfallGraph.svelte';
 	/* ---------- dataset ---------- */
 	let cases: SurgeryCase[] = [];
 	let loading = true;
@@ -56,6 +56,7 @@
 			}
 		},
 		{ id: 'timeline', content: TimelineSlide },
+		{ id: 'waterfall', content: WaterfallSlide },
 		{ id: 'albumin', content: AlbuminSlide },
 		{ id: 'radar', content: RadarSlide },
 		{ id: 'buildPatient', content: BuildPatient },
