@@ -3,11 +3,7 @@
 	import { onMount } from 'svelte';
 	import { csv } from 'd3-fetch';
 	import { base } from '$app/paths';
-	import HeroCounter from '$lib/HeroCounter.svelte';
 	import Container from '$lib/Container.svelte';
-	import type { Snippet } from 'svelte';
-
-	/* ---------- visual sections (they each do their own processing) ---------- */
 
 	// Slides
 	import HookSlide from '$lib/slides/HookSlide.svelte';
@@ -21,13 +17,12 @@
 	/* ---------- dataset ---------- */
 	let cases: SurgeryCase[] = [];
 	let loading = true;
-	let predictors = { age: 60, bmi: 25, asa: 2, emergency: 0 };
 
 	let currentSlide = 0;
 	let isTransitioning = false;
 	const TRANSITION_DURATION = 300; // Reduced from 500ms to 300ms
 
-	// Define slides array
+	// Slides
 	const slides = [
 		{ id: 'hook', content: HookSlide },
 		{ id: 'demographics', content: DemographicsSlide },
@@ -38,6 +33,7 @@
 		{ id: 'writeup', content: WriteupSlide }
 	];
 
+	// Slides functions
 	const totalSlides = slides.length;
 
 	function nextSlide() {
