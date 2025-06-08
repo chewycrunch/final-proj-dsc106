@@ -98,10 +98,10 @@
 		// Handle zero or very small values
 		if (actual === 0 && guess === 0) return 1;
 		if (actual === 0 || guess === 0) return 0;
-		
+
 		// Calculate relative error
 		const relativeError = Math.abs(guess - actual) / Math.max(actual, 1);
-		
+
 		// Convert to accuracy score (1 - normalized error)
 		// Using exponential decay to make it more sensitive to differences
 		return Math.exp(-relativeError);
@@ -162,11 +162,19 @@
 				// Calculate accuracy if in guessing mode
 				if (isGuessing && showResults) {
 					const icuAccuracy = calculateAccuracyScore(userGuess.icuDays, avgICUStay, icuValues);
-					const mortalityAccuracy = calculateAccuracyScore(userGuess.mortality, mortalityRate * 100, finalMatches.map(c => c.death_inhosp * 100));
-					const bloodLossAccuracy = calculateAccuracyScore(userGuess.bloodLoss, avgBloodLoss, bloodLossValues);
-					
+					const mortalityAccuracy = calculateAccuracyScore(
+						userGuess.mortality,
+						mortalityRate * 100,
+						finalMatches.map((c) => c.death_inhosp * 100)
+					);
+					const bloodLossAccuracy = calculateAccuracyScore(
+						userGuess.bloodLoss,
+						avgBloodLoss,
+						bloodLossValues
+					);
+
 					// Weight the accuracies
-					percentileRank = (icuAccuracy * 0.4 + mortalityAccuracy * 0.3 + bloodLossAccuracy * 0.3);
+					percentileRank = icuAccuracy * 0.4 + mortalityAccuracy * 0.3 + bloodLossAccuracy * 0.3;
 				}
 			} else {
 				avgICUStay = 0;
@@ -433,9 +441,9 @@
 
 	{#if matchingCasesCount === 0}
 		<div class="mt-4 rounded bg-red-100 p-4 text-red-800">
-			<h4 class="font-bold mb-2">⚠️ No Matching Cases Found</h4>
+			<h4 class="mb-2 font-bold">⚠️ No Matching Cases Found</h4>
 			<p>There are no historical cases that match your current patient profile. Consider:</p>
-			<ul class="list-disc ml-6 mt-2">
+			<ul class="mt-2 ml-6 list-disc">
 				<li>Relaxing some of your filters</li>
 				<li>Adjusting the patient's characteristics to more common values</li>
 				<li>Using a broader range for age, BMI, or ASA score</li>
@@ -443,9 +451,12 @@
 		</div>
 	{:else if matchingCasesCount < 10}
 		<div class="mt-4 rounded bg-yellow-100 p-4 text-yellow-800">
-			<h4 class="font-bold mb-2">⚠️ Limited Data Available</h4>
-			<p>Only {matchingCasesCount} cases match your current filters. The predictions may not be reliable. Consider:</p>
-			<ul class="list-disc ml-6 mt-2">
+			<h4 class="mb-2 font-bold">⚠️ Limited Data Available</h4>
+			<p>
+				Only {matchingCasesCount} cases match your current filters. The predictions may not be reliable.
+				Consider:
+			</p>
+			<ul class="mt-2 ml-6 list-disc">
 				<li>Relaxing some filters to get more comparable cases</li>
 				<li>Adjusting the patient profile to match more common characteristics</li>
 			</ul>
@@ -554,15 +565,27 @@
 
 		{#if isGuessing && showResults}
 			<div class="mt-4 rounded bg-yellow-50 p-3 text-sm text-yellow-800">
-				Your guess was {((percentileRank) * 100).toFixed(1)}% accurate!
+				Your guess was {(percentileRank * 100).toFixed(1)}% accurate!
 				{#if percentileRank <= 0.25}
-					<p class="mt-2 text-red-600">Your predictions were quite far from the actual outcomes. Consider reviewing the patient's risk factors more carefully.</p>
+					<p class="mt-2 text-red-600">
+						Your predictions were quite far from the actual outcomes. Consider reviewing the
+						patient's risk factors more carefully.
+					</p>
 				{:else if percentileRank <= 0.5}
-					<p class="mt-2 text-orange-600">Your predictions were somewhat off. Try to consider how different factors might interact to affect outcomes.</p>
+					<p class="mt-2 text-orange-600">
+						Your predictions were somewhat off. Try to consider how different factors might interact
+						to affect outcomes.
+					</p>
 				{:else if percentileRank <= 0.75}
-					<p class="mt-2 text-yellow-600">Good predictions! You're getting better at understanding how patient characteristics influence outcomes.</p>
+					<p class="mt-2 text-yellow-600">
+						Good predictions! You're getting better at understanding how patient characteristics
+						influence outcomes.
+					</p>
 				{:else}
-					<p class="mt-2 text-green-600">Excellent predictions! You have a strong understanding of how patient factors correlate with surgical outcomes.</p>
+					<p class="mt-2 text-green-600">
+						Excellent predictions! You have a strong understanding of how patient factors correlate
+						with surgical outcomes.
+					</p>
 				{/if}
 			</div>
 		{/if}

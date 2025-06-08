@@ -18,6 +18,13 @@
 	import AlbuminRiskScatter from '$lib/AlbuminRiskScatter.svelte';
 	import Tbd from '$lib/Tbd.svelte';
 
+	import HookSlide from '$lib/slides/HookSlide.svelte';
+	import DemographicsSlide from '$lib/slides/DemographicsSlide.svelte';
+	import TimelineSlide from '$lib/slides/TimelineSlide.svelte';
+	import AlbuminSlide from '$lib/slides/AlbuminSlide.svelte';
+	import TakeawaySlide from '$lib/slides/TakeawaySlide.svelte';
+	import WriteupSlide from '$lib/slides/WriteupSlide.svelte';
+
 	/* ---------- dataset ---------- */
 	let cases: SurgeryCase[] = [];
 	let loading = true;
@@ -35,14 +42,13 @@
 
 	// Define slides array
 	const slides = [
-		{ id: 'hook', content: hookSlide },
-		{ id: 'demographics', content: demographicsSlide },
-		{ id: 'timeline', content: timelineSlide },
-		{ id: 'albumin', content: albuminSlide },
-		{ id: 'buildPatient', content: buildPatientSlide },
-		{ id: 'takeaway', content: takeawaySlide },
-		{ id: 'writeup', content: writeupSlide },
-		{ id: 'tbd', content: tbdslide }
+		{ id: 'hook', content: HookSlide },
+		{ id: 'demographics', content: DemographicsSlide },
+		{ id: 'timeline', content: TimelineSlide },
+		{ id: 'albumin', content: AlbuminSlide },
+		{ id: 'buildPatient', content: BuildPatient },
+		{ id: 'takeaway', content: TakeawaySlide },
+		{ id: 'writeup', content: WriteupSlide }
 	];
 
 	const totalSlides = slides.length;
@@ -231,43 +237,6 @@
 	});
 </script>
 
-{#snippet hookSlide()}
-	<div class="space-y-6 text-center">
-		<h1 class="text-4xl leading-tight font-semibold md:text-5xl">
-			Vitals&nbsp;Unveiled:<br />
-			<span class="text-indigo-600">Why Some "Routine" Surgeries Aren't</span>
-		</h1>
-
-		<p class="mx-auto max-w-2xl text-lg md:text-xl">
-			Every morning an OR schedule hums like clockwork. <strong>6 388</strong>
-			patients arrive, expecting a smooth ride through anesthesia and stitched-up certainty. Yet buried
-			in those charts are
-			<em>blood-loss spikes, surprise ICU transfers, and silent tragedies</em> that no checklist predicted.
-			What separates the happy recoveries from the heart-stopping detours?
-		</p>
-
-		<p class="mx-auto max-w-2xl text-lg md:text-xl">
-			Scroll on 👇 as we crack open the VitalDB dataset to follow every heartbeat, incision, and lab
-			value—then build <strong>interactive risk profiles</strong> that may one day warn us before routine
-			turns to critical.
-		</p>
-
-		<HeroCounter
-			stats={[
-				{ label: 'Total Surgeries', value: cases.length },
-				{
-					label: 'ICU Transfers',
-					value: cases.filter((c) => (c.icu_days ?? 0) > 0).length
-				},
-				{
-					label: 'In-hospital Deaths',
-					value: cases.filter((c) => c.death_inhosp == 1).length
-				}
-			]}
-		/>
-	</div>
-{/snippet}
-
 {#snippet demographicsSlide()}
 	<h2>Who Steps Into the OR?</h2>
 	<p class="mb-4 max-w-xl">
@@ -320,26 +289,6 @@
 			{showPercentage}
 			on:filter={handleDepartmentFilter}
 		/>
-	</div>
-{/snippet}
-
-{#snippet timelineSlide()}
-	<h2>Time on the Table</h2>
-	<p class="max-w-9xl mx-auto mb-4">
-		Each dot marks a key moment in surgery. The visualization shows <strong
-			>mean, min, and max durations</strong
-		>
-		across our 6,388 cases. Try the filters above—switch between department and surgery type to see how
-		<strong>different procedures have their own rhythm</strong>. For instance, breast surgeries
-		average just <strong>34 minutes</strong> from anesthesia to incision, while transplantations
-		take nearly twice as long,
-		<strong>at 70 minutes</strong>. This pre-incision time matters, as longer anesthesia exposure
-		before surgery increases risk of complications. If you're facing surgery, use these filters to
-		see typical timing patterns for your procedure—knowledge that can help you understand and
-		prepare for your own surgical journey. Hover over dots for exact timing stats.
-	</p>
-	<div>
-		<AggregatedTimeline {cases} />
 	</div>
 {/snippet}
 
@@ -411,62 +360,6 @@
 	<BuildPatient {cases} bind:predictors />
 {/snippet}
 
-{#snippet takeawaySlide()}
-	<div class="mx-auto max-w-2xl rounded-lg bg-indigo-50 p-8">
-		<h2>The Takeaway</h2>
-		<p class="text-lg text-indigo-800">
-			The data reveals three critical insights: First, pre-op albumin levels—easily measured and
-			often correctable—strongly predict ICU stays. Second, emergency status and ASA score interact
-			in ways that standard checklists miss. And third, while we can't change age, we can optimize
-			timing, prepare blood products, and adjust recovery expectations based on these risk factors.
-			The data tells us where to look—before the knife ever touches skin.
-		</p>
-	</div>
-{/snippet}
-
-{#snippet writeupSlide()}
-	<h2>Writeup</h2>
-	<p>
-		1. What have you done so far? So far, we’ve built a comprehensive exploratory analysis of our
-		surgical patient population to lay the groundwork for outcome-based modeling. We began by
-		visualizing age distribution, revealing a wide range of patients from their twenties to their
-		eighties. This range emphasizes the variation in baseline risk and physiological resilience
-		across the cohort. We then created a department-wise breakdown of surgical cases, showing that
-		general surgery dominates in volume, with notable contributions from thoracic surgery and
-		urology.
-		<br />In addition to demographic insights, we constructed a line chart to compare the average
-		duration of each surgical phase (anesthesia, surgery, and recovery) across departments. This
-		helps contextualize how time and resource demands vary by specialty. We also explored risk
-		stratification through a radar chart comparing median outcomes for high- and low-risk cohorts.
-		Metrics like mortality, ICU stay, and blood loss were visualized, clearly showing that
-		pre-operative risk factors correlate with worse outcomes. Finally, we built an interactive tool
-		that allows users to manipulate variables like age, ASA status, and emergency status to simulate
-		predicted risks, making the data both accessible and actionable.
-		<br /><br />2. What will be the most challenging part of your project to design and why? The
-		most challenging component of the project will likely be the design and refinement of the “Build
-		Your Own Patient” predictive interface. While the tool currently visualizes model output based
-		on user-selected inputs, accurately modeling risk for ICU stay and in-hospital mortality from
-		such a small set of parameters introduces complexity. Capturing the nuances of surgical
-		risk—especially interactions between variables like age and ASA score—requires both careful
-		feature engineering and robust validation against clinical outcomes.
-		<br />Additionally, designing an interface that is intuitive yet scientifically accurate
-		presents a UI/UX challenge. Users must understand the sensitivity of predictions without
-		misinterpreting them as deterministic. Balancing simplicity with explanatory power, and ensuring
-		the tool reflects real-world risk distributions without bias, will require tight integration
-		between the front-end experience and the underlying model logic. Finally, scaling the model for
-		more granular or department-specific predictions while maintaining speed and clarity will
-		require thoughtful architectural decisions as the project evolves.
-	</p>
-{/snippet}
-
-{#snippet tbdslide()}
-	<h2>To Be Determined</h2>
-	<p class="text-lg text-gray-600">
-		We are still working on this section. Stay tuned for updates!
-	</p>
-	<Tbd/>
-{/snippet}
-
 {#snippet slideContent(slide)}
 	<div class="py-10">
 		{@render slide.content()}
@@ -529,8 +422,9 @@
 				class="absolute inset-0 overflow-y-auto transition-opacity duration-300"
 				style="opacity: {isTransitioning ? 0 : 1}"
 			>
-				<Container>
-					{@render slideContent(slide)}
+				<Container class="py-10">
+					<svelte:component this={slide.content} {cases} />
+					<!-- {@render slideContent(slide)} -->
 				</Container>
 			</div>
 		{/if}
