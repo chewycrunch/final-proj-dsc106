@@ -13,7 +13,7 @@
 	import TakeawaySlide from '$lib/slides/TakeawaySlide.svelte';
 	import WriteupSlide from '$lib/slides/WriteupSlide.svelte';
 	import BuildPatient from '$lib/slides/BuildPatient.svelte';
-
+	import RadarSlide from '$lib/slides/RadarSlide.svelte';
 	/* ---------- dataset ---------- */
 	let cases: SurgeryCase[] = [];
 	let loading = true;
@@ -28,9 +28,11 @@
 		{ id: 'demographics', content: DemographicsSlide },
 		{ id: 'timeline', content: TimelineSlide },
 		{ id: 'albumin', content: AlbuminSlide },
+		{ id: 'radar', content: RadarSlide },
 		{ id: 'buildPatient', content: BuildPatient },
 		{ id: 'takeaway', content: TakeawaySlide },
 		{ id: 'writeup', content: WriteupSlide }
+		
 	];
 
 	// Slides functions
