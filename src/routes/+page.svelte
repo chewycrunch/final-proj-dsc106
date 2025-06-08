@@ -257,7 +257,7 @@
 				class="absolute inset-0 overflow-y-auto transition-opacity duration-300"
 				style="opacity: {isTransitioning ? 0 : 1}"
 			>
-				<Container class="h-full py-10">
+				<Container class="min-h-full py-10">
 					<svelte:component this={slide.content} {cases} {...slide.props || {}} />
 					<!-- {@render slideContent(slide)} -->
 				</Container>
