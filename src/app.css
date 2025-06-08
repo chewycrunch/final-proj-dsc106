@@ -46,3 +46,7 @@ h3 {
 p {
 	@apply font-sans text-base font-normal;
 }
+
+h2 {
+	@apply text-text-accent mb-4 text-2xl font-semibold;
+}

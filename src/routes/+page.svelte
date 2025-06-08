@@ -297,7 +297,5 @@
 		border-radius: 4px;
 	}
 
-	h2 {
-		@apply mb-4 text-2xl font-semibold text-indigo-900;
-	}
+
 </style>
