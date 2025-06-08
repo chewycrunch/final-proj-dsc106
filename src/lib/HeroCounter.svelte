@@ -40,7 +40,7 @@
 				<!-- {fmt.format(Math.round(tweens[i]))} -->
 				<!-- <- 🔑 unwrap store -->
 			</h2>
-			<p class="text-xs tracking-wide text-gray-500 uppercase">
+			<p class="text-text-secondary text-xs tracking-wide uppercase">
 				{label}
 			</p>
 		</div>
