@@ -240,8 +240,8 @@ Number of Cases: ${d.count}`
 			.attr('text-anchor', 'middle')
 			.attr('font-size', '16px')
 			.attr('font-weight', '600')
-			.attr('fill', '#1f2937')
-			.text('Hidden Risk Factor — The Albumin Cliff');
+			.text('Hidden Risk Factor — The Albumin Cliff')
+			.attr('class', 'fill-text-primary');
 
 		// Legend
 		const legendX = W - pad - 120;
