@@ -2,6 +2,7 @@
 
 @theme {
 	--font-sans: DM Sans, sans-serif;
+	--font-serif: Arvo, serif;
 
 	--color-background-1: #0a0c10;
 	--color-background-2: #07080c;
@@ -23,6 +24,8 @@
 		@apply text-text-primary;
 	}
 }
+
+@import url('https://fonts.googleapis.com/css2?family=Arvo:ital,wght@0,400;0,700;1,400;1,700&display=swap');
 
 @layer base {
 	@font-face {
