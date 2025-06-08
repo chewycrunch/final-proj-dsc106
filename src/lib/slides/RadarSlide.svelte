@@ -440,7 +440,7 @@
 </script>
 
 <div class="radar-chart-container">
-	<h3 class="mb-4 text-lg font-semibold text-black!">Patient Outcomes Radar</h3>
+	<h2 class="text-black!">Patient Outcomes Radar</h2>
 
 	<!-- Filter Sliders -->
 	<div class="mb-6 grid grid-cols-1 gap-6 md:grid-cols-2">
