@@ -6,7 +6,7 @@
 	let { lines }: Props = $props();
 </script>
 
-<div class="flex h-full flex-1 items-center justify-center">
+<div class="h-screen w-screen">
 	<div
 		class="text-text-primary mx-auto max-w-5xl px-4 text-center text-4xl font-semibold md:text-5xl"
 	>
@@ -29,26 +29,29 @@
 
 <style>
 	.typing-container {
-		display: flex;
-		justify-content: center;
-		align-items: center;
+		height: 100vh;
 		width: 100%;
-		min-height: 100%;
 	}
 
 	.typing-wrapper {
-		position: relative;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 		display: inline-block;
 		text-align: center;
-		transform: translateY(-10%); /* Slight upward adjustment for visual balance */
 	}
 
 	.typing-line {
-		display: block;
+		display: flex;
+		align-items: center;
+		justify-content: center;
 		text-align: center;
-		height: 1.2em;
-		overflow: hidden;
+		height: 1.25em;
 		position: relative;
+	}
+
+	.typing-line:not(:last-child) {
 		margin-bottom: 0.2em;
 	}
 
@@ -60,6 +63,7 @@
 		text-align: center;
 		position: relative;
 		animation: typing 1.5s steps(30, end) var(--delay) forwards;
+		line-height: normal;
 	}
 
 	.typing-text::after {

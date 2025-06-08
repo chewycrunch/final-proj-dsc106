@@ -96,6 +96,9 @@
 			filteredGroupedData = groupedData.filter(d => d.icuDays < 20);
 		}
 
+		// Remove points with albumin < 2
+		filteredGroupedData = filteredGroupedData.filter(d => d.albumin >= 2);
+
 		// X scale (albumin)
 		const x = d3
 			.scaleLinear()
