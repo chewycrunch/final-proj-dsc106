@@ -157,9 +157,19 @@
 			.x((d) => x(d[0]))
 			.y((d) => y(d[1]));
 
+		// Create points for the regression line using actual data range
+		const minX = Math.max(2, d3.min(groupedData, d => d.albumin) || 0);
+		const maxX = d3.max(groupedData, d => d.albumin) || 0;
+		
+		// Calculate points with y-values capped at 0
+		const regressionPoints: [number, number][] = [
+			[minX, Math.max(0, regression.predict(minX))],
+			[maxX, Math.max(0, regression.predict(maxX))]
+		];
+
 		root
 			.append('path')
-			.datum(regression as unknown as [number, number][])
+			.datum(regressionPoints)
 			.attr('fill', 'none')
 			.attr('stroke', '#4b5563')
 			.attr('stroke-width', 2)
@@ -197,7 +207,8 @@ Number of Cases: ${d.count}`
 			.call(xAxis)
 			.selectAll('text')
 			.attr('font-size', '13px')
-			.attr('fill', '#374151');
+			.attr('fill', '#374151')
+			.attr('class', 'fill-text-primary');
 
 		// Y axis
 		const yAxis = d3
@@ -211,7 +222,8 @@ Number of Cases: ${d.count}`
 			.call(yAxis)
 			.selectAll('text')
 			.attr('font-size', '13px')
-			.attr('fill', '#374151');
+			.attr('fill', '#374151')
+			.attr('class', 'fill-text-primary');
 
 		// X axis label
 		root
@@ -221,7 +233,8 @@ Number of Cases: ${d.count}`
 			.attr('text-anchor', 'middle')
 			.attr('font-size', '14px')
 			.attr('fill', '#374151')
-			.text('Pre-operative Albumin (g/dL)');
+			.text('Pre-operative Albumin (g/dL)')
+			.attr('class', 'fill-text-primary');
 
 		// Y axis label
 		root
@@ -230,7 +243,8 @@ Number of Cases: ${d.count}`
 			.attr('text-anchor', 'middle')
 			.attr('font-size', '14px')
 			.attr('fill', '#374151')
-			.text('Average ICU Stay (days)');
+			.text('Average ICU Stay (days)')
+			.attr('class', 'fill-text-primary');
 
 		// Title
 		root
@@ -267,7 +281,8 @@ Number of Cases: ${d.count}`
 			.attr('y', 24)
 			.attr('font-size', '12px')
 			.attr('fill', '#374151')
-			.text('ICU ≥ 5d');
+			.text('ICU ≥ 5d')
+			.attr('class', 'fill-text-primary');
 
 		legendGroup
 			.append('text')
@@ -276,7 +291,8 @@ Number of Cases: ${d.count}`
 			.attr('text-anchor', 'end')
 			.attr('font-size', '12px')
 			.attr('fill', '#374151')
-			.text('0–1d');
+			.text('0–1d')
+			.attr('class', 'fill-text-primary');
 	}
 
 	onMount(() => {
