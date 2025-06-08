@@ -366,7 +366,77 @@
 		};
 	}
 
+	// Individual risk level calculations for each metric
+	function getICURiskLevel(icuStay: number) {
+		const percentage = icuStay / maxICUStay;
+		if (percentage < 0.3) return { 
+			level: 'Low', 
+			bgColor: 'bg-green-50', 
+			textColor: 'text-green-700',
+			borderColor: 'border-green-200'
+		};
+		if (percentage < 0.7) return { 
+			level: 'Medium', 
+			bgColor: 'bg-yellow-50', 
+			textColor: 'text-yellow-700',
+			borderColor: 'border-yellow-200'
+		};
+		return { 
+			level: 'High', 
+			bgColor: 'bg-red-50', 
+			textColor: 'text-red-700',
+			borderColor: 'border-red-200'
+		};
+	}
+
+	function getMortalityRiskLevel(mortality: number) {
+		const percentage = mortality / maxMortalityRate;
+		if (percentage < 0.3) return { 
+			level: 'Low', 
+			bgColor: 'bg-green-50', 
+			textColor: 'text-green-700',
+			borderColor: 'border-green-200'
+		};
+		if (percentage < 0.7) return { 
+			level: 'Medium', 
+			bgColor: 'bg-yellow-50', 
+			textColor: 'text-yellow-700',
+			borderColor: 'border-yellow-200'
+		};
+		return { 
+			level: 'High', 
+			bgColor: 'bg-red-50', 
+			textColor: 'text-red-700',
+			borderColor: 'border-red-200'
+		};
+	}
+
+	function getBloodLossRiskLevel(bloodLoss: number) {
+		const percentage = bloodLoss / maxBloodLoss;
+		if (percentage < 0.3) return { 
+			level: 'Low', 
+			bgColor: 'bg-green-50', 
+			textColor: 'text-green-700',
+			borderColor: 'border-green-200'
+		};
+		if (percentage < 0.7) return { 
+			level: 'Medium', 
+			bgColor: 'bg-yellow-50', 
+			textColor: 'text-yellow-700',
+			borderColor: 'border-yellow-200'
+		};
+		return { 
+			level: 'High', 
+			bgColor: 'bg-red-50', 
+			textColor: 'text-red-700',
+			borderColor: 'border-red-200'
+		};
+	}
+
 	$: riskAssessment = getRiskLevel(calculatedOutcomes);
+	$: icuRisk = getICURiskLevel(calculatedOutcomes.icuStay);
+	$: mortalityRisk = getMortalityRiskLevel(calculatedOutcomes.mortality);
+	$: bloodLossRisk = getBloodLossRiskLevel(calculatedOutcomes.bloodLoss);
 </script>
 
 <div class="radar-chart-container">
@@ -521,23 +591,20 @@
 
 	<!-- Outcome Values Display -->
 	<div class="mt-4 grid grid-cols-3 gap-4 text-sm">
-		<div class="rounded bg-blue-50 p-2 text-center">
-			<div class="font-semibold text-blue-700">ICU Stay</div>
-			<div class="text-lg font-bold text-blue-600">
-				{calculatedOutcomes.icuStay.toFixed(1)} days
-			</div>
+		<div class="text-center p-3 {icuRisk.bgColor} {icuRisk.borderColor} border rounded-lg">
+			<div class="font-semibold {icuRisk.textColor}">ICU Stay</div>
+			<div class="text-lg font-bold {icuRisk.textColor}">{calculatedOutcomes.icuStay.toFixed(1)} days</div>
+			<div class="text-xs {icuRisk.textColor} mt-1">{icuRisk.level} Risk</div>
 		</div>
-		<div class="rounded bg-blue-50 p-2 text-center">
-			<div class="font-semibold text-blue-700">Mortality Rate</div>
-			<div class="text-lg font-bold text-blue-600">
-				{(calculatedOutcomes.mortality * 100).toFixed(1)}%
-			</div>
+		<div class="text-center p-3 {mortalityRisk.bgColor} {mortalityRisk.borderColor} border rounded-lg">
+			<div class="font-semibold {mortalityRisk.textColor}">Mortality Rate</div>
+			<div class="text-lg font-bold {mortalityRisk.textColor}">{(calculatedOutcomes.mortality * 100).toFixed(1)}%</div>
+			<div class="text-xs {mortalityRisk.textColor} mt-1">{mortalityRisk.level} Risk</div>
 		</div>
-		<div class="rounded bg-blue-50 p-2 text-center">
-			<div class="font-semibold text-blue-700">Blood Loss</div>
-			<div class="text-lg font-bold text-blue-600">
-				{Math.round(calculatedOutcomes.bloodLoss)} mL
-			</div>
+		<div class="text-center p-3 {bloodLossRisk.bgColor} {bloodLossRisk.borderColor} border rounded-lg">
+			<div class="font-semibold {bloodLossRisk.textColor}">Blood Loss</div>
+			<div class="text-lg font-bold {bloodLossRisk.textColor}">{Math.round(calculatedOutcomes.bloodLoss)} mL</div>
+			<div class="text-xs {bloodLossRisk.textColor} mt-1">{bloodLossRisk.level} Risk</div>
 		</div>
 	</div>
 
