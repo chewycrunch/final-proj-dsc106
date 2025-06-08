@@ -4,8 +4,6 @@
 	import { csv } from 'd3-fetch';
 	import { base } from '$app/paths';
 	import Container from '$lib/Container.svelte';
-	import type { Snippet } from 'svelte';
-	import type { SvelteComponent } from 'svelte';
 
 	/* ---------- visual sections (they each do their own processing) ---------- */
 
@@ -19,6 +17,8 @@
 	import BuildPatient from '$lib/slides/BuildPatient.svelte';
 	import TransitionSlide from '$lib/slides/TransitionSlide.svelte';
 	import RadarSlide from '$lib/slides/RadarSlide.svelte';
+	import MakeAGuessSlide from '$lib/slides/MakeAGuessSlide.svelte';
+
 	/* ---------- dataset ---------- */
 	let cases: SurgeryCase[] = [];
 	let loading = true;
@@ -52,6 +52,7 @@
 		{ id: 'albumin', content: AlbuminSlide },
 		{ id: 'radar', content: RadarSlide },
 		{ id: 'buildPatient', content: BuildPatient },
+		{ id: 'makeAGuess', content: MakeAGuessSlide },
 		{ id: 'takeaway', content: TakeawaySlide },
 		{ id: 'writeup', content: WriteupSlide }
 	];
