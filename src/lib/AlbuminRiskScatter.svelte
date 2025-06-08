@@ -38,9 +38,17 @@
 	const W = 640;
 	const H = 320;
 	const pad = 48;
+	const leftPad = 100;  // Increased padding for y-axis
 
 	// color scale (ICU days capped at 5)
-	const color = d3.scaleSequential(d3.interpolateRdYlBu).domain([5, 0]);
+	const customInterpolator = (t: number) => {
+		// t: 0 (high ICU) to 1 (low ICU) because domain is [5, 0]
+		if (t < 0.15) {
+			return "#ff0000"; // even brighter red for highest ICU stays
+		}
+		return d3.interpolateRdYlBu(t);
+	};
+	const color = d3.scaleSequential(customInterpolator).domain([5, 0]);
 
 	// Whenever `slice` changes, redraw
 	$: if (svg) {
@@ -82,17 +90,23 @@
 			}
 		}
 
+		// Remove outlier for 'emergency' and 'all' filters (avg ICU stay >= 20 days)
+		let filteredGroupedData = groupedData;
+		if (filter === 'emergency' || filter === 'all') {
+			filteredGroupedData = groupedData.filter(d => d.icuDays < 20);
+		}
+
 		// X scale (albumin)
 		const x = d3
 			.scaleLinear()
-			.domain([2, d3.max(groupedData, (d) => d.albumin) || 6])
+			.domain([2, d3.max(filteredGroupedData, (d) => d.albumin) || 6])
 			.nice()
-			.range([pad, W - pad]);
+			.range([leftPad, W - pad]);
 
 		// Y scale (ICU days)
 		const y = d3
 			.scaleLinear()
-			.domain([0, d3.max(groupedData, (d) => d.icuDays) || 5])
+			.domain([0, d3.max(filteredGroupedData, (d) => d.icuDays) || 5])
 			.nice()
 			.range([H - pad, pad]);
 
@@ -103,7 +117,7 @@
 		y.ticks(5).forEach((tick) => {
 			gridGroup
 				.append('line')
-				.attr('x1', pad)
+				.attr('x1', leftPad)
 				.attr('x2', W - pad)
 				.attr('y1', y(tick))
 				.attr('y2', y(tick))
@@ -130,7 +144,7 @@
 			.attr('x2', x(3.5))
 			.attr('y1', pad)
 			.attr('y2', H - pad)
-			.attr('stroke', '#ef4444')
+			.attr('stroke', '#ff3b3b')
 			.attr('stroke-width', 2)
 			.attr('stroke-dasharray', '4,4');
 
@@ -138,10 +152,10 @@
 		gridGroup
 			.append('text')
 			.attr('x', x(3.5))
-			.attr('y', pad + 16)
+			.attr('y', pad - 10)
 			.attr('text-anchor', 'middle')
 			.attr('font-size', '12px')
-			.attr('fill', '#ef4444')
+			.attr('fill', '#ff3b3b')
 			.attr('font-weight', '500')
 			.text('Albumin Cliff (3.5 g/dL)');
 
@@ -149,7 +163,7 @@
 		const regression = regressionLinear()
 			.x((d) => d.albumin)
 			.y((d) => d.icuDays)
-			.domain(x.domain() as [number, number])(groupedData);
+			.domain(x.domain() as [number, number])(filteredGroupedData);
 
 		// Draw regression line
 		const line = d3
@@ -158,8 +172,8 @@
 			.y((d) => y(d[1]));
 
 		// Create points for the regression line using actual data range
-		const minX = Math.max(2, d3.min(groupedData, d => d.albumin) || 0);
-		const maxX = d3.max(groupedData, d => d.albumin) || 0;
+		const minX = Math.max(2, d3.min(filteredGroupedData, d => d.albumin) || 0);
+		const maxX = d3.max(filteredGroupedData, d => d.albumin) || 0;
 		
 		// Calculate points with y-values capped at 0
 		const regressionPoints: [number, number][] = [
@@ -171,7 +185,7 @@
 			.append('path')
 			.datum(regressionPoints)
 			.attr('fill', 'none')
-			.attr('stroke', '#4b5563')
+			.attr('stroke', '#fbbf24')
 			.attr('stroke-width', 2)
 			.attr('d', (d) => line(d));
 
@@ -179,7 +193,7 @@
 		root
 			.append('g')
 			.selectAll('circle')
-			.data(groupedData)
+			.data(filteredGroupedData)
 			.enter()
 			.append('circle')
 			.attr('cx', (d) => x(d.albumin))
@@ -190,9 +204,7 @@
 			.attr('stroke-opacity', 0.15)
 			.append('title')
 			.text(
-				(d) => `Average Albumin: ${d.albumin.toFixed(2)} g/dL
-Average ICU Stay: ${d.icuDays.toFixed(1)} days
-Number of Cases: ${d.count}`
+				(d) => `Average Albumin: ${d.albumin.toFixed(2)} g/dL\nAverage ICU Stay: ${d.icuDays.toFixed(1)} days\nNumber of Cases: ${d.count}`
 			);
 
 		// X axis
@@ -218,7 +230,7 @@ Number of Cases: ${d.count}`
 
 		root
 			.append('g')
-			.attr('transform', `translate(${pad}, 0)`)
+			.attr('transform', `translate(${leftPad}, 0)`)
 			.call(yAxis)
 			.selectAll('text')
 			.attr('font-size', '13px')
@@ -239,7 +251,7 @@ Number of Cases: ${d.count}`
 		// Y axis label
 		root
 			.append('text')
-			.attr('transform', `translate(${pad - 36}, ${H / 2}) rotate(-90)`)
+			.attr('transform', `translate(${leftPad - 60}, ${H / 2}) rotate(-90)`)
 			.attr('text-anchor', 'middle')
 			.attr('font-size', '14px')
 			.attr('fill', '#374151')
@@ -250,7 +262,7 @@ Number of Cases: ${d.count}`
 		root
 			.append('text')
 			.attr('x', W / 2)
-			.attr('y', pad - 16)
+			.attr('y', pad - 32)
 			.attr('text-anchor', 'middle')
 			.attr('font-size', '16px')
 			.attr('font-weight', '600')
@@ -258,8 +270,8 @@ Number of Cases: ${d.count}`
 			.attr('class', 'fill-text-primary');
 
 		// Legend
-		const legendX = W - pad - 120;
-		const legendY = pad;
+		const legendX = W - pad - 80;  // Moved more to the right
+		const legendY = pad - 40;  // Moved even higher
 		const legendGroup = root.append('g').attr('transform', `translate(${legendX}, ${legendY})`);
 
 		const stops = [0, 1, 2, 3, 4, 5];
@@ -302,23 +314,24 @@ Number of Cases: ${d.count}`
 	});
 </script>
 
-<!-- Filter controls -->
-<div class="mb-4 flex gap-6 text-sm">
-	<label>
-		<input type="radio" bind:group={filter} value="elective" />
-		<span class="ml-1">Elective</span>
-	</label>
-	<label>
-		<input type="radio" bind:group={filter} value="emergency" />
-		<span class="ml-1">Emergency</span>
-	</label>
-	<label>
-		<input type="radio" bind:group={filter} value="all" />
-		<span class="ml-1">All</span>
-	</label>
+<div class="bg-[#1a2332] rounded-xl p-6 shadow-lg">
+	<!-- Filter controls -->
+	<div class="mb-4 flex gap-6 text-sm text-gray-200">
+		<label>
+			<input type="radio" bind:group={filter} value="elective" />
+			<span class="ml-1">Elective</span>
+		</label>
+		<label>
+			<input type="radio" bind:group={filter} value="emergency" />
+			<span class="ml-1">Emergency</span>
+		</label>
+		<label>
+			<input type="radio" bind:group={filter} value="all" />
+			<span class="ml-1">All</span>
+		</label>
+	</div>
+	<svg bind:this={svg} style="width: 100%; height: auto;"></svg>
 </div>
-
-<svg bind:this={svg} style="width: 100%; height: auto;"></svg>
 
 <style>
 	svg {
