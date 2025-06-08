@@ -4,6 +4,7 @@
 	import { csv } from 'd3-fetch';
 	import { base } from '$app/paths';
 	import Container from '$lib/Container.svelte';
+	import type { SvelteComponent } from 'svelte';
 
 	/* ---------- visual sections (they each do their own processing) ---------- */
 
@@ -27,8 +28,14 @@
 	let isTransitioning = false;
 	const TRANSITION_DURATION = 300; // Reduced from 500ms to 300ms
 
+	interface Slide {
+		id: string;
+		content: typeof SvelteComponent;
+		props?: Record<string, any>;
+	}
+
 	// Slides
-	const slides = [
+	const slides: Slide[] = [
 		{ id: 'hook', content: HookSlide },
 		{
 			id: 'transition',
@@ -262,9 +269,13 @@
 				class="absolute inset-0 overflow-y-auto transition-opacity duration-300"
 				style="opacity: {isTransitioning ? 0 : 1}"
 			>
-				<Container class="min-h-full py-10">
-					<svelte:component this={slide.content} {cases} {...slide.props || {}} />
-				</Container>
+				{#if slide.id === 'transition'}
+					<svelte:component this={slide.content} lines={slide.props?.lines || []} />
+				{:else}
+					<Container class="min-h-full py-10">
+						<svelte:component this={slide.content} {cases} {...slide.props || {}} />
+					</Container>
+				{/if}
 			</div>
 		{/if}
 	{/each}

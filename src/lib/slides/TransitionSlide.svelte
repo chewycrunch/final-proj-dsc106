@@ -6,7 +6,7 @@
 	let { lines }: Props = $props();
 </script>
 
-<div class="h-screen w-screen">
+<div class="fixed inset-0 h-screen w-screen">
 	<div
 		class="text-text-primary mx-auto max-w-5xl px-4 text-center text-4xl font-semibold md:text-5xl"
 	>
@@ -31,6 +31,9 @@
 	.typing-container {
 		height: 100vh;
 		width: 100%;
+		position: fixed;
+		top: 0;
+		left: 0;
 	}
 
 	.typing-wrapper {
