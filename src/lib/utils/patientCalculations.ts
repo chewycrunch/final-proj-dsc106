@@ -29,7 +29,7 @@ export function getMatchingCases(
 	const heightMatches = cases.filter(
 		(c) => c.height != null && Math.abs(c.height - profile.height) <= 10.16
 	); // Increased to 4 inches
-	const asaMatches = cases.filter((c) => c.asa != null && Math.abs(c.asa - profile.asa) <= 3); // Increased to 3 points
+	const asaMatches = cases.filter((c) => c.asa != null && Math.abs(c.asa - profile.asa) <= 1); // Changed to ±1 score
 
 	// Intersect all matches in the same order as BuildPatient
 	const ageAndBmi = ageMatches.filter((c) => bmiMatches.includes(c));

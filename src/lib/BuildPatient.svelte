@@ -55,9 +55,9 @@
 	};
 
 	// Radar chart reference values - now dynamic based on actual data
-	let maxICUStay = 10; // days - will be updated based on data
-	let maxMortalityRate = 0.3; // 30% - will be updated based on data
-	let maxBloodLoss = 1500; // mL - will be updated based on data
+	let maxICUStay = 5; // days - will be updated based on data
+	let maxMortalityRate = 0.1; // 10% - will be updated based on data
+	let maxBloodLoss = 1000; // mL - will be updated based on data
 
 	// Calculate dynamic max values from actual data
 	$: if (cases.length > 0) {
@@ -69,18 +69,18 @@
 		if (icuValues.length > 0) {
 			// Use 95th percentile for max ICU stay to avoid extreme outliers
 			const sortedICU = icuValues.sort((a, b) => a - b);
-			maxICUStay = Math.max(10, sortedICU[Math.floor(sortedICU.length * 0.95)]);
+			maxICUStay = Math.min(5, Math.max(5, sortedICU[Math.floor(sortedICU.length * 0.95)]));
 		}
 		
 		if (mortalityValues.length > 0) {
-			// Mortality is binary (0 or 1), so max should be 1 (100%)
-			maxMortalityRate = 1.0;
+			// Set max mortality rate to 10%
+			maxMortalityRate = 0.1;
 		}
 		
 		if (bloodLossValues.length > 0) {
 			// Use 95th percentile for max blood loss to avoid extreme outliers
 			const sortedBloodLoss = bloodLossValues.sort((a, b) => a - b);
-			maxBloodLoss = Math.max(1500, sortedBloodLoss[Math.floor(sortedBloodLoss.length * 0.95)]);
+			maxBloodLoss = Math.min(1000, Math.max(1000, sortedBloodLoss[Math.floor(sortedBloodLoss.length * 0.95)]));
 		}
 	}
 
