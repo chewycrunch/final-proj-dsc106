@@ -54,10 +54,35 @@
 		asa: true
 	};
 
-	// Radar chart reference values
-	const maxICUStay = 10; // days
-	const maxMortalityRate = 0.3; // 30%
-	const maxBloodLoss = 1500; // mL
+	// Radar chart reference values - now dynamic based on actual data
+	let maxICUStay = 10; // days - will be updated based on data
+	let maxMortalityRate = 0.3; // 30% - will be updated based on data
+	let maxBloodLoss = 1500; // mL - will be updated based on data
+
+	// Calculate dynamic max values from actual data
+	$: if (cases.length > 0) {
+		// Calculate max values from actual data for better scaling
+		const icuValues = cases.map(c => Number(c.icu_days)).filter(v => !isNaN(v) && v > 0);
+		const mortalityValues = cases.map(c => Number(c.death_inhosp)).filter(v => !isNaN(v));
+		const bloodLossValues = cases.map(c => Number(c.intraop_ebl)).filter(v => !isNaN(v) && v > 0);
+		
+		if (icuValues.length > 0) {
+			// Use 95th percentile for max ICU stay to avoid extreme outliers
+			const sortedICU = icuValues.sort((a, b) => a - b);
+			maxICUStay = Math.max(10, sortedICU[Math.floor(sortedICU.length * 0.95)]);
+		}
+		
+		if (mortalityValues.length > 0) {
+			// Mortality is binary (0 or 1), so max should be 1 (100%)
+			maxMortalityRate = 1.0;
+		}
+		
+		if (bloodLossValues.length > 0) {
+			// Use 95th percentile for max blood loss to avoid extreme outliers
+			const sortedBloodLoss = bloodLossValues.sort((a, b) => a - b);
+			maxBloodLoss = Math.max(1500, sortedBloodLoss[Math.floor(sortedBloodLoss.length * 0.95)]);
+		}
+	}
 
 	// Radar chart SVG dimensions
 	const R = 160,
@@ -240,20 +265,24 @@
 		};
 	}
 
-	// Risk level calculation for color coding
+	// Risk level calculation for color coding - updated for real data
 	function getRiskLevel(outcomes: any) {
-		const riskScore =
-			outcomes.mortality * 100 +
-			(outcomes.icuStay / maxICUStay) * 30 +
-			(outcomes.bloodLoss / maxBloodLoss) * 20;
-		if (riskScore < 15)
+		// Normalize mortality to 0-100 scale for comparison
+		const mortalityPercent = outcomes.mortality * 100;
+		const icuPercent = (outcomes.icuStay / maxICUStay) * 100;
+		const bloodLossPercent = (outcomes.bloodLoss / maxBloodLoss) * 100;
+		
+		// Weight mortality more heavily as it's the most critical outcome
+		const riskScore = mortalityPercent * 0.6 + icuPercent * 0.25 + bloodLossPercent * 0.15;
+		
+		if (riskScore < 20)
 			return {
 				level: 'Low',
 				color: 'text-green-600',
 				triangleColor: '#10b981',
 				triangleFill: 'rgba(16, 185, 129, 0.15)'
 			};
-		if (riskScore < 35)
+		if (riskScore < 50)
 			return {
 				level: 'Medium',
 				color: 'text-yellow-600',
@@ -268,17 +297,17 @@
 		};
 	}
 
-	// Individual risk level calculations for each metric
+	// Individual risk level calculations for each metric - updated for real data
 	function getICURiskLevel(icuStay: number) {
 		const percentage = icuStay / maxICUStay;
-		if (percentage < 0.3)
+		if (percentage < 0.2)
 			return {
 				level: 'Low',
 				bgColor: 'bg-green-500',
 				textColor: 'text-green-500',
 				borderColor: 'border-green-500'
 			};
-		if (percentage < 0.7)
+		if (percentage < 0.6)
 			return {
 				level: 'Medium',
 				bgColor: 'bg-yellow-500',
@@ -294,15 +323,15 @@
 	}
 
 	function getMortalityRiskLevel(mortality: number) {
-		const percentage = mortality / maxMortalityRate;
-		if (percentage < 0.3)
+		// Mortality is a rate from 0 to 1
+		if (mortality < 0.05) // Less than 5%
 			return {
 				level: 'Low',
 				bgColor: 'bg-green-500',
 				textColor: 'text-green-500',
 				borderColor: 'border-green-500'
 			};
-		if (percentage < 0.7)
+		if (mortality < 0.15) // Less than 15%
 			return {
 				level: 'Medium',
 				bgColor: 'bg-yellow-500',
@@ -348,37 +377,37 @@
 	$: mortalityRisk = getMortalityRiskLevel(radarOutcomes.mortality);
 	$: bloodLossRisk = getBloodLossRiskLevel(radarOutcomes.bloodLoss);
 
-	// Metrics for the radar chart
+	// Metrics for the radar chart - fixed scaling
 	$: outcomeMetrics = [
 		{
 			label: 'ICU Stay (days)',
 			key: 'icu',
-			value: radarOutcomes.icuStay,
+			value: Math.min(radarOutcomes.icuStay, maxICUStay), // Clamp to max
 			max: maxICUStay,
 			fmt: (v: number) => v.toFixed(1)
 		},
 		{
 			label: 'Mortality Rate (%)',
 			key: 'mort',
-			value: radarOutcomes.mortality * 100,
+			value: Math.min(radarOutcomes.mortality * 100, maxMortalityRate * 100), // Clamp to max
 			max: maxMortalityRate * 100,
 			fmt: (v: number) => v.toFixed(1) + '%'
 		},
 		{
 			label: 'Blood Loss (mL)',
 			key: 'blood',
-			value: radarOutcomes.bloodLoss,
+			value: Math.min(radarOutcomes.bloodLoss, maxBloodLoss), // Clamp to max
 			max: maxBloodLoss,
 			fmt: (v: number) => Math.round(v).toLocaleString()
 		}
 	];
 
 	// Update the radar chart when the component mounts or when metrics change
-	$: if (radarSvg && outcomeMetrics) {
+	$: if (radarSvg && outcomeMetrics && maxICUStay && maxMortalityRate && maxBloodLoss) {
 		updateRadarChart();
 	}
 
-	// The main function to update/draw the radar chart
+	// The main function to update/draw the radar chart - fixed bounds
 	function updateRadarChart() {
 		// Clear any existing chart
 		d3.select(radarSvg).selectAll('*').remove();
@@ -404,8 +433,12 @@
 			return clockPositions[i as keyof typeof clockPositions];
 		};
 
-		// Normalize value to the radius scale
-		const radius = (value: number, max: number) => (value / max) * R;
+		// Normalize value to the radius scale - ensure it never exceeds R
+		const radius = (value: number, max: number) => {
+			if (max === 0) return 0;
+			const normalized = Math.min(1, Math.max(0, value / max)); // Clamp between 0 and 1
+			return normalized * R; // Scale to chart radius
+		};
 
 		/* grid rings with better styling */
 		g.selectAll('.ring')
@@ -419,20 +452,36 @@
 			.attr('stroke-width', 1)
 			.attr('stroke-dasharray', (d, i) => (i === 4 ? 'none' : '3 3'));
 
-		/* scale labels on the right side */
-		g.selectAll('.scale-label')
-			.data([0.2, 0.4, 0.6, 0.8, 1])
-			.enter()
-			.append('text')
-			.attr('class', 'scale-label')
-			.attr('x', (d) => d * R + 5)
-			.attr('y', 0)
+		/* scale labels on the right side - simplified */
+		g.append('text')
+			.attr('x', R + 10)
+			.attr('y', -10)
 			.attr('text-anchor', 'start')
 			.attr('dominant-baseline', 'middle')
 			.attr('fill', '#ffffff')
 			.attr('font-size', 10)
 			.attr('font-weight', '500')
-			.text((d) => Math.round(d * 100) + '%');
+			.text(`Max: ${maxICUStay.toFixed(0)}d`);
+
+		g.append('text')
+			.attr('x', R + 10)
+			.attr('y', 5)
+			.attr('text-anchor', 'start')
+			.attr('dominant-baseline', 'middle')
+			.attr('fill', '#ffffff')
+			.attr('font-size', 10)
+			.attr('font-weight', '500')
+			.text(`${(maxMortalityRate * 100).toFixed(0)}%`);
+
+		g.append('text')
+			.attr('x', R + 10)
+			.attr('y', 20)
+			.attr('text-anchor', 'start')
+			.attr('dominant-baseline', 'middle')
+			.attr('fill', '#ffffff')
+			.attr('font-size', 10)
+			.attr('font-weight', '500')
+			.text(`${maxBloodLoss.toFixed(0)}ml`);
 
 		/* labels positioned around the perimeter */
 		const labelGroup = g
@@ -460,19 +509,33 @@
 			.style('text-shadow', '1px 1px 2px rgba(0,0,0,0.5)')
 			.text((d) => d.label);
 
-		// Calculate triangle vertices
+		// Calculate triangle vertices - with bounds checking
 		const triangleVertices = outcomeMetrics.map((d, i) => {
 			const vertexAngle = getVertexAngle(i);
 			const vertexRadius = radius(d.value, d.max);
+			
+			// Ensure radius is within bounds
+			const clampedRadius = Math.min(R, Math.max(0, vertexRadius));
+			
 			return {
-				x: vertexRadius * Math.cos(vertexAngle),
-				y: vertexRadius * Math.sin(vertexAngle) * -1,
+				x: clampedRadius * Math.cos(vertexAngle),
+				y: clampedRadius * Math.sin(vertexAngle) * -1,
 				data: d,
 				index: i,
 				angle: vertexAngle,
-				radius: vertexRadius
+				radius: clampedRadius
 			};
 		});
+
+		// Validate all vertices are valid numbers
+		const validVertices = triangleVertices.filter(v => 
+			!isNaN(v.x) && !isNaN(v.y) && isFinite(v.x) && isFinite(v.y)
+		);
+
+		if (validVertices.length !== 3) {
+			console.warn('Invalid triangle vertices detected, skipping chart rendering');
+			return;
+		}
 
 		// Add enhanced glow effect definition
 		const defs = g.append('defs');
@@ -490,36 +553,29 @@
 		feMerge.append('feMergeNode').attr('in', 'coloredBlur');
 		feMerge.append('feMergeNode').attr('in', 'SourceGraphic');
 
-		// Add triangle fill
-		const trianglePath = `M ${triangleVertices[0].x} ${triangleVertices[0].y} 
-							 L ${triangleVertices[1].x} ${triangleVertices[1].y} 
-							 L ${triangleVertices[2].x} ${triangleVertices[2].y} Z`;
+		// Add triangle fill - only if we have valid vertices
+		if (validVertices.length === 3) {
+			const trianglePath = `M ${validVertices[0].x} ${validVertices[0].y} 
+								 L ${validVertices[1].x} ${validVertices[1].y} 
+								 L ${validVertices[2].x} ${validVertices[2].y} Z`;
 
-		g.append('path')
-			.attr('d', trianglePath)
-			.attr('fill', riskAssessment.triangleFill)
-			.attr('stroke', 'none')
-			.style('transition', 'all 0.3s ease');
+			g.append('path')
+				.attr('d', trianglePath)
+				.attr('fill', riskAssessment.triangleFill)
+				.attr('stroke', 'none')
+				.style('transition', 'all 0.3s ease');
 
-		// Create triangle edges
-		const triangleEdges = [
-			{ from: 0, to: 1 },
-			{ from: 1, to: 2 },
-			{ from: 2, to: 0 }
-		];
+			// Create triangle edges
+			const triangleEdges = [
+				{ from: 0, to: 1 },
+				{ from: 1, to: 2 },
+				{ from: 2, to: 0 }
+			];
 
-		triangleEdges.forEach((edge, i) => {
-			const fromVertex = triangleVertices[edge.from];
-			const toVertex = triangleVertices[edge.to];
+			triangleEdges.forEach((edge, i) => {
+				const fromVertex = validVertices[edge.from];
+				const toVertex = validVertices[edge.to];
 
-			if (
-				fromVertex &&
-				toVertex &&
-				!isNaN(fromVertex.x) &&
-				!isNaN(fromVertex.y) &&
-				!isNaN(toVertex.x) &&
-				!isNaN(toVertex.y)
-			) {
 				g.append('line')
 					.attr('class', `triangle-edge-${i}`)
 					.attr('x1', fromVertex.x)
@@ -531,8 +587,8 @@
 					.attr('stroke-linecap', 'round')
 					.style('filter', 'url(#glow)')
 					.style('transition', 'all 0.3s ease');
-			}
-		});
+			});
+		}
 
 		// Clear any existing tooltips first
 		d3.select(radarSvg.parentElement).selectAll('.tooltip').remove();
@@ -547,9 +603,9 @@
 			.style('opacity', '0')
 			.style('transition', 'opacity 0.2s ease');
 
-		// Add vertex dots with tooltips
+		// Add vertex dots with tooltips - only for valid vertices
 		g.selectAll('.vertex-dot')
-			.data(triangleVertices)
+			.data(validVertices)
 			.enter()
 			.append('circle')
 			.attr('class', 'vertex-dot')
@@ -573,9 +629,9 @@
 				d3.select(this).transition().duration(200).attr('r', 8).attr('stroke-width', 4);
 			});
 
-		// Add inner dots
+		// Add inner dots - only for valid vertices
 		g.selectAll('.vertex-inner-dot')
-			.data(triangleVertices)
+			.data(validVertices)
 			.enter()
 			.append('circle')
 			.attr('class', 'vertex-inner-dot')
@@ -898,13 +954,16 @@
 					<h4 class="mb-2 text-sm font-semibold">Scale Ranges</h4>
 					<div class="space-y-1 text-xs opacity-80">
 						<div>
-							<strong>ICU Stay:</strong> 0 - {maxICUStay} days
+							<strong>ICU Stay:</strong> 0 - {maxICUStay.toFixed(1)} days
 						</div>
 						<div>
 							<strong>Mortality Rate:</strong> 0 - {(maxMortalityRate * 100).toFixed(0)}%
 						</div>
 						<div>
 							<strong>Blood Loss:</strong> 0 - {maxBloodLoss.toLocaleString()} mL
+						</div>
+						<div class="mt-2 text-xs opacity-60">
+							<em>Ranges based on 95th percentile of dataset</em>
 						</div>
 					</div>
 				</div>
