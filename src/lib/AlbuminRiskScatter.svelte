@@ -299,7 +299,7 @@
 			.attr('y', 24)
 			.attr('font-size', '12px')
 			.attr('fill', '#CBD5E0')
-			.text('ICU ≥ 5d')
+			.text('0–1d')
 			.attr('class', 'fill-text-primary');
 
 		legendGroup
@@ -309,7 +309,7 @@
 			.attr('text-anchor', 'end')
 			.attr('font-size', '12px')
 			.attr('fill', '#CBD5E0')
-			.text('0–1d')
+			.text('ICU ≥ 5d')
 			.attr('class', 'fill-text-primary');
 	}
 
