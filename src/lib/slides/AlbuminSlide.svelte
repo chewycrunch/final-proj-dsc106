@@ -27,27 +27,19 @@
 
 <div class="h-7"></div>
 
-<h3>What we actually see</h3>
-<ul class="list-inside list-disc space-y-1">
-	<li>
-		<strong>Elective cases show a clear threshold at 3 g/dL.</strong>
-		Below 3 g/dL, median ICU stay jumps to 2.1 days (IQR 1–4) from 0.7 days (IQR 0–1) above the threshold.
-		Long stays (amber & red) become three times more common below this level.
-	</li>
-	<li>
-		<strong>Emergency cases have a higher threshold at 3.5 g/dL.</strong>
-		Below this level, the chance of ≥ 3-day ICU stay doubles. The pattern remains consistent: lower albumin
-		correlates with longer stays.
-	</li>
-	<li>
-		Patients with albumin > 4 g/dL rarely require extended ICU care.
-	</li>
-</ul>
-
-<p>
-	<b>Take-away&nbsp;→</b> Albumin acts as a <em>silent gravity well</em>: lower levels make it harder to avoid
+<p class="insight">
+	Albumin acts as a <em>silent gravity well</em>: lower levels make it harder to avoid
 	extended ICU stays. Even in routine cases, poor nutrition can shift outcomes from same-day discharge to
 	prolonged critical care.
 </p>
 
 <div class="h-16"></div>
+
+<style>
+	.insight {
+		margin-top: 1.5rem;
+		color: #CBD5E0;
+		font-size: 1.46rem;
+		line-height: 1.5;
+	}
+</style>
