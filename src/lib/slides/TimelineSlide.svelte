@@ -94,6 +94,18 @@
 		font-style: italic;
 	}
 
+	.transition-text {
+		font-size: 1.1rem;
+		line-height: 1.5;
+		text-align: center;
+		margin: 2rem 0 0 0;
+		color: #94a3b8;
+		font-style: italic;
+		max-width: 800px;
+		margin-left: auto;
+		margin-right: auto;
+	}
+
 	/* Make sure the timeline component fills the available space */
 	:global(.timeline-container) {
 		width: 100%;

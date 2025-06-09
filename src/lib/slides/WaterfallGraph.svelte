@@ -17,9 +17,7 @@
 		asa_high: false,
 		emergency: false,
 		low_albumin: false,
-		old_age: false,
-		obesity: false,
-		long_surgery: false
+		old_age: false
 	};
 	let showMinorFactors = true;
 
@@ -87,18 +85,6 @@
 				key: 'old_age',
 				filter: (d: any) => d.age > 65,
 				color: '#64748b'
-			},
-			{
-				name: 'BMI > 30',
-				key: 'obesity',
-				filter: (d: any) => d.bmi && d.bmi > 30,
-				color: '#6b7280'
-			},
-			{
-				name: 'Long Surgery',
-				key: 'long_surgery',
-				filter: (d: any) => d.anestart && d.opstart && ((d.opstart - d.anestart) / 60) > 120,
-				color: '#71717a'
 			}
 		];
 
@@ -152,17 +138,17 @@
 
 		// Add sorted factors with rankings
 		sortedResults.forEach((result, index) => {
-			if (result.contribution > 0) {
-				riskFactors.push({
-					name: result.name,
-					key: result.key,
-					value: result.contribution,
-					cumulative: 0, // Will be calculated in updateCalculations
-					type: index < 3 ? 'major' : 'minor',
-					color: result.color,
-					description: `${result.withCount} cases with factor, adds +${result.contribution.toFixed(1)}% risk`
-				});
-			}
+			riskFactors.push({
+				name: result.name,
+				key: result.key,
+				value: result.contribution,
+				cumulative: 0, // Will be calculated in updateCalculations
+				type: index < 3 ? 'major' : 'minor',
+				color: result.color,
+				description: result.contribution > 0 
+					? `${result.withCount} cases with factor, adds +${result.contribution.toFixed(1)}% risk`
+					: `${result.withCount} cases with factor, no significant impact`
+			});
 		});
 
 		// Add total
@@ -233,12 +219,17 @@
 		// Filter data based on toggles and selections
 		const displayData = riskFactors.filter(d => {
 			if (d.type === 'baseline' || d.type === 'total') return true;
-			if (!showMinorFactors && d.type === 'minor') return false;
 			if (d.key && d.key !== 'baseline' && d.key !== 'total') {
 				return selectedFactors[d.key as keyof typeof selectedFactors];
 			}
-			return true;
+			return false;
 		});
+
+		// Ensure we have at least baseline and total
+		if (displayData.length < 2) {
+			displayData.push(riskFactors[0]); // Add baseline
+			displayData.push(riskFactors[riskFactors.length - 1]); // Add total
+		}
 
 		const maxValue = Math.max(...riskFactors.map(d => d.type === 'total' ? d.value : d.cumulative + d.value));
 
@@ -464,16 +455,6 @@
 						<span class="factor-name">Age > 65</span>
 						<span class="factor-impact">Minor Impact</span>
 					</label>
-					<label class="control-item minor">
-						<input type="checkbox" bind:checked={selectedFactors.obesity} />
-						<span class="factor-name">BMI > 30</span>
-						<span class="factor-impact">Minor Impact</span>
-					</label>
-					<label class="control-item minor">
-						<input type="checkbox" bind:checked={selectedFactors.long_surgery} />
-						<span class="factor-name">Long Surgery</span>
-						<span class="factor-impact">Minor Impact</span>
-					</label>
 				</div>
 				
 				<div class="current-risk">
@@ -598,21 +579,23 @@
 
 	.controls-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: 0.75rem;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 0.5rem;
 		margin: 0;
 	}
 
 	.control-item {
 		display: flex;
+		flex-direction: column;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.75rem;
+		gap: 0.25rem;
+		padding: 0.5rem;
 		border-radius: 8px;
 		background: rgba(51, 65, 85, 0.5);
 		border: 1px solid #475569;
 		transition: all 0.2s ease;
 		cursor: pointer;
+		text-align: center;
 	}
 
 	.control-item:hover {
@@ -659,15 +642,16 @@
 	.factor-name {
 		font-weight: 600;
 		color: #f1f5f9;
-		flex: 1;
+		font-size: 0.85rem;
 	}
 
 	.factor-impact {
-		font-size: 0.75rem;
+		font-size: 0.7rem;
 		color: #94a3b8;
 		background: rgba(71, 85, 105, 0.6);
-		padding: 0.25rem 0.5rem;
+		padding: 0.15rem 0.35rem;
 		border-radius: 12px;
+		white-space: nowrap;
 	}
 
 	.current-risk {
@@ -851,28 +835,15 @@
 		100% { transform: rotate(360deg); }
 	}
 
-	@media (max-width: 768px) {
-		.container {
-			padding: 0.5rem;
-		}
-		
+	@media (max-width: 1200px) {
 		.controls-grid {
-			grid-template-columns: 1fr;
-			gap: 0.75rem;
+			grid-template-columns: repeat(3, 1fr);
 		}
-		
-		.debug-stats {
-			flex-direction: column;
-			gap: 0.5rem;
-		}
-		
-		.insights-grid {
-			grid-template-columns: 1fr 1fr;
-			gap: 0.5rem;
-		}
+	}
 
-		.chart-wrapper {
-			padding: 0.5rem;
+	@media (max-width: 768px) {
+		.controls-grid {
+			grid-template-columns: repeat(2, 1fr);
 		}
 	}
 

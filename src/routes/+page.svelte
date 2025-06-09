@@ -55,10 +55,60 @@
 			}
 		},
 		{ id: 'timeline', content: TimelineSlide },
-		{ id: 'waterfall', content: WaterfallSlide },
+		{
+			id: 'transition',
+			content: TransitionSlide,
+			props: {
+				lines: [
+					'Time on the table is predictable, but what about recovery?',
+					'Let\'s explore how a simple blood test, albumin, can reveal hidden risks.'
+				]
+			}
+		},
 		{ id: 'albumin', content: AlbuminSlide },
+		{
+			id: 'transition',
+			content: TransitionSlide,
+			props: {
+				lines: [
+					'While albumin reveals hidden risks, it\'s not the whole story.',
+					'Let\'s see how different factors work together in our interactive risk builder.'
+				]
+			}
+		},
+		{ id: 'waterfall', content: WaterfallSlide },
+		{
+			id: 'transition',
+			content: TransitionSlide,
+			props: {
+				lines: [
+					'Now that you\'ve seen how risk factors combine,',
+					'let\'s build your own patient profile.'
+				]
+			}
+		},
 		{ id: 'buildPatient', content: BuildPatient },
+		{
+			id: 'transition',
+			content: TransitionSlide,
+			props: {
+				lines: [
+					'Now that you\'ve built your patient profile, let\'s test your knowledge.',
+					'Can you predict the outcomes for these preset patient profiles?"'
+				]
+			}
+		},
 		{ id: 'makeAGuess', content: MakeAGuessSlide },
+		{
+			id: 'transition',
+			content: TransitionSlide,
+			props: {
+				lines: [
+					'Now that you\'ve made your predictions',
+					'what are the key takeaways from our journey?'
+				]
+			}
+		},
 		{ id: 'takeaway', content: TakeawaySlide },
 		{ id: 'writeup', content: WriteupSlide }
 	];
