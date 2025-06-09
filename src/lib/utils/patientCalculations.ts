@@ -1,5 +1,3 @@
-import type { SurgeryCase } from '$lib/types';
-
 export function getMatchingCases(
 	cases: SurgeryCase[],
 	profile: { age: number; bmi: number; height: number; asa: number }
