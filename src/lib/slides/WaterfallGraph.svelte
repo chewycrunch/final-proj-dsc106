@@ -380,9 +380,9 @@
 			.attr('text-anchor', 'middle')
 			.style('font-size', '24px')
 			.style('font-weight', 'bold')
-			.style('fill', '#3b82f6')
+			.style('fill', '#60a5fa')
 			.style('dominant-baseline', 'text-before-edge')
-			.text('Interactive Risk Calculator - Real Data');
+			.text('Interactive Risk Calculator');
 
 		// X-axis label
 		g.append('text')
