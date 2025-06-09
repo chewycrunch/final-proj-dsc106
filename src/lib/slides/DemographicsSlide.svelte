@@ -213,6 +213,7 @@
 <style>
 	.slide-container {
 		height: 100vh;
+		width: 100vw;
 		display: flex;
 		align-items: flex-start;
 		justify-content: center;
@@ -220,26 +221,33 @@
 		box-sizing: border-box;
 		overflow: hidden;
 		color: #f1f5f9;
+		position: fixed;
+		top: 0;
+		left: 0;
 	}
 
 	.content {
-		width: 100%;
+		width: min(1200px, 95vw);
+		max-width: 1200px;
 		display: flex;
 		flex-direction: column;
-		gap: clamp(1rem, 2vh, 1.5rem);
+		gap: 1.5rem;
+		margin: 0 auto;
 	}
 
 	h2 {
-		font-size: clamp(1.8rem, 3vh, 2.2rem);
+		font-size: 2.2rem;
 		text-align: left;
 		margin: 0;
+		line-height: 1.2;
 	}
 
 	.description {
-		font-size: clamp(0.95rem, 1.8vh, 1.1rem);
+		font-size: 1.1rem;
 		line-height: 1.5;
 		text-align: left;
 		margin: 0;
+		max-width: 1000px;
 	}
 
 	.controls-container {
@@ -250,6 +258,7 @@
 		padding: 1.5rem;
 		margin-bottom: 1.5rem;
 		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+		width: 100%;
 	}
 
 	.flex-controls {
@@ -309,8 +318,9 @@
 
 	.visualization-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		grid-template-columns: repeat(2, 1fr);
 		gap: 1.5rem;
+		width: 100%;
 	}
 
 	.insights-container {
@@ -321,18 +331,20 @@
 		margin-top: 1.5rem;
 		backdrop-filter: blur(10px);
 		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+		width: 100%;
 	}
 
 	.insights-container h4 {
 		margin: 0 0 1rem 0;
 		color: #f1f5f9;
-		font-size: clamp(1rem, 2vh, 1.1rem);
+		font-size: 1.1rem;
 	}
 
 	.insights-grid {
 		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		grid-template-columns: repeat(2, 1fr);
 		gap: 1rem;
+		width: 100%;
 	}
 
 	.insight-card {
@@ -342,8 +354,11 @@
 		padding: 1rem;
 		text-align: left;
 		transition: transform 0.2s ease;
-		font-size: clamp(0.9rem, 1.7vh, 1rem);
+		font-size: 1rem;
 		line-height: 1.5;
+		min-height: 120px;
+		display: flex;
+		align-items: center;
 	}
 
 	.insight-card:hover {
@@ -357,23 +372,46 @@
 	}
 
 	/* Responsive adjustments */
-	@media (max-width: 768px) {
+	@media (max-width: 1200px) {
+		.content {
+			width: 95vw;
+		}
+	}
+
+	@media (max-width: 900px) {
+		.visualization-grid,
+		.insights-grid {
+			grid-template-columns: 1fr;
+		}
+
 		.slide-container {
 			padding: 6vh 1.5rem 2vh 1.5rem;
 		}
-		.flex-controls {
-			flex-direction: column;
-			align-items: flex-start;
+
+		h2 {
+			font-size: 1.8rem;
 		}
-		.tip-text {
-			margin-left: 0;
-			text-align: left;
+
+		.description {
+			font-size: 1rem;
 		}
-		.visualization-grid {
-			grid-template-columns: 1fr;
+	}
+
+	@media (max-width: 600px) {
+		.slide-container {
+			padding: 4vh 1rem 2vh 1rem;
 		}
-		.insights-grid {
-			grid-template-columns: 1fr;
+
+		h2 {
+			font-size: 1.5rem;
+		}
+
+		.description {
+			font-size: 0.95rem;
+		}
+
+		.insight-card {
+			min-height: 100px;
 		}
 	}
 </style>
