@@ -264,22 +264,22 @@
 		if (percentage < 0.3)
 			return {
 				level: 'Low',
-				bgColor: 'bg-green-50',
-				textColor: 'text-green-700',
-				borderColor: 'border-green-200'
+				bgColor: 'bg-green-500',
+				textColor: 'text-green-500',
+				borderColor: 'border-green-500'
 			};
 		if (percentage < 0.7)
 			return {
 				level: 'Medium',
-				bgColor: 'bg-yellow-50',
-				textColor: 'text-yellow-700',
-				borderColor: 'border-yellow-200'
+				bgColor: 'bg-yellow-500',
+				textColor: 'text-yellow-500',
+				borderColor: 'border-yellow-500'
 			};
 		return {
 			level: 'High',
-			bgColor: 'bg-red-50',
-			textColor: 'text-red-700',
-			borderColor: 'border-red-200'
+			bgColor: 'bg-red-500',
+			textColor: 'text-red-500',
+			borderColor: 'border-red-500'
 		};
 	}
 
@@ -288,22 +288,22 @@
 		if (percentage < 0.3)
 			return {
 				level: 'Low',
-				bgColor: 'bg-green-50',
-				textColor: 'text-green-700',
-				borderColor: 'border-green-200'
+				bgColor: 'bg-green-500',
+				textColor: 'text-green-500',
+				borderColor: 'border-green-500'
 			};
 		if (percentage < 0.7)
 			return {
 				level: 'Medium',
-				bgColor: 'bg-yellow-50',
-				textColor: 'text-yellow-700',
-				borderColor: 'border-yellow-200'
+				bgColor: 'bg-yellow-500',
+				textColor: 'text-yellow-500',
+				borderColor: 'border-yellow-500'
 			};
 		return {
 			level: 'High',
-			bgColor: 'bg-red-50',
-			textColor: 'text-red-700',
-			borderColor: 'border-red-200'
+			bgColor: 'bg-red-500',
+			textColor: 'text-red-500',
+			borderColor: 'border-red-500'
 		};
 	}
 
@@ -312,22 +312,22 @@
 		if (percentage < 0.3)
 			return {
 				level: 'Low',
-				bgColor: 'bg-green-50',
-				textColor: 'text-green-700',
-				borderColor: 'border-green-200'
+				bgColor: 'bg-green-500',
+				textColor: 'text-green-500',
+				borderColor: 'border-green-500'
 			};
 		if (percentage < 0.7)
 			return {
 				level: 'Medium',
-				bgColor: 'bg-yellow-50',
-				textColor: 'text-yellow-700',
-				borderColor: 'border-yellow-200'
+				bgColor: 'bg-yellow-500',
+				textColor: 'text-yellow-500',
+				borderColor: 'border-yellow-500'
 			};
 		return {
 			level: 'High',
-			bgColor: 'bg-red-50',
-			textColor: 'text-red-700',
-			borderColor: 'border-red-200'
+			bgColor: 'bg-red-500',
+			textColor: 'text-red-500',
+			borderColor: 'border-red-500'
 		};
 	}
 
@@ -584,499 +584,607 @@
 	});
 </script>
 
-<div class="space-y-4 rounded-lg bg-[#0e192b] p-3 shadow-sm">
-	<!-- Header and Filter Controls Section -->
-	<div class="space-y-3">
-		<div class="flex items-center justify-between">
-			<h3 class="text-base font-semibold">Adjust Patient Profile</h3>
-			<div class="flex items-center gap-3">
-				<label class="flex items-center gap-1">
-					<input type="checkbox" bind:checked={activeFilters.age} class="rounded border-gray-300" />
-					<span class="text-sm">Age</span>
-				</label>
-				<label class="flex items-center gap-1">
-					<input
-						type="checkbox"
-						bind:checked={activeFilters.height}
-						class="rounded border-gray-300"
-					/>
-					<span class="text-sm">Height</span>
-				</label>
-				<label class="flex items-center gap-1">
-					<input type="checkbox" bind:checked={activeFilters.bmi} class="rounded border-gray-300" />
-					<span class="text-sm">BMI</span>
-				</label>
-				<label class="flex items-center gap-1">
-					<input type="checkbox" bind:checked={activeFilters.asa} class="rounded border-gray-300" />
-					<span class="text-sm">ASA</span>
-				</label>
-			</div>
-		</div>
-
-		<!-- All Sliders in Grid Layout -->
-		<div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
-			<div class={activeFilters.age ? '' : 'opacity-50'}>
-				<label class="block text-xs opacity-80">Age: {predictors.age} years</label>
-				<input
-					type="range"
-					bind:value={predictors.age}
-					min={ageRange.min}
-					max={ageRange.max}
-					class="w-full"
-					disabled={!activeFilters.age}
-				/>
-				<p class="text-xs opacity-60">Range: {ageRange.min} - {ageRange.max} years</p>
-			</div>
-
-			<div class={activeFilters.height ? '' : 'opacity-50'}>
-				<label class="block text-xs opacity-80">
-					Height: {cmToFeetInches(predictors.height).feet}' {cmToFeetInches(predictors.height)
-						.inches}"
-				</label>
-				<input
-					type="range"
-					bind:value={predictors.height}
-					min={heightRange.min}
-					max={heightRange.max}
-					class="w-full"
-					disabled={!activeFilters.height}
-				/>
-				<p class="text-xs opacity-60">
-					Range: {heightRangeFtIn.min.feet}'{heightRangeFtIn.min.inches}" - {heightRangeFtIn.max
-						.feet}'{heightRangeFtIn.max.inches}"
-				</p>
-			</div>
-
-			<div class={activeFilters.bmi ? '' : 'opacity-50'}>
-				<label class="block text-xs opacity-80">BMI: {predictors.bmi}</label>
-				<input
-					type="range"
-					bind:value={predictors.bmi}
-					min={bmiRange.min}
-					max={bmiRange.max}
-					step="0.1"
-					class="w-full"
-					disabled={!activeFilters.bmi}
-				/>
-				<p class="text-xs opacity-60">
-					Range: {bmiRange.min.toFixed(1)} - {bmiRange.max.toFixed(1)}
-				</p>
-			</div>
-
-			<div class={activeFilters.asa ? '' : 'opacity-50'}>
-				<label class="block text-xs opacity-80">ASA Score: {predictors.asa}</label>
-				<input
-					type="range"
-					bind:value={predictors.asa}
-					min="1"
-					max="5"
-					step="1"
-					class="w-full"
-					disabled={!activeFilters.asa}
-				/>
-				<p class="text-xs opacity-60">
-					ASA {predictors.asa}: {predictors.asa === 1
-						? 'Healthy patient'
-						: predictors.asa === 2
-							? 'Mild systemic disease'
-							: predictors.asa === 3
-								? 'Severe systemic disease'
-								: predictors.asa === 4
-									? 'Severe systemic disease that is a constant threat to life'
-									: 'Moribund patient not expected to survive without the operation'}
-				</p>
-			</div>
-		</div>
-	</div>
-
-	{#if matchingCasesCount < 10}
-		<div class="mt-4 rounded-lg bg-slate-700 p-4 shadow-sm">
-			<div class="flex items-start gap-3">
-				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
-					<span class="text-lg">⚠️</span>
-				</div>
-				<div class="flex-1">
-					<div class="flex items-center justify-between">
-						<h4 class="mb-2 font-bold text-red-700">
-							{matchingCasesCount === 0 ? 'No Matching Cases Found' : 'Limited Data Available'}
-						</h4>
-						<div class="flex min-w-[200px] items-center justify-center gap-2">
-							<span class="text-base font-medium">Overall Risk Level:</span>
-							<span class="text-base font-semibold {riskAssessment.color}"
-								>{riskAssessment.level}</span
-							>
-						</div>
-					</div>
-					{#if matchingCasesCount === 0}
-						<p class="mb-3 text-sm opacity-80">
-							There are no historical cases that match your current patient profile.
-						</p>
-						<div class="space-y-1">
-							<p class="text-sm font-medium opacity-80">Consider:</p>
-							<ul class="ml-4 space-y-1 text-sm opacity-70">
-								<li>• Relaxing some of your filters</li>
-								<li>• Adjusting the patient's characteristics to more common values</li>
-								<li>• Using a broader range for age, BMI, or ASA score</li>
-							</ul>
-						</div>
-					{:else}
-						<p class="mb-3 text-sm opacity-80">
-							Only {matchingCasesCount} cases match your current filters. The predictions may not be
-							reliable.
-						</p>
-						<div class="space-y-1">
-							<p class="text-sm font-medium opacity-80">Consider:</p>
-							<ul class="ml-4 space-y-1 text-sm opacity-70">
-								<li>• Relaxing some filters to get more comparable cases</li>
-								<li>• Adjusting the patient profile to match more common characteristics</li>
-							</ul>
-						</div>
-					{/if}
-				</div>
-			</div>
-		</div>
-	{:else if matchingCasesCount < 50}
-		<div class="mt-4 rounded-lg bg-slate-700 p-4 shadow-sm">
-			<div class="flex items-start gap-3">
-				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
-					<span class="text-lg">👍</span>
-				</div>
-				<div class="flex-1">
-					<div class="flex items-center justify-between">
-						<h4 class="mb-2 font-bold text-yellow-700">Good Sample Size</h4>
-						<div class="flex min-w-[200px] items-center justify-center gap-2">
-							<span class="text-base font-medium">Overall Risk Level:</span>
-							<span class="text-base font-semibold {riskAssessment.color}"
-								>{riskAssessment.level}</span
-							>
-						</div>
-					</div>
-					<p class="text-sm opacity-80">
-						With {matchingCasesCount} matching cases, the predictions are reasonably reliable.
-					</p>
-				</div>
-			</div>
-		</div>
-	{:else if matchingCasesCount >= 50}
-		<div class="mt-4 rounded-lg bg-slate-700 p-4 shadow-sm">
-			<div class="flex items-start gap-3">
-				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
-					<span class="text-lg">✅</span>
-				</div>
-				<div class="flex-1">
-					<div class="flex items-center justify-between">
-						<h4 class="mb-2 font-bold text-green-700">Excellent Sample Size</h4>
-						<div class="flex min-w-[200px] items-center justify-center gap-2">
-							<span class="text-base font-medium">Overall Risk Level:</span>
-							<span class="text-base font-semibold {riskAssessment.color}"
-								>{riskAssessment.level}</span
-							>
-						</div>
-					</div>
-					<p class="text-sm opacity-80">
-						Great! With {matchingCasesCount} matching cases, the predictions are highly reliable.
-					</p>
-				</div>
-			</div>
-		</div>
-	{/if}
-
-	<!-- Main Visualization Section: Three Columns -->
-	<div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
-		<!-- Left side: Stick Figure -->
-		<div class="space-y-2 lg:col-span-3">
-			<h4 class="text-center text-sm font-semibold">Patient Visualization</h4>
-			<div class="flex items-center justify-center">
-				<svg
-					viewBox="0 0 200 {figureHeight}"
-					class="h-full w-full"
-					style="min-height: 250px; max-height: 350px;"
-				>
-					<!-- Head -->
-					<circle
-						cx="100"
-						cy="30"
-						r="20"
-						fill={asaColor}
-						stroke-width={stickThickness}
-						opacity={activeFilters.asa ? 1 : 0.5}
-					/>
-
-					<!-- Body -->
-					<line
-						x1="100"
-						y1="50"
-						x2="100"
-						y2={figureHeight * 0.6}
-						stroke={asaColor}
-						stroke-width={stickThickness}
-						opacity={activeFilters.asa ? 1 : 0.5}
-					/>
-
-					<!-- Stomach -->
-					<ellipse
-						cx="100"
-						cy={figureHeight * 0.45}
-						rx={stomachWidth}
-						ry={stomachHeight}
-						fill={asaColor}
-						stroke-width={stickThickness}
-						opacity={activeFilters.bmi ? 1 : 0.5}
-					/>
-
-					<!-- Arms -->
-					<line
-						x1="100"
-						y1="80"
-						x2={60 - Math.max(0, stomachWidth - 20)}
-						y2={figureHeight * 0.4}
-						stroke={asaColor}
-						stroke-width={stickThickness}
-						opacity={activeFilters.asa ? 1 : 0.5}
-					/>
-					<line
-						x1="100"
-						y1="80"
-						x2={140 + Math.max(0, stomachWidth - 20)}
-						y2={figureHeight * 0.4}
-						stroke={asaColor}
-						stroke-width={stickThickness}
-						opacity={activeFilters.asa ? 1 : 0.5}
-					/>
-
-					<!-- Legs -->
-					<line
-						x1="100"
-						y1={figureHeight * 0.6}
-						x2="70"
-						y2={figureHeight * 0.9}
-						stroke={asaColor}
-						stroke-width={stickThickness}
-						opacity={activeFilters.asa ? 1 : 0.5}
-					/>
-					<line
-						x1="100"
-						y1={figureHeight * 0.6}
-						x2="130"
-						y2={figureHeight * 0.9}
-						stroke={asaColor}
-						stroke-width={stickThickness}
-						opacity={activeFilters.asa ? 1 : 0.5}
-					/>
-
-					<!-- Hair (moved to end to appear on top) -->
-					<path
-						d="M80,20 Q100,0 120,20"
-						fill="none"
-						stroke={hairColor}
-						stroke-width={stickThickness * 1.5}
-						opacity={activeFilters.age ? 1 : 0.5}
-					/>
-				</svg>
-			</div>
-		</div>
-
-		<!-- Middle: Radar Chart -->
-		<div class="space-y-2 lg:col-span-6">
-			<h4 class="text-center text-sm font-semibold">Patient Outcomes Radar</h4>
-			<div class="-mt-10 -ml-[10%] flex h-[450px] w-[120%] justify-center">
-				<svg bind:this={radarSvg} class="radar-chart h-full"></svg>
-			</div>
-		</div>
-
-		<!-- Right side: Explanation Panels -->
-		<div class="ml-auto max-w-[350px] space-y-3 lg:col-span-3">
-			<div class="rounded-lg bg-slate-700 p-3 shadow-sm">
-				<h4 class="mb-2 text-sm font-semibold">How to Read This Chart</h4>
-				<div class="space-y-1 text-xs opacity-80">
-					<p>• <strong>Distance from center</strong> = Risk level (0-100%)</p>
-					<p>• <strong>Triangle shape</strong> = Overall risk profile</p>
-					<p>• <strong>Color</strong> = Risk severity level</p>
-				</div>
-			</div>
-
-			<div class="rounded-lg bg-slate-700 p-3 shadow-sm">
-				<h4 class="mb-2 text-sm font-semibold">Scale Ranges</h4>
-				<div class="space-y-1 text-xs opacity-80">
-					<div>
-						<strong>ICU Stay:</strong> 0 - {maxICUStay} days
-					</div>
-					<div>
-						<strong>Mortality Rate:</strong> 0 - {(maxMortalityRate * 100).toFixed(0)}%
-					</div>
-					<div>
-						<strong>Blood Loss:</strong> 0 - {maxBloodLoss.toLocaleString()} mL
+<div class="container">
+	<div class="space-y-4 rounded-lg p-3 shadow-sm bg-[#0e192b]">
+		<!-- Header and Filter Controls Section -->
+		<div class="controls-panel">
+			<div class="controls-content">
+				<div class="flex items-center justify-between">
+					<h3 class="text-base font-semibold">Adjust Patient Profile</h3>
+					<div class="flex items-center gap-3">
+						<label class="flex items-center gap-2">
+							<input type="checkbox" bind:checked={activeFilters.age} class="rounded border-gray-300" />
+							<span class="factor-name">Age</span>
+						</label>
+						<label class="flex items-center gap-2">
+							<input type="checkbox" bind:checked={activeFilters.height} class="rounded border-gray-300" />
+							<span class="factor-name">Height</span>
+						</label>
+						<label class="flex items-center gap-2">
+							<input type="checkbox" bind:checked={activeFilters.bmi} class="rounded border-gray-300" />
+							<span class="factor-name">BMI</span>
+						</label>
+						<label class="flex items-center gap-2">
+							<input type="checkbox" bind:checked={activeFilters.asa} class="rounded border-gray-300" />
+							<span class="factor-name">ASA</span>
+						</label>
 					</div>
 				</div>
-			</div>
 
-			<div class="rounded-lg bg-slate-700 p-3 shadow-sm">
-				<h4 class="mb-2 text-sm font-semibold">Risk Levels</h4>
-				<div class="space-y-1 text-xs">
-					<div class="flex items-center gap-2">
-						<span class="h-2 w-2 rounded-full bg-green-500"></span>
-						<span class="font-medium text-green-700">Low Risk</span>
+				<!-- All Sliders in Grid Layout -->
+				<div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
+					<div class={activeFilters.age ? 'control-item' : 'control-item opacity-50'}>
+						<label class="block text-xs opacity-80">Age: {predictors.age} years</label>
+						<input
+							type="range"
+							bind:value={predictors.age}
+							min={ageRange.min}
+							max={ageRange.max}
+							class="w-full"
+							disabled={!activeFilters.age}
+						/>
+						<p class="text-xs opacity-60">Range: {ageRange.min} - {ageRange.max} years</p>
 					</div>
-					<div class="flex items-center gap-2">
-						<span class="h-2 w-2 rounded-full bg-yellow-500"></span>
-						<span class="font-medium text-yellow-700">Medium Risk</span>
-					</div>
-					<div class="flex items-center gap-2">
-						<span class="h-2 w-2 rounded-full bg-red-500"></span>
-						<span class="font-medium text-red-500">High Risk</span>
-					</div>
-				</div>
-			</div>
-		</div>
-	</div>
 
-	<!-- Individual Outcome Cards -->
-	{#if matchingCasesCount != 0}
-		<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-			<div class="rounded-lg bg-slate-700 p-4 shadow-sm">
-				<div class="flex items-center gap-3">
-					<div class="h-8 w-8 rounded-full {icuRisk.bgColor} flex items-center justify-center">
-						<span class="text-base text-white">🏥</span>
-					</div>
-					<div>
-						<h3 class="text-sm font-medium opacity-80">ICU Stay</h3>
-						<p class="text-xl font-bold {icuRisk.textColor}">
-							{radarOutcomes.icuStay.toFixed(1)} days
+					<div class={activeFilters.height ? 'control-item' : 'control-item opacity-50'}>
+						<label class="block text-xs opacity-80">
+							Height: {cmToFeetInches(predictors.height).feet}' {cmToFeetInches(predictors.height).inches}"
+						</label>
+						<input
+							type="range"
+							bind:value={predictors.height}
+							min={heightRange.min}
+							max={heightRange.max}
+							class="w-full"
+							disabled={!activeFilters.height}
+						/>
+						<p class="text-xs opacity-60">
+							Range: {heightRangeFtIn.min.feet}'{heightRangeFtIn.min.inches}" - {heightRangeFtIn.max.feet}'{heightRangeFtIn.max.inches}"
 						</p>
 					</div>
-				</div>
-			</div>
 
-			<div class="rounded-lg bg-slate-700 p-4 shadow-sm">
-				<div class="flex items-center gap-3">
-					<div
-						class="h-8 w-8 rounded-full {mortalityRisk.bgColor} flex items-center justify-center"
-					>
-						<span class="text-base text-white">💗</span>
+					<div class={activeFilters.bmi ? 'control-item' : 'control-item opacity-50'}>
+						<label class="block text-xs opacity-80">BMI: {predictors.bmi}</label>
+						<input
+							type="range"
+							bind:value={predictors.bmi}
+							min={bmiRange.min}
+							max={bmiRange.max}
+							step="0.1"
+							class="w-full"
+							disabled={!activeFilters.bmi}
+						/>
+						<p class="text-xs opacity-60">Range: {bmiRange.min.toFixed(1)} - {bmiRange.max.toFixed(1)}</p>
 					</div>
-					<div>
-						<h3 class="text-sm font-medium opacity-80">Mortality Rate</h3>
-						<p class="text-xl font-bold {mortalityRisk.textColor}">
-							{(radarOutcomes.mortality * 100).toFixed(1)}%
-						</p>
-					</div>
-				</div>
-			</div>
 
-			<div class="rounded-lg bg-slate-700 p-4 shadow-sm">
-				<div class="flex items-center gap-3">
-					<div
-						class="h-8 w-8 rounded-full {bloodLossRisk.bgColor} flex items-center justify-center"
-					>
-						<span class="text-base text-white">🩸</span>
-					</div>
-					<div>
-						<h3 class="text-sm font-medium opacity-80">Blood Loss</h3>
-						<p class="text-xl font-bold {bloodLossRisk.textColor}">
-							{Math.round(radarOutcomes.bloodLoss)} mL
+					<div class={activeFilters.asa ? 'control-item' : 'control-item opacity-50'}>
+						<label class="block text-xs opacity-80">ASA Score: {predictors.asa}</label>
+						<input
+							type="range"
+							bind:value={predictors.asa}
+							min="1"
+							max="5"
+							step="1"
+							class="w-full"
+							disabled={!activeFilters.asa}
+						/>
+						<p class="text-xs opacity-60">
+							ASA {predictors.asa}: {predictors.asa === 1
+								? 'Healthy patient'
+								: predictors.asa === 2
+									? 'Mild systemic disease'
+									: predictors.asa === 3
+										? 'Severe systemic disease'
+										: predictors.asa === 4
+											? 'Severe systemic disease that is a constant threat to life'
+											: 'Moribund patient not expected to survive without the operation'}
 						</p>
 					</div>
 				</div>
 			</div>
 		</div>
-	{/if}
 
-	{#if isGuessing}
-		<div class="mt-6 space-y-4">
-			<h3 class="text-lg font-semibold">Make Your Predictions</h3>
-			<div class="grid gap-4">
-				<div>
-					<label class="block text-sm opacity-80">Predicted ICU Stay (days)</label>
-					<input
-						type="number"
-						bind:value={userGuess.icuDays}
-						min="0"
-						step="0.1"
-						class="mt-1 w-full rounded border p-2"
-					/>
+		{#if matchingCasesCount < 10}
+			<div class="chart-wrapper">
+				<div class="flex items-start gap-3">
+					<div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+						<span class="text-lg">⚠️</span>
+					</div>
+					<div class="flex-1">
+						<div class="flex items-center justify-between">
+							<h4 class="mb-2 font-bold text-red-700">
+								{matchingCasesCount === 0 ? 'No Matching Cases Found' : 'Limited Data Available'}
+							</h4>
+							<div class="flex items-center justify-center gap-2 min-w-[200px]">
+								<span class="text-base font-medium">Overall Risk Level:</span>
+								<span class="text-base font-semibold {riskAssessment.color}">{riskAssessment.level}</span>
+							</div>
+						</div>
+						{#if matchingCasesCount === 0}
+							<p class="mb-3 text-sm opacity-80">
+								There are no historical cases that match your current patient profile.
+							</p>
+							<div class="space-y-1">
+								<p class="text-sm font-medium opacity-80">Consider:</p>
+								<ul class="ml-4 space-y-1 text-sm opacity-70">
+									<li>• Relaxing some of your filters</li>
+									<li>• Adjusting the patient's characteristics to more common values</li>
+									<li>• Using a broader range for age, BMI, or ASA score</li>
+								</ul>
+							</div>
+						{:else}
+							<p class="mb-3 text-sm opacity-80">
+								Only {matchingCasesCount} cases match your current filters. The predictions may not be
+								reliable.
+							</p>
+							<div class="space-y-1">
+								<p class="text-sm font-medium opacity-80">Consider:</p>
+								<ul class="ml-4 space-y-1 text-sm opacity-70">
+									<li>• Relaxing some filters to get more comparable cases</li>
+									<li>• Adjusting the patient profile to match more common characteristics</li>
+								</ul>
+							</div>
+						{/if}
+					</div>
 				</div>
-				<div>
-					<label class="block text-sm opacity-80">Predicted Mortality (%)</label>
-					<input
-						type="number"
-						bind:value={userGuess.mortality}
-						min="0"
-						max="100"
-						step="0.1"
-						class="mt-1 w-full rounded border p-2"
-					/>
+			</div>
+		{:else if matchingCasesCount < 50}
+			<div class="chart-wrapper">
+				<div class="flex items-start gap-3">
+					<div class="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
+						<span class="text-lg">👍</span>
+					</div>
+					<div class="flex-1">
+						<div class="flex items-center justify-between">
+							<h4 class="mb-2 font-bold text-yellow-700">Good Sample Size</h4>
+							<div class="flex items-center justify-center gap-2 min-w-[200px]">
+								<span class="text-base font-medium">Overall Risk Level:</span>
+								<span class="text-base font-semibold {riskAssessment.color}">{riskAssessment.level}</span>
+							</div>
+						</div>
+						<p class="text-sm opacity-80">
+							With {matchingCasesCount} matching cases, the predictions are reasonably reliable.
+						</p>
+					</div>
 				</div>
-				<div>
-					<label class="block text-sm opacity-80">Predicted Blood Loss (mL)</label>
-					<input
-						type="number"
-						bind:value={userGuess.bloodLoss}
-						min="0"
-						step="1"
-						class="mt-1 w-full rounded border p-2"
-					/>
+			</div>
+		{:else if matchingCasesCount >= 50}
+			<div class="chart-wrapper">
+				<div class="flex items-start gap-3">
+					<div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
+						<span class="text-lg">✅</span>
+					</div>
+					<div class="flex-1">
+						<div class="flex items-center justify-between">
+							<h4 class="mb-2 font-bold text-green-700">Excellent Sample Size</h4>
+							<div class="flex items-center justify-center gap-2 min-w-[200px]">
+								<span class="text-base font-medium">Overall Risk Level:</span>
+								<span class="text-base font-semibold {riskAssessment.color}">{riskAssessment.level}</span>
+							</div>
+						</div>
+						<p class="text-sm opacity-80">
+							Great! With {matchingCasesCount} matching cases, the predictions are highly reliable.
+						</p>
+					</div>
 				</div>
-			</div>
-		</div>
-	{/if}
-
-	{#if (!isGuessing || showResults) && showOutcomes}
-		<h3 class="mt-6 text-lg font-semibold">Outcomes from Similar Cases</h3>
-		<div class="grid grid-cols-3 gap-4">
-			<div>
-				<p class="text-sm opacity-80">Average ICU Stay</p>
-				<p class="font-medium">{avgICUStay.toFixed(1)} days</p>
-				<p class="text-xs opacity-60">
-					IQR: {icuIQR.q1.toFixed(1)} - {icuIQR.q3.toFixed(1)} days
-				</p>
-			</div>
-			<div>
-				<p class="text-sm opacity-80">Mortality Rate</p>
-				<div
-					class="h-2 w-full rounded-full"
-					style="background: linear-gradient(to right, #22c55e, #ef4444)"
-				/>
-				<p class="font-medium">{(mortalityRate * 100).toFixed(1)}%</p>
-			</div>
-			<div>
-				<p class="text-sm opacity-80">Average Blood Loss</p>
-				<p class="font-medium">{avgBloodLoss.toFixed(0)} mL</p>
-				<p class="text-xs opacity-60">
-					IQR: {bloodLossIQR.q1.toFixed(0)} - {bloodLossIQR.q3.toFixed(0)} mL
-				</p>
-			</div>
-		</div>
-
-		{#if isGuessing && showResults}
-			<div class="mt-4 rounded p-3 text-sm shadow-sm">
-				Your guess was {(percentileRank * 100).toFixed(1)}% accurate!
-				{#if percentileRank <= 0.25}
-					<p class="mt-2 opacity-80">
-						Your predictions were quite far from the actual outcomes. Consider reviewing the
-						patient's risk factors more carefully.
-					</p>
-				{:else if percentileRank <= 0.5}
-					<p class="mt-2 opacity-80">
-						Your predictions were somewhat off. Try to consider how different factors might interact
-						to affect outcomes.
-					</p>
-				{:else if percentileRank <= 0.75}
-					<p class="mt-2 opacity-80">
-						Good predictions! You're getting better at understanding how patient characteristics
-						influence outcomes.
-					</p>
-				{:else}
-					<p class="mt-2 opacity-80">
-						Excellent predictions! You have a strong understanding of how patient factors correlate
-						with surgical outcomes.
-					</p>
-				{/if}
 			</div>
 		{/if}
-	{/if}
+
+		<!-- Main Visualization Section: Three Columns -->
+		<div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
+			<!-- Left side: Stick Figure -->
+			<div class="space-y-2 lg:col-span-3">
+				<h4 class="text-center text-sm font-semibold">Patient Visualization</h4>
+				<div class="flex items-center justify-center">
+					<svg
+						viewBox="0 0 200 {figureHeight}"
+						class="h-full w-full"
+						style="min-height: 250px; max-height: 350px;"
+					>
+						<!-- Head -->
+						<circle
+							cx="100"
+							cy="30"
+							r="20"
+							fill={asaColor}
+							stroke-width={stickThickness}
+							opacity={activeFilters.asa ? 1 : 0.5}
+						/>
+
+						<!-- Body -->
+						<line
+							x1="100"
+							y1="50"
+							x2="100"
+							y2={figureHeight * 0.6}
+							stroke={asaColor}
+							stroke-width={stickThickness}
+							opacity={activeFilters.asa ? 1 : 0.5}
+						/>
+
+						<!-- Stomach -->
+						<ellipse
+							cx="100"
+							cy={figureHeight * 0.45}
+							rx={stomachWidth}
+							ry={stomachHeight}
+							fill={asaColor}
+							stroke-width={stickThickness}
+							opacity={activeFilters.bmi ? 1 : 0.5}
+						/>
+
+						<!-- Arms -->
+						<line
+							x1="100"
+							y1="80"
+							x2={60 - Math.max(0, stomachWidth - 20)}
+							y2={figureHeight * 0.4}
+							stroke={asaColor}
+							stroke-width={stickThickness}
+							opacity={activeFilters.asa ? 1 : 0.5}
+						/>
+						<line
+							x1="100"
+							y1="80"
+							x2={140 + Math.max(0, stomachWidth - 20)}
+							y2={figureHeight * 0.4}
+							stroke={asaColor}
+							stroke-width={stickThickness}
+							opacity={activeFilters.asa ? 1 : 0.5}
+						/>
+
+						<!-- Legs -->
+						<line
+							x1="100"
+							y1={figureHeight * 0.6}
+							x2="70"
+							y2={figureHeight * 0.9}
+							stroke={asaColor}
+							stroke-width={stickThickness}
+							opacity={activeFilters.asa ? 1 : 0.5}
+						/>
+						<line
+							x1="100"
+							y1={figureHeight * 0.6}
+							x2="130"
+							y2={figureHeight * 0.9}
+							stroke={asaColor}
+							stroke-width={stickThickness}
+							opacity={activeFilters.asa ? 1 : 0.5}
+						/>
+
+						<!-- Hair (moved to end to appear on top) -->
+						<path
+							d="M80,20 Q100,0 120,20"
+							fill="none"
+							stroke={hairColor}
+							stroke-width={stickThickness * 1.5}
+							opacity={activeFilters.age ? 1 : 0.5}
+						/>
+					</svg>
+				</div>
+			</div>
+
+			<!-- Middle: Radar Chart -->
+			<div class="space-y-2 lg:col-span-6">
+				<h4 class="text-center text-sm font-semibold">Patient Outcomes Radar</h4>
+				<div class="flex justify-center h-[450px] -mt-10 w-[120%] -ml-[10%]">
+					<svg bind:this={radarSvg} class="radar-chart h-full"></svg>
+				</div>
+			</div>
+
+			<!-- Right side: Explanation Panels -->
+			<div class="space-y-3 max-w-[350px] ml-auto lg:col-span-3">
+				<div class="control-item">
+					<h4 class="mb-2 text-sm font-semibold">How to Read This Chart</h4>
+					<div class="space-y-1 text-xs opacity-80">
+						<p>• <strong>Distance from center</strong> = Risk level (0-100%)</p>
+						<p>• <strong>Triangle shape</strong> = Overall risk profile</p>
+						<p>• <strong>Color</strong> = Risk severity level</p>
+					</div>
+				</div>
+
+				<div class="control-item">
+					<h4 class="mb-2 text-sm font-semibold">Scale Ranges</h4>
+					<div class="space-y-1 text-xs opacity-80">
+						<div>
+							<strong>ICU Stay:</strong> 0 - {maxICUStay} days
+						</div>
+						<div>
+							<strong>Mortality Rate:</strong> 0 - {(maxMortalityRate * 100).toFixed(0)}%
+						</div>
+						<div>
+							<strong>Blood Loss:</strong> 0 - {maxBloodLoss.toLocaleString()} mL
+						</div>
+					</div>
+				</div>
+
+				<div class="control-item">
+					<h4 class="mb-2 text-sm font-semibold">Risk Levels</h4>
+					<div class="space-y-1 text-xs opacity-80">
+						<div class="flex items-center gap-2">
+							<span class="h-2 w-2 rounded-full bg-green-500"></span>
+							<span class="font-medium text-green-500">Low Risk</span>
+						</div>
+						<div class="flex items-center gap-2">
+							<span class="h-2 w-2 rounded-full bg-yellow-500"></span>
+							<span class="font-medium text-yellow-500">Medium Risk</span>
+						</div>
+						<div class="flex items-center gap-2">
+							<span class="h-2 w-2 rounded-full bg-red-500"></span>
+							<span class="font-medium text-red-500">High Risk</span>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Individual Outcome Cards -->
+		{#if matchingCasesCount != 0}
+			<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+				<div class="control-item">
+					<div class="flex items-center gap-3">
+						<div class="h-8 w-8 rounded-full {icuRisk.bgColor} flex items-center justify-center">
+							<span class="text-base text-white">🏥</span>
+						</div>
+						<div>
+							<h3 class="text-sm font-medium opacity-80">ICU Stay</h3>
+							<p class="text-xl font-bold {icuRisk.textColor}">
+								{radarOutcomes.icuStay.toFixed(1)} days
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="control-item">
+					<div class="flex items-center gap-3">
+						<div class="h-8 w-8 rounded-full {mortalityRisk.bgColor} flex items-center justify-center">
+							<span class="text-base text-white">💗</span>
+						</div>
+						<div>
+							<h3 class="text-sm font-medium opacity-80">Mortality Rate</h3>
+							<p class="text-xl font-bold {mortalityRisk.textColor}">
+								{(radarOutcomes.mortality * 100).toFixed(1)}%
+							</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="control-item">
+					<div class="flex items-center gap-3">
+						<div class="h-8 w-8 rounded-full {bloodLossRisk.bgColor} flex items-center justify-center">
+							<span class="text-base text-white">🩸</span>
+						</div>
+						<div>
+							<h3 class="text-sm font-medium opacity-80">Blood Loss</h3>
+							<p class="text-xl font-bold {bloodLossRisk.textColor}">
+								{Math.round(radarOutcomes.bloodLoss)} mL
+							</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		{#if isGuessing}
+			<div class="mt-6 space-y-4">
+				<h3 class="text-lg font-semibold">Make Your Predictions</h3>
+				<div class="grid gap-4">
+					<div>
+						<label class="block text-sm opacity-80">Predicted ICU Stay (days)</label>
+						<input
+							type="number"
+							bind:value={userGuess.icuDays}
+							min="0"
+							step="0.1"
+							class="mt-1 w-full rounded border p-2"
+						/>
+					</div>
+					<div>
+						<label class="block text-sm opacity-80">Predicted Mortality (%)</label>
+						<input
+							type="number"
+							bind:value={userGuess.mortality}
+							min="0"
+							max="100"
+							step="0.1"
+							class="mt-1 w-full rounded border p-2"
+						/>
+					</div>
+					<div>
+						<label class="block text-sm opacity-80">Predicted Blood Loss (mL)</label>
+						<input
+							type="number"
+							bind:value={userGuess.bloodLoss}
+							min="0"
+							step="1"
+							class="mt-1 w-full rounded border p-2"
+						/>
+					</div>
+				</div>
+			</div>
+		{/if}
+
+		{#if (!isGuessing || showResults) && showOutcomes}
+			<h3 class="mt-6 text-lg font-semibold">Outcomes from Similar Cases</h3>
+			<div class="grid grid-cols-3 gap-4">
+				<div>
+					<p class="text-sm opacity-80">Average ICU Stay</p>
+					<p class="font-medium">{avgICUStay.toFixed(1)} days</p>
+					<p class="text-xs opacity-60">
+						IQR: {icuIQR.q1.toFixed(1)} - {icuIQR.q3.toFixed(1)} days
+					</p>
+				</div>
+				<div>
+					<p class="text-sm opacity-80">Mortality Rate</p>
+					<div
+						class="h-2 w-full rounded-full"
+						style="background: linear-gradient(to right, #22c55e, #ef4444)"
+					/>
+					<p class="font-medium">{(mortalityRate * 100).toFixed(1)}%</p>
+				</div>
+				<div>
+					<p class="text-sm opacity-80">Average Blood Loss</p>
+					<p class="font-medium">{avgBloodLoss.toFixed(0)} mL</p>
+					<p class="text-xs opacity-60">
+						IQR: {bloodLossIQR.q1.toFixed(0)} - {bloodLossIQR.q3.toFixed(0)} mL
+					</p>
+				</div>
+			</div>
+
+			{#if isGuessing && showResults}
+				<div class="mt-4 rounded p-3 text-sm shadow-sm">
+					Your guess was {(percentileRank * 100).toFixed(1)}% accurate!
+					{#if percentileRank <= 0.25}
+						<p class="mt-2 opacity-80">
+							Your predictions were quite far from the actual outcomes. Consider reviewing the
+							patient's risk factors more carefully.
+						</p>
+					{:else if percentileRank <= 0.5}
+						<p class="mt-2 opacity-80">
+							Your predictions were somewhat off. Try to consider how different factors might interact
+							to affect outcomes.
+						</p>
+					{:else if percentileRank <= 0.75}
+						<p class="mt-2 opacity-80">
+							Good predictions! You're getting better at understanding how patient characteristics
+							influence outcomes.
+						</p>
+					{:else}
+						<p class="mt-2 opacity-80">
+							Excellent predictions! You have a strong understanding of how patient factors correlate
+							with surgical outcomes.
+						</p>
+					{/if}
+				</div>
+			{/if}
+		{/if}
+	</div>
 </div>
 
 <style>
+	/* Global styles */
+	:global(body),
+	:global(html) {
+		margin: 0;
+		padding: 0;
+		height: 100%;
+		width: 100%;
+		overflow-x: hidden;
+	}
+
+	:global(body) {
+		background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+	}
+
+	.container {
+		max-width: 100vw;
+		margin: 0 auto;
+		padding: 0.75rem;
+		min-height: auto;
+		height: auto;
+		width: 100%;
+		color: #f1f5f9;
+		overflow-y: auto;
+	}
+
+	.controls-panel {
+		background: rgba(30, 41, 59, 0.5);
+		backdrop-filter: blur(10px);
+		border: 1px solid #334155;
+		border-radius: 12px;
+		padding: 1.5rem;
+		margin-bottom: 1rem;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+	}
+
+	.controls-content {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	.control-item {
+		background: rgba(51, 65, 85, 0.4);
+		border: 1px solid #475569;
+		border-radius: 8px;
+		padding: 0.75rem;
+		transition: all 0.2s ease;
+	}
+
+	.control-item:hover {
+		background: rgba(71, 85, 105, 0.6);
+		border-color: #64748b;
+		transform: translateY(-1px);
+	}
+
+	.control-item input[type="range"] {
+		-webkit-appearance: none;
+		width: 100%;
+		height: 4px;
+		background: #475569;
+		border-radius: 2px;
+		outline: none;
+		margin: 0.5rem 0;
+	}
+
+	.control-item input[type="range"]::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		width: 16px;
+		height: 16px;
+		background: #3b82f6;
+		border-radius: 50%;
+		cursor: pointer;
+		transition: all 0.2s ease;
+	}
+
+	.control-item input[type="range"]::-webkit-slider-thumb:hover {
+		transform: scale(1.1);
+		background: #60a5fa;
+	}
+
+	.control-item input[type="checkbox"] {
+		appearance: none;
+		width: 1.2rem;
+		height: 1.2rem;
+		border: 2px solid #64748b;
+		border-radius: 4px;
+		background: transparent;
+		position: relative;
+		transition: all 0.2s ease;
+	}
+
+	.control-item input[type="checkbox"]:checked {
+		background: #3b82f6;
+		border-color: #3b82f6;
+	}
+
+	.control-item input[type="checkbox"]:checked::after {
+		content: '✓';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		color: white;
+		font-weight: bold;
+		font-size: 0.8rem;
+	}
+
+	.factor-name {
+		font-weight: 600;
+		color: #f1f5f9;
+	}
+
+	.chart-wrapper {
+		background: rgba(30, 41, 59, 0.5);
+		backdrop-filter: blur(10px);
+		border: 1px solid #334155;
+		border-radius: 12px;
+		padding: 1rem;
+		margin-bottom: 1rem;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+	}
+
 	.radar-chart {
 		display: block;
 		margin: 0 auto;
@@ -1085,11 +1193,13 @@
 		height: 450px;
 	}
 
-	.filter-group {
-		transition: all 0.2s ease;
-	}
-
-	.filter-group:hover {
-		transform: translateY(-1px);
+	@media (max-width: 768px) {
+		.container {
+			padding: 0.5rem;
+		}
+		
+		.controls-panel {
+			padding: 1rem;
+		}
 	}
 </style>
