@@ -365,9 +365,9 @@
 			.attr('x', width / 2)
 			.attr('y', -35)
 			.attr('text-anchor', 'middle')
-			.style('font-size', '18px')
+			.style('font-size', '24px')
 			.style('font-weight', 'bold')
-			.style('fill', '#ffffff')
+			.style('fill', '#3b82f6')
 			.style('dominant-baseline', 'text-before-edge')
 			.text('Interactive Risk Calculator - Real Data');
 
@@ -428,10 +428,23 @@
 
 <div class="container">
 	{#if cases && cases.length > 0}
+		<!-- Context Description -->
+		<div class="context-panel">
+			<h2>Interactive Risk Calculator</h2>
+			<p class="context-description">
+				This interactive waterfall chart visualizes how different risk factors contribute to surgical mortality risk. 
+				The graph shows the cumulative effect of multiple risk factors, starting from a baseline risk for low-risk patients 
+				and building up as additional factors are added. Toggle the risk factors below to see how they combine and affect 
+				overall mortality risk. Each bar represents the additional risk contribution of that factor, with connecting lines 
+				demonstrating how factors build upon each other. Hover over bars for detailed information. Based on real surgical 
+				data from VitalDB, showing actual mortality rates for patients with different risk factor combinations.
+			</p>
+		</div>
+
 		<!-- Interactive Controls -->
 		<div class="controls-panel">
 			<div class="controls-content">
-				<h3>🎯 Interactive Risk Calculator</h3>
+				<h3> ⚠️ Risk Factors</h3>
 				<p class="subtitle">Toggle risk factors to see how they combine and affect patient mortality</p>
 				
 				<div class="controls-grid">
@@ -471,18 +484,13 @@
 			</div>
 		</div>
 
-		<!-- Debug Panel -->
-		<div class="debug-panel">
-			<h4>📊 Data Analysis</h4>
-			<div class="debug-stats">
+		<!-- Chart -->
+		<div class="chart-wrapper">
+			<div class="data-stats">
 				<span><strong>Total Cases:</strong> {totalCases.toLocaleString()}</span>
 				<span><strong>Valid Cases:</strong> {validCases.toLocaleString()}</span>
 				<span><strong>Active Factors:</strong> {Object.values(selectedFactors).filter(Boolean).length}</span>
 			</div>
-		</div>
-
-		<!-- Chart -->
-		<div class="chart-wrapper">
 			<svg bind:this={svg} class="chart"></svg>
 		</div>
 
@@ -714,29 +722,47 @@
 		font-size: 0.7rem;
 	}
 
-	.debug-panel {
-		background: rgba(30, 41, 59, 0.4);
-		border: 1px solid #334155;
-		border-radius: 8px;
-		padding: 0.75rem;
+	.data-stats {
+		position: absolute;
+		top: 3rem;
+		right: 5rem;
+		background: rgba(51, 65, 85, 0.8);
+		border: 1px solid #475569;
+		border-radius: 6px;
+		padding: 0.5rem 0.75rem;
+		text-align: right;
+		z-index: 10;
+	}
+
+	.data-stats span {
+		display: block;
+		font-size: 0.75rem;
+		color: #94a3b8;
+		margin-bottom: 0.25rem;
+	}
+
+	.data-stats span:last-child {
+		margin-bottom: 0;
+	}
+
+	.context-panel {
 		margin-bottom: 1rem;
 	}
 
-	.debug-panel h4 {
-		margin: 0 0 0.5rem 0;
-		color: #f1f5f9;
-		font-size: 1rem;
+	.context-panel h2 {
+		margin: 0 0 1rem 0;
+		color: var(--color-text-accent);
+		font-size: 2.2rem;
+		font-weight: 700;
+		line-height: 1.2;
 	}
 
-	.debug-stats {
-		display: flex;
-		gap: 2rem;
-		flex-wrap: wrap;
-	}
-
-	.debug-stats span {
-		font-size: 0.85rem;
-		color: #94a3b8;
+	.context-description {
+		font-size: 1.1rem;
+		line-height: 1.5;
+		text-align: left;
+		margin: 0;
+		color: #e2e8f0;
 	}
 
 	.chart-wrapper {
@@ -749,6 +775,7 @@
 		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 		width: 100%;
 		overflow-x: auto;
+		position: relative;
 	}
 
 	.chart {

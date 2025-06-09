@@ -241,12 +241,12 @@
 			.text(d => d.label);
 
 		// Create tooltip div with improved styling
-		const tooltip = d3.select(timelineDiv)
+		const tooltip = d3.select('body')
 			.append('div')
 			.attr('class', 'timeline-tooltip')
-			.style('position', 'absolute')
+			.style('position', 'fixed')
 			.style('padding', '8px 12px')
-			.style('background', 'rgba(45, 55, 72, 0.95)') // Darker background
+			.style('background', 'rgba(45, 55, 72, 0.95)')
 			.style('color', 'white')
 			.style('border-radius', '4px')
 			.style('font-size', '12px')
@@ -282,6 +282,7 @@
 					.attr('opacity', 0.9)
 					.style('cursor', 'pointer')
 					.on('mouseenter', function(event: MouseEvent) {
+						const rect = timelineDiv.getBoundingClientRect();
 						tooltip
 							.style('opacity', 1)
 							.html(`
@@ -292,25 +293,26 @@
 							`);
 					})
 					.on('mousemove', (event: MouseEvent) => {
-						const [x, y] = d3.pointer(event);
-						const tooltipWidth = 120; // Approximate tooltip width
-						const tooltipHeight = 40; // Approximate tooltip height
+						const rect = timelineDiv.getBoundingClientRect();
+						const tooltipWidth = 120;
+						const tooltipHeight = 40;
 						
-						// Get the container's bounding box
-						const containerRect = timelineDiv.getBoundingClientRect();
+						// Calculate position relative to the timeline container
+						const x = event.clientX - rect.left;
+						const y = event.clientY - rect.top;
 						
-						// Calculate tooltip position
-						let tooltipX = event.pageX + 10;
-						let tooltipY = event.pageY - tooltipHeight - 10;
+						// Position tooltip relative to the cursor
+						let tooltipX = rect.left + x + 10;
+						let tooltipY = rect.top + y - tooltipHeight - 10;
 						
 						// Adjust if tooltip would go off the right edge
-						if (tooltipX + tooltipWidth > containerRect.right) {
-							tooltipX = event.pageX - tooltipWidth - 10;
+						if (tooltipX + tooltipWidth > rect.right) {
+							tooltipX = rect.left + x - tooltipWidth - 10;
 						}
 						
 						// Adjust if tooltip would go off the top
-						if (tooltipY < containerRect.top) {
-							tooltipY = event.pageY + 10;
+						if (tooltipY < rect.top) {
+							tooltipY = rect.top + y + 10;
 						}
 						
 						tooltip
@@ -338,6 +340,7 @@
 					// Add tooltip events directly to the circle element
 					circle
 						.on('mouseenter', function(event: MouseEvent) {
+							const rect = timelineDiv.getBoundingClientRect();
 							tooltip
 								.style('opacity', 1)
 								.html(`
@@ -348,32 +351,33 @@
 								`);
 						})
 						.on('mousemove', function(event: MouseEvent) {
-							// Get the SVG element's position
-							const svgRect = timelineDiv.getBoundingClientRect();
+							const rect = timelineDiv.getBoundingClientRect();
 							const tooltipWidth = 120;
 							const tooltipHeight = 40;
 							
-							// Calculate position relative to the SVG
-							let tooltipX = event.clientX - svgRect.left + 10;
-							let tooltipY = event.clientY - svgRect.top - tooltipHeight - 10;
+							// Calculate position relative to the timeline container
+							const x = event.clientX - rect.left;
+							const y = event.clientY - rect.top;
+							
+							// Position tooltip relative to the cursor
+							let tooltipX = rect.left + x + 10;
+							let tooltipY = rect.top + y - tooltipHeight - 10;
 							
 							// Adjust if tooltip would go off the right edge
-							if (tooltipX + tooltipWidth > svgRect.width) {
-								tooltipX = event.clientX - svgRect.left - tooltipWidth - 10;
+							if (tooltipX + tooltipWidth > rect.right) {
+								tooltipX = rect.left + x - tooltipWidth - 10;
 							}
 							
 							// Adjust if tooltip would go off the top
-							if (tooltipY < 0) {
-								tooltipY = event.clientY - svgRect.top + 10;
+							if (tooltipY < rect.top) {
+								tooltipY = rect.top + y + 10;
 							}
 							
-							// Position the tooltip
 							tooltip
-								.style('left', `${tooltipX + svgRect.left}px`)
-								.style('top', `${tooltipY + svgRect.top}px`);
+								.style('left', `${tooltipX}px`)
+								.style('top', `${tooltipY}px`);
 						})
 						.on('mouseleave', function() {
-							// Hide tooltip with transition
 							tooltip
 								.transition()
 								.duration(200)
