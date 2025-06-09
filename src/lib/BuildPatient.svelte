@@ -191,42 +191,52 @@
 			? 'all filters'
 			: `${activeFilterCount} filter${activeFilterCount === 1 ? '' : 's'}`;
 
-	// Radar chart calculations - using predictors for consistency
+	// Radar chart calculations - using actual data instead of hardcoded formulas
 	function calculateRadarOutcomes(predictors: Predictors) {
-		// Realistic medical formulas based on research correlations
+		if (cases.length === 0) {
+			return {
+				icuStay: 0,
+				mortality: 0,
+				bloodLoss: 0
+			};
+		}
 
-		// ICU Stay calculation (days)
-		const ageImpact = Math.max(0, (predictors.age - 40) * 0.05);
-		const asaImpact = (predictors.asa - 1) * 1.2;
-		const bmiImpact = Math.abs(predictors.bmi - 25) * 0.08;
-		const heightImpact = Math.max(0, (170 - predictors.height) * 0.01);
-		const icuStay = Math.min(maxICUStay, 1.5 + ageImpact + asaImpact + bmiImpact + heightImpact);
+		// Get matching cases using the same logic as the reactive calculations
+		const finalMatches = getMatchingCases(cases, predictors);
+		
+		if (finalMatches.length === 0) {
+			// If no exact matches, use broader matching criteria or fallback
+			const broadMatches = cases.filter(c => 
+				c.age != null && c.bmi != null && c.height != null && c.asa != null &&
+				Math.abs(c.age - predictors.age) <= 15 &&
+				Math.abs(c.bmi - predictors.bmi) <= 10 &&
+				Math.abs(c.asa - predictors.asa) <= 1
+			);
+			
+			if (broadMatches.length === 0) {
+				// Ultimate fallback: use overall dataset averages
+				const outcomes = calculateOutcomes(cases);
+				return {
+					icuStay: outcomes.avgICUStay,
+					mortality: outcomes.mortalityRate,
+					bloodLoss: outcomes.avgBloodLoss
+				};
+			}
+			
+			const outcomes = calculateOutcomes(broadMatches);
+			return {
+				icuStay: outcomes.avgICUStay,
+				mortality: outcomes.mortalityRate,
+				bloodLoss: outcomes.avgBloodLoss
+			};
+		}
 
-		// Mortality Rate calculation (0-1)
-		const baseMortality = 0.02; // 2% baseline
-		const ageMortality = Math.max(0, (predictors.age - 50) * 0.003);
-		const asaMortality = (predictors.asa - 1) * 0.04;
-		const bmiMortality = Math.max(0, Math.abs(predictors.bmi - 25) - 10) * 0.005;
-		const mortality = Math.min(
-			maxMortalityRate,
-			baseMortality + ageMortality + asaMortality + bmiMortality
-		);
-
-		// Blood Loss calculation (mL)
-		const baseBloodLoss = 200;
-		const asaBloodLoss = (predictors.asa - 1) * 150;
-		const bmiBloodLoss = Math.max(0, (predictors.bmi - 30) * 20);
-		const heightBloodLoss = Math.max(0, (170 - predictors.height) * 3);
-		const ageBloodLoss = Math.max(0, (predictors.age - 60) * 5);
-		const bloodLoss = Math.min(
-			maxBloodLoss,
-			baseBloodLoss + asaBloodLoss + bmiBloodLoss + heightBloodLoss + ageBloodLoss
-		);
-
+		// Use actual data from matching cases
+		const outcomes = calculateOutcomes(finalMatches);
 		return {
-			icuStay: Math.max(0, icuStay),
-			mortality: Math.max(0, mortality),
-			bloodLoss: Math.max(0, bloodLoss)
+			icuStay: outcomes.avgICUStay,
+			mortality: outcomes.mortalityRate,
+			bloodLoss: outcomes.avgBloodLoss
 		};
 	}
 

@@ -1,3 +1,24 @@
+interface SurgeryCase {
+	caseid: string;
+	age: number;
+	sex: 'M' | 'F';
+	bmi: number;
+	height: number;
+	department: string;
+	asa: number;
+	emergency: number;
+	casestart: number;
+	anestart: number;
+	opstart: number;
+	opend: number;
+	dis: number;
+	icu_days: number;
+	intraop_ebl: number;
+	death_inhosp: number;
+	preop_htn: number;
+	preop_dm: number;
+}
+
 export function getMatchingCases(
 	cases: SurgeryCase[],
 	profile: { age: number; bmi: number; height: number; asa: number }
