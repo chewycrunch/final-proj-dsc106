@@ -124,8 +124,9 @@
 				.attr('x2', W - pad)
 				.attr('y1', y(tick))
 				.attr('y2', y(tick))
-				.attr('stroke', '#e5e7eb')
-				.attr('stroke-width', 1);
+				.attr('stroke', '#4A5568')
+				.attr('stroke-dasharray', '2,2')
+				.attr('opacity', 0.5);
 		});
 
 		// Vertical grid lines
@@ -136,8 +137,9 @@
 				.attr('x2', x(tick))
 				.attr('y1', pad)
 				.attr('y2', H - pad)
-				.attr('stroke', '#e5e7eb')
-				.attr('stroke-width', 1);
+				.attr('stroke', '#4A5568')
+				.attr('stroke-dasharray', '2,2')
+				.attr('opacity', 0.5);
 		});
 
 		// Add albumin cliff line
@@ -158,14 +160,14 @@
 			.attr('y', pad - 10)
 			.attr('text-anchor', 'middle')
 			.attr('font-size', '12px')
-			.attr('fill', '#ff3b3b')
+			.attr('fill', '#CBD5E0')
 			.attr('font-weight', '500')
 			.text('Albumin Cliff (3.5 g/dL)');
 
 		// Calculate regression line
 		const regression = regressionLinear()
-			.x((d) => d.albumin)
-			.y((d) => d.icuDays)
+			.x((d: { albumin: number }) => d.albumin)
+			.y((d: { icuDays: number }) => d.icuDays)
 			.domain(x.domain() as [number, number])(filteredGroupedData);
 
 		// Draw regression line
@@ -221,8 +223,8 @@
 			.attr('transform', `translate(0, ${H - pad})`)
 			.call(xAxis)
 			.selectAll('text')
-			.attr('font-size', '13px')
-			.attr('fill', '#374151')
+			.attr('font-size', '12px')
+			.attr('fill', '#CBD5E0')
 			.attr('class', 'fill-text-primary');
 
 		// Y axis
@@ -236,8 +238,8 @@
 			.attr('transform', `translate(${leftPad}, 0)`)
 			.call(yAxis)
 			.selectAll('text')
-			.attr('font-size', '13px')
-			.attr('fill', '#374151')
+			.attr('font-size', '12px')
+			.attr('fill', '#CBD5E0')
 			.attr('class', 'fill-text-primary');
 
 		// X axis label
@@ -246,8 +248,8 @@
 			.attr('x', W / 2)
 			.attr('y', H - pad + 36)
 			.attr('text-anchor', 'middle')
-			.attr('font-size', '14px')
-			.attr('fill', '#374151')
+			.attr('font-size', '12px')
+			.attr('fill', '#CBD5E0')
 			.text('Pre-operative Albumin (g/dL)')
 			.attr('class', 'fill-text-primary');
 
@@ -256,8 +258,8 @@
 			.append('text')
 			.attr('transform', `translate(${leftPad - 60}, ${H / 2}) rotate(-90)`)
 			.attr('text-anchor', 'middle')
-			.attr('font-size', '14px')
-			.attr('fill', '#374151')
+			.attr('font-size', '12px')
+			.attr('fill', '#CBD5E0')
 			.text('Average ICU Stay (days)')
 			.attr('class', 'fill-text-primary');
 
@@ -267,14 +269,15 @@
 			.attr('x', W / 2)
 			.attr('y', pad - 32)
 			.attr('text-anchor', 'middle')
-			.attr('font-size', '16px')
+			.attr('font-size', '14px')
 			.attr('font-weight', '600')
+			.attr('fill', '#CBD5E0')
 			.text('Hidden Risk Factor — The Albumin Cliff')
 			.attr('class', 'fill-text-primary');
 
 		// Legend
-		const legendX = W - pad - 80;  // Moved more to the right
-		const legendY = pad - 40;  // Moved even higher
+		const legendX = W - pad - 80;
+		const legendY = pad - 40;
 		const legendGroup = root.append('g').attr('transform', `translate(${legendX}, ${legendY})`);
 
 		const stops = [0, 1, 2, 3, 4, 5];
@@ -295,7 +298,7 @@
 			.attr('x', 0)
 			.attr('y', 24)
 			.attr('font-size', '12px')
-			.attr('fill', '#374151')
+			.attr('fill', '#CBD5E0')
 			.text('ICU ≥ 5d')
 			.attr('class', 'fill-text-primary');
 
@@ -305,7 +308,7 @@
 			.attr('y', 24)
 			.attr('text-anchor', 'end')
 			.attr('font-size', '12px')
-			.attr('fill', '#374151')
+			.attr('fill', '#CBD5E0')
 			.text('0–1d')
 			.attr('class', 'fill-text-primary');
 	}
@@ -317,20 +320,35 @@
 	});
 </script>
 
-<div class="bg-[#1a2332] rounded-xl p-6 shadow-lg">
+<div class="rounded-xl p-6 shadow-lg border border-[#4A5568]">
 	<!-- Filter controls -->
-	<div class="mb-4 flex gap-6 text-sm text-gray-200">
-		<label>
-			<input type="radio" bind:group={filter} value="elective" />
-			<span class="ml-1">Elective</span>
+	<div class="mb-4 flex gap-8 text-sm text-gray-200">
+		<label class="flex items-center cursor-pointer">
+			<input 
+				type="radio" 
+				bind:group={filter} 
+				value="elective" 
+				class="w-5 h-5 mr-3 accent-[#0096FF] cursor-pointer"
+			/>
+			<span class="select-none text-base">Elective</span>
 		</label>
-		<label>
-			<input type="radio" bind:group={filter} value="emergency" />
-			<span class="ml-1">Emergency</span>
+		<label class="flex items-center cursor-pointer">
+			<input 
+				type="radio" 
+				bind:group={filter} 
+				value="emergency" 
+				class="w-5 h-5 mr-3 accent-[#0096FF] cursor-pointer"
+			/>
+			<span class="select-none text-base">Emergency</span>
 		</label>
-		<label>
-			<input type="radio" bind:group={filter} value="all" />
-			<span class="ml-1">All</span>
+		<label class="flex items-center cursor-pointer">
+			<input 
+				type="radio" 
+				bind:group={filter} 
+				value="all" 
+				class="w-5 h-5 mr-3 accent-[#0096FF] cursor-pointer"
+			/>
+			<span class="select-none text-base">All</span>
 		</label>
 	</div>
 	<svg bind:this={svg} style="width: 100%; height: auto;"></svg>
@@ -347,5 +365,26 @@
 	circle:hover {
 		r: 7;
 		stroke-width: 2;
+		stroke: white;
+	}
+	input[type="radio"] {
+		accent-color: #0096FF;
+		appearance: none;
+		-webkit-appearance: none;
+		width: 20px;
+		height: 20px;
+		border: 2px solid #4A5568;
+		border-radius: 50%;
+		background-color: transparent;
+		transition: all 0.2s ease;
+	}
+	input[type="radio"]:checked {
+		border-color: #0096FF;
+		background-color: #0096FF;
+		box-shadow: inset 0 0 0 4px transparent;
+	}
+	input[type="radio"]:hover {
+		border-color: #0096FF;
+		transform: scale(1.05);
 	}
 </style>
