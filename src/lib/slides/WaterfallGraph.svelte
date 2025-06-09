@@ -19,46 +19,45 @@
 		low_albumin: false,
 		old_age: false
 	};
-	let showMinorFactors = true;
 
 	// Calculate actual risk factors from the data
 	function calculateRiskFactors() {
 		if (!cases || cases.length === 0) return;
-		
+
 		console.log('=== WATERFALL GRAPH DEBUG ===');
 		console.log('Total cases:', cases.length);
 		console.log('Sample case:', cases[0]);
-		
+
 		// Clean the data - only include cases with the fields we need
-		const cleanCases = cases.filter(d => 
-			typeof d.death_inhosp === 'number' &&
-			typeof d.asa === 'number' &&
-			typeof d.emop === 'number' &&
-			typeof d.age === 'number'
+		const cleanCases = cases.filter(
+			(d) =>
+				typeof d.death_inhosp === 'number' &&
+				typeof d.asa === 'number' &&
+				typeof d.emop === 'number' &&
+				typeof d.age === 'number'
 		);
-		
+
 		totalCases = cases.length;
 		validCases = cleanCases.length;
-		
+
 		console.log('Clean cases:', cleanCases.length);
-		
+
 		if (cleanCases.length === 0) {
 			console.error('No valid cases found!');
 			return;
 		}
 
 		// Calculate baseline mortality (low-risk patients)
-		const lowRiskCases = cleanCases.filter(d => 
-			d.asa <= 2 && 
-			d.emop === 0 && 
-			d.age < 65
+		const lowRiskCases = cleanCases.filter((d) => d.asa <= 2 && d.emop === 0 && d.age < 65);
+
+		const baselineMortality =
+			lowRiskCases.length > 0
+				? (lowRiskCases.filter((d) => d.death_inhosp === 1).length / lowRiskCases.length) * 100
+				: 2.0;
+
+		console.log(
+			`Baseline: ${lowRiskCases.length} cases, ${baselineMortality.toFixed(1)}% mortality`
 		);
-		
-		const baselineMortality = lowRiskCases.length > 0 
-			? (lowRiskCases.filter(d => d.death_inhosp === 1).length / lowRiskCases.length) * 100
-			: 2.0;
-			
-		console.log(`Baseline: ${lowRiskCases.length} cases, ${baselineMortality.toFixed(1)}% mortality`);
 
 		// Calculate risk for each factor
 		const factors = [
@@ -89,10 +88,10 @@
 		];
 
 		// Calculate actual risk contributions
-		const results = factors.map(factor => {
+		const results = factors.map((factor) => {
 			const withFactor = cleanCases.filter(factor.filter);
-			const withoutFactor = cleanCases.filter(d => !factor.filter(d));
-			
+			const withoutFactor = cleanCases.filter((d) => !factor.filter(d));
+
 			if (withFactor.length === 0 || withoutFactor.length === 0) {
 				return {
 					...factor,
@@ -103,13 +102,17 @@
 					riskWithout: 0
 				};
 			}
-			
-			const riskWith = (withFactor.filter(d => d.death_inhosp === 1).length / withFactor.length) * 100;
-			const riskWithout = (withoutFactor.filter(d => d.death_inhosp === 1).length / withoutFactor.length) * 100;
+
+			const riskWith =
+				(withFactor.filter((d) => d.death_inhosp === 1).length / withFactor.length) * 100;
+			const riskWithout =
+				(withoutFactor.filter((d) => d.death_inhosp === 1).length / withoutFactor.length) * 100;
 			const contribution = Math.max(0, riskWith - riskWithout);
-			
-			console.log(`${factor.name}: ${withFactor.length} cases, ${riskWith.toFixed(1)}% vs ${riskWithout.toFixed(1)}% = +${contribution.toFixed(1)}%`);
-			
+
+			console.log(
+				`${factor.name}: ${withFactor.length} cases, ${riskWith.toFixed(1)}% vs ${riskWithout.toFixed(1)}% = +${contribution.toFixed(1)}%`
+			);
+
 			return {
 				...factor,
 				contribution,
@@ -122,7 +125,7 @@
 
 		// Sort by contribution (highest first)
 		const sortedResults = results.sort((a, b) => b.contribution - a.contribution);
-		
+
 		// Build the waterfall data
 		riskFactors = [
 			{
@@ -145,9 +148,10 @@
 				cumulative: 0, // Will be calculated in updateCalculations
 				type: index < 3 ? 'major' : 'minor',
 				color: result.color,
-				description: result.contribution > 0 
-					? `${result.withCount} cases with factor, adds +${result.contribution.toFixed(1)}% risk`
-					: `${result.withCount} cases with factor, no significant impact`
+				description:
+					result.contribution > 0
+						? `${result.withCount} cases with factor, adds +${result.contribution.toFixed(1)}% risk`
+						: `${result.withCount} cases with factor, no significant impact`
 			});
 		});
 
@@ -169,20 +173,20 @@
 	// Update cumulative calculations based on selected factors
 	function updateCalculations() {
 		if (riskFactors.length === 0) return;
-		
+
 		let cumulative = riskFactors[0].value; // Start with baseline
-		
+
 		// Calculate cumulative values for each factor
 		for (let i = 1; i < riskFactors.length - 1; i++) {
 			const factor = riskFactors[i];
 			const isSelected = selectedFactors[factor.key as keyof typeof selectedFactors];
-			
+
 			factor.cumulative = cumulative;
 			if (isSelected) {
 				cumulative += factor.value;
 			}
 		}
-		
+
 		// Set total
 		const totalIndex = riskFactors.length - 1;
 		riskFactors[totalIndex].value = cumulative;
@@ -192,9 +196,9 @@
 	// Calculate current patient risk based on selected factors
 	function getCurrentRisk() {
 		if (riskFactors.length === 0) return 0;
-		
+
 		let risk = riskFactors[0].value; // baseline
-		
+
 		for (let i = 1; i < riskFactors.length - 1; i++) {
 			const factor = riskFactors[i];
 			const isSelected = selectedFactors[factor.key as keyof typeof selectedFactors];
@@ -202,7 +206,7 @@
 				risk += factor.value;
 			}
 		}
-		
+
 		return risk;
 	}
 
@@ -217,7 +221,7 @@
 		const height = Math.min(400, window.innerHeight * 0.6);
 
 		// Filter data based on toggles and selections
-		const displayData = riskFactors.filter(d => {
+		const displayData = riskFactors.filter((d) => {
 			if (d.type === 'baseline' || d.type === 'total') return true;
 			if (d.key && d.key !== 'baseline' && d.key !== 'total') {
 				return selectedFactors[d.key as keyof typeof selectedFactors];
@@ -231,7 +235,9 @@
 			displayData.push(riskFactors[riskFactors.length - 1]); // Add total
 		}
 
-		const maxValue = Math.max(...riskFactors.map(d => d.type === 'total' ? d.value : d.cumulative + d.value));
+		const maxValue = Math.max(
+			...riskFactors.map((d) => (d.type === 'total' ? d.value : d.cumulative + d.value))
+		);
 
 		// Scales
 		const xScale = scaleLinear()
@@ -239,13 +245,16 @@
 			.range([0, width]);
 
 		const yScale = scaleBand()
-			.domain(displayData.map(d => d.name))
+			.domain(displayData.map((d) => d.name))
 			.range([0, height])
 			.padding(0.3);
 
 		// Main SVG group
 		const g = select(svg)
-			.attr('viewBox', `0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`)
+			.attr(
+				'viewBox',
+				`0 0 ${width + margin.left + margin.right} ${height + margin.top + margin.bottom}`
+			)
 			.append('g')
 			.attr('transform', `translate(${margin.left},${margin.top})`);
 
@@ -269,19 +278,16 @@
 			.style('z-index', '1000');
 
 		// Draw bars with animation
-		const bars = g.selectAll('.bar')
-			.data(displayData)
-			.enter()
-			.append('g')
-			.attr('class', 'bar');
+		const bars = g.selectAll('.bar').data(displayData).enter().append('g').attr('class', 'bar');
 
 		// Bar rectangles
-		bars.append('rect')
-			.attr('x', d => d.type === 'baseline' || d.type === 'total' ? 0 : xScale(d.cumulative))
-			.attr('y', d => yScale(d.name)!)
+		bars
+			.append('rect')
+			.attr('x', (d) => (d.type === 'baseline' || d.type === 'total' ? 0 : xScale(d.cumulative)))
+			.attr('y', (d) => yScale(d.name)!)
 			.attr('width', 0) // Start with 0 width for animation
 			.attr('height', yScale.bandwidth())
-			.attr('fill', d => d.color)
+			.attr('fill', (d) => d.color)
 			.attr('stroke', '#1e293b')
 			.attr('stroke-width', 2)
 			.attr('rx', 4)
@@ -289,18 +295,23 @@
 			.transition()
 			.duration(800)
 			.delay((d, i) => i * 100)
-			.attr('width', d => xScale(d.value))
-			.on('end', function() {
-				select(this.parentNode as SVGGElement).select('text').transition().duration(200).attr('opacity', 1);
+			.attr('width', (d) => xScale(d.value))
+			.on('end', function () {
+				select(this.parentNode as SVGGElement)
+					.select('text')
+					.transition()
+					.duration(200)
+					.attr('opacity', 1);
 			});
 
 		// Bar labels
-		bars.append('text')
-			.attr('x', d => {
+		bars
+			.append('text')
+			.attr('x', (d) => {
 				const barStart = d.type === 'baseline' || d.type === 'total' ? 0 : xScale(d.cumulative);
 				return barStart + xScale(d.value) / 2;
 			})
-			.attr('y', d => yScale(d.name)! + yScale.bandwidth() / 2)
+			.attr('y', (d) => yScale(d.name)! + yScale.bandwidth() / 2)
 			.attr('dy', '0.35em')
 			.attr('text-anchor', 'middle')
 			.attr('fill', '#ffffff')
@@ -308,31 +319,35 @@
 			.style('font-weight', '600')
 			.style('font-size', '12px')
 			.style('text-shadow', '0 1px 2px rgba(0,0,0,0.3)')
-			.text(d => `${d.value.toFixed(1)}%`);
+			.text((d) => `${d.value.toFixed(1)}%`);
 
 		// Add hover effects
-		bars.on('mouseover', function(event, d) {
-			select(this).select('rect').transition().duration(200).attr('opacity', 0.8);
-			
-			tooltip.transition().duration(200).style('opacity', 1);
-			tooltip.html(`
+		bars
+			.on('mouseover', function (event, d) {
+				select(this).select('rect').transition().duration(200).attr('opacity', 0.8);
+
+				tooltip.transition().duration(200).style('opacity', 1);
+				tooltip
+					.html(
+						`
 				<div style="font-weight: bold; margin-bottom: 6px; color: #f1f5f9;">${d.name}</div>
 				<div style="margin-bottom: 4px;">${d.description}</div>
 				<div style="font-weight: bold; color: #60a5fa;">Risk: +${d.value.toFixed(1)}%</div>
-			`)
-			.style('left', (event.pageX + 10) + 'px')
-			.style('top', (event.pageY - 28) + 'px');
-		})
-		.on('mouseout', function() {
-			select(this).select('rect').transition().duration(200).attr('opacity', 1);
-			tooltip.transition().duration(300).style('opacity', 0);
-		});
+			`
+					)
+					.style('left', event.pageX + 10 + 'px')
+					.style('top', event.pageY - 28 + 'px');
+			})
+			.on('mouseout', function () {
+				select(this).select('rect').transition().duration(200).attr('opacity', 1);
+				tooltip.transition().duration(300).style('opacity', 0);
+			});
 
 		// Connecting lines for waterfall effect
 		for (let i = 1; i < displayData.length - 1; i++) {
 			const current = displayData[i];
 			const next = displayData[i + 1];
-			
+
 			if (current.type !== 'total' && next.type !== 'total') {
 				g.append('line')
 					.attr('x1', xScale(current.cumulative + current.value))
@@ -353,12 +368,10 @@
 		// Axes
 		g.append('g')
 			.attr('transform', `translate(0,${height})`)
-			.call(axisBottom(xScale).tickFormat(d => `${d}%`))
+			.call(axisBottom(xScale).tickFormat((d) => `${d}%`))
 			.style('color', '#ffffff');
 
-		g.append('g')
-			.call(axisLeft(yScale))
-			.style('color', '#ffffff');
+		g.append('g').call(axisLeft(yScale)).style('color', '#ffffff');
 
 		// Title
 		g.append('text')
@@ -387,8 +400,8 @@
 			.data(xScale.ticks())
 			.enter()
 			.append('line')
-			.attr('x1', d => xScale(d))
-			.attr('x2', d => xScale(d))
+			.attr('x1', (d) => xScale(d))
+			.attr('x2', (d) => xScale(d))
 			.attr('y1', 0)
 			.attr('y2', height)
 			.attr('stroke', '#334155')
@@ -408,7 +421,7 @@
 	}
 
 	// Update when selections change
-	$: if (selectedFactors || showMinorFactors) {
+	$: if (selectedFactors) {
 		if (riskFactors.length > 0) {
 			updateCalculations();
 			drawChart();
@@ -419,7 +432,7 @@
 		if (cases && cases.length > 0) {
 			calculateRiskFactors();
 		}
-		
+
 		return () => {
 			select('body').selectAll('.waterfall-tooltip').remove();
 		};
@@ -432,21 +445,25 @@
 		<div class="context-panel">
 			<h2>Interactive Risk Calculator</h2>
 			<p class="context-description">
-				This interactive waterfall chart visualizes how different risk factors contribute to surgical mortality risk. 
-				The graph shows the cumulative effect of multiple risk factors, starting from a baseline risk for low-risk patients 
-				and building up as additional factors are added. Toggle the risk factors below to see how they combine and affect 
-				overall mortality risk. Each bar represents the additional risk contribution of that factor, with connecting lines 
-				demonstrating how factors build upon each other. Hover over bars for detailed information. Based on real surgical 
-				data from VitalDB, showing actual mortality rates for patients with different risk factor combinations.
+				This interactive waterfall chart visualizes how different risk factors contribute to
+				surgical mortality risk. The graph shows the cumulative effect of multiple risk factors,
+				starting from a baseline risk for low-risk patients and building up as additional factors
+				are added. Toggle the risk factors below to see how they combine and affect overall
+				mortality risk. Each bar represents the additional risk contribution of that factor, with
+				connecting lines demonstrating how factors build upon each other. Hover over bars for
+				detailed information. Based on real surgical data from VitalDB, showing actual mortality
+				rates for patients with different risk factor combinations.
 			</p>
 		</div>
 
 		<!-- Interactive Controls -->
 		<div class="controls-panel">
 			<div class="controls-content">
-				<h3> ⚠️ Risk Factors</h3>
-				<p class="subtitle">Toggle risk factors to see how they combine and affect patient mortality</p>
-				
+				<h3>⚠️ Risk Factors</h3>
+				<p class="subtitle">
+					Toggle risk factors to see how they combine and affect patient mortality
+				</p>
+
 				<div class="controls-grid">
 					<label class="control-item major">
 						<input type="checkbox" bind:checked={selectedFactors.asa_high} />
@@ -469,17 +486,10 @@
 						<span class="factor-impact">Minor Impact</span>
 					</label>
 				</div>
-				
+
 				<div class="current-risk">
 					<span class="risk-label">Current Patient Risk:</span>
 					<span class="risk-value">{getCurrentRisk().toFixed(1)}%</span>
-				</div>
-
-				<div class="toggle-section">
-					<label class="toggle-item">
-						<input type="checkbox" bind:checked={showMinorFactors} />
-						Show minor risk factors in chart
-					</label>
 				</div>
 			</div>
 		</div>
@@ -489,7 +499,10 @@
 			<div class="data-stats">
 				<span><strong>Total Cases:</strong> {totalCases.toLocaleString()}</span>
 				<span><strong>Valid Cases:</strong> {validCases.toLocaleString()}</span>
-				<span><strong>Active Factors:</strong> {Object.values(selectedFactors).filter(Boolean).length}</span>
+				<span
+					><strong>Active Factors:</strong>
+					{Object.values(selectedFactors).filter(Boolean).length}</span
+				>
 			</div>
 			<svg bind:this={svg} class="chart"></svg>
 		</div>
@@ -620,7 +633,7 @@
 		border-left: 4px solid #64748b;
 	}
 
-	.control-item input[type="checkbox"] {
+	.control-item input[type='checkbox'] {
 		appearance: none;
 		width: 1.2rem;
 		height: 1.2rem;
@@ -631,12 +644,12 @@
 		transition: all 0.2s ease;
 	}
 
-	.control-item input[type="checkbox"]:checked {
+	.control-item input[type='checkbox']:checked {
 		background: #3b82f6;
 		border-color: #3b82f6;
 	}
 
-	.control-item input[type="checkbox"]:checked::after {
+	.control-item input[type='checkbox']:checked::after {
 		content: '✓';
 		position: absolute;
 		top: 50%;
@@ -681,45 +694,6 @@
 		font-size: 1.5rem;
 		font-weight: 700;
 		margin-left: 0.5rem;
-	}
-
-	.toggle-section {
-		border-top: 1px solid #475569;
-		padding-top: 1rem;
-		margin: 0;
-	}
-
-	.toggle-item {
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		cursor: pointer;
-	}
-
-	.toggle-item input[type="checkbox"] {
-		appearance: none;
-		width: 1rem;
-		height: 1rem;
-		border: 1px solid #64748b;
-		border-radius: 3px;
-		background: transparent;
-		position: relative;
-		transition: all 0.2s ease;
-	}
-
-	.toggle-item input[type="checkbox"]:checked {
-		background: #3b82f6;
-		border-color: #3b82f6;
-	}
-
-	.toggle-item input[type="checkbox"]:checked::after {
-		content: '✓';
-		position: absolute;
-		top: 50%;
-		left: 50%;
-		transform: translate(-50%, -50%);
-		color: white;
-		font-size: 0.7rem;
 	}
 
 	.data-stats {
@@ -858,8 +832,12 @@
 	}
 
 	@keyframes spin {
-		0% { transform: rotate(0deg); }
-		100% { transform: rotate(360deg); }
+		0% {
+			transform: rotate(0deg);
+		}
+		100% {
+			transform: rotate(360deg);
+		}
 	}
 
 	@media (max-width: 1200px) {
