@@ -319,13 +319,11 @@
 
 	{#if filteredDepartment}
 		<div class="filter-notice">
-			<p>
-				<span class="filter-badge">Filtered</span>
-				<span class="text-black">Viewing <strong>{filteredDepartment}</strong> cases only</span>
-				<button class="clear-filter text-black" on:click={handleBackgroundClick}>
-					Clear filter ×
-				</button>
-			</p>
+			<span class="filter-badge">Filtered</span>
+			<span class="text-black">Viewing <strong>{filteredDepartment}</strong> cases only</span>
+			<button class="clear-filter text-black" on:click={handleBackgroundClick}>
+				Clear filter ×
+			</button>
 		</div>
 	{:else}
 		<!-- <div class="insight-box">
@@ -371,45 +369,56 @@
 
 	.filter-notice {
 		margin-top: 0.5rem;
-		padding: 0.75rem;
-		background-color: #fff9f7;
-		border-radius: 5px;
-		border-left: 4px solid #ff7f50;
+		padding: 0.75rem 1rem;
+		background: rgba(30, 41, 59, 0.5);
+		backdrop-filter: blur(10px);
+		border: 1px solid #334155;
+		border-radius: 12px;
 		display: flex;
 		align-items: center;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+		font-size: 0.95rem;
+		gap: 2.5rem;
+		flex-wrap: wrap;
+		color: #f1f5f9;
 	}
 
-	.filter-notice p {
-		margin: 0;
-		font-size: 0.9rem;
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-		flex-wrap: wrap;
+	.filter-notice span:not(.filter-badge) {
+		color: #f1f5f9;
+		line-height: 1.5;
+		transform: translateY(1px);
 	}
 
 	.filter-badge {
-		background-color: #ff7f50;
-		color: white;
-		font-size: 0.7rem;
-		font-weight: bold;
-		padding: 0.2rem 0.4rem;
-		border-radius: 3px;
+		background: rgba(239, 68, 68, 0.2);
+		color: #fca5a5;
+		font-size: 0.95rem;
+		font-weight: 600;
+		padding: 0.35rem 0.75rem;
+		border-radius: 6px;
 		text-transform: uppercase;
+		letter-spacing: 0.5px;
+		border: 1px solid rgba(239, 68, 68, 0.3);
 	}
 
 	.clear-filter {
-		background-color: #eee;
-		border: none;
-		border-radius: 3px;
-		padding: 0.25rem 0.5rem;
-		font-size: 0.8rem;
+		background: rgba(51, 65, 85, 0.6);
+		color: #94a3b8;
+		border: 1px solid #475569;
+		border-radius: 6px;
+		padding: 0.35rem 0.75rem;
+		font-size: 0.95rem;
 		cursor: pointer;
 		margin-left: auto;
+		transition: all 0.2s ease;
+		line-height: 1.5;
 	}
 
 	.clear-filter:hover {
-		background-color: #ddd;
+		background: rgba(71, 85, 105, 0.7);
+		color: #f1f5f9;
+		border-color: #64748b;
+		transform: translateY(-1px);
 	}
 
 	:global(.chart-title) {
