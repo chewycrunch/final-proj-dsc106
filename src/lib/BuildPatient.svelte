@@ -2,6 +2,7 @@
 <script lang="ts">
 	import { onMount, afterUpdate } from 'svelte';
 	import * as d3 from 'd3';
+	import { getMatchingCases, calculateOutcomes } from '$lib/utils/patientCalculations';
 
 	interface SurgeryCase {
 		caseid: string;
@@ -120,75 +121,21 @@
 		return Math.exp(-relativeError);
 	}
 
-	// Single reactive block to handle all calculations
+	// Update the reactive block to use shared functions
 	$: {
 		if (cases.length > 0) {
-			// Calculate matches with similarity criteria
-			const ageMatches = activeFilters.age
-				? cases.filter((c) => Math.abs(c.age - predictors.age) <= 5)
-				: cases;
-			const bmiMatches = activeFilters.bmi
-				? cases.filter((c) => Math.abs(c.bmi - predictors.bmi) <= 5)
-				: cases;
-			const heightMatches = activeFilters.height
-				? cases.filter((c) => Math.abs(c.height - predictors.height) <= 5.08) // 2 inches in cm
-				: cases;
-			const asaMatches = activeFilters.asa
-				? cases.filter((c) => Math.abs(c.asa - predictors.asa) <= 2)
-				: cases;
-
-			const ageAndBmi = ageMatches.filter((c) => bmiMatches.includes(c));
-			const ageBmiAndHeight = ageAndBmi.filter((c) => heightMatches.includes(c));
-			const finalMatches = ageBmiAndHeight.filter((c) => asaMatches.includes(c));
-
+			// Calculate matches with similarity criteria using shared function
+			const finalMatches = getMatchingCases(cases, predictors);
 			matchingCasesCount = finalMatches.length;
 
-			// Calculate stats
+			// Calculate stats using shared function
 			if (finalMatches.length > 0) {
-				// ICU days calculations
-				const icuValues = finalMatches
-					.map((c) => Number(c.icu_days))
-					.filter((v) => !isNaN(v))
-					.sort((a, b) => a - b);
-				avgICUStay = icuValues.reduce((a, b) => a + b, 0) / icuValues.length;
-				icuIQR = {
-					q1: icuValues[Math.floor(icuValues.length * 0.25)],
-					q3: icuValues[Math.floor(icuValues.length * 0.75)]
-				};
-
-				// Mortality calculations
-				mortalityRate =
-					finalMatches.reduce((sum, case_) => sum + (case_.death_inhosp || 0), 0) /
-					finalMatches.length;
-
-				// Blood loss calculations
-				const bloodLossValues = finalMatches
-					.map((c) => Number(c.intraop_ebl))
-					.filter((v) => !isNaN(v))
-					.sort((a, b) => a - b);
-				avgBloodLoss = bloodLossValues.reduce((a, b) => a + b, 0) / bloodLossValues.length;
-				bloodLossIQR = {
-					q1: bloodLossValues[Math.floor(bloodLossValues.length * 0.25)],
-					q3: bloodLossValues[Math.floor(bloodLossValues.length * 0.75)]
-				};
-
-				// Calculate accuracy if in guessing mode
-				if (isGuessing && showResults) {
-					const icuAccuracy = calculateAccuracyScore(userGuess.icuDays, avgICUStay, icuValues);
-					const mortalityAccuracy = calculateAccuracyScore(
-						userGuess.mortality,
-						mortalityRate * 100,
-						finalMatches.map((c) => c.death_inhosp * 100)
-					);
-					const bloodLossAccuracy = calculateAccuracyScore(
-						userGuess.bloodLoss,
-						avgBloodLoss,
-						bloodLossValues
-					);
-
-					// Weight the accuracies
-					percentileRank = icuAccuracy * 0.4 + mortalityAccuracy * 0.3 + bloodLossAccuracy * 0.3;
-				}
+				const outcomes = calculateOutcomes(finalMatches);
+				avgICUStay = outcomes.avgICUStay;
+				mortalityRate = outcomes.mortalityRate;
+				avgBloodLoss = outcomes.avgBloodLoss;
+				icuIQR = outcomes.icuIQR;
+				bloodLossIQR = outcomes.bloodLossIQR;
 			} else {
 				avgICUStay = 0;
 				mortalityRate = 0;
@@ -637,7 +584,7 @@
 	});
 </script>
 
-<div class="space-y-4 rounded-lg p-3 shadow-sm bg-[#0e192b]">
+<div class="space-y-4 rounded-lg bg-[#0e192b] p-3 shadow-sm">
 	<!-- Header and Filter Controls Section -->
 	<div class="space-y-3">
 		<div class="flex items-center justify-between">
@@ -743,7 +690,7 @@
 	</div>
 
 	{#if matchingCasesCount < 10}
-		<div class="mt-4 rounded-lg p-4 shadow-sm bg-slate-700">
+		<div class="mt-4 rounded-lg bg-slate-700 p-4 shadow-sm">
 			<div class="flex items-start gap-3">
 				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
 					<span class="text-lg">⚠️</span>
@@ -753,9 +700,11 @@
 						<h4 class="mb-2 font-bold text-red-700">
 							{matchingCasesCount === 0 ? 'No Matching Cases Found' : 'Limited Data Available'}
 						</h4>
-						<div class="flex items-center justify-center gap-2 min-w-[200px]">
+						<div class="flex min-w-[200px] items-center justify-center gap-2">
 							<span class="text-base font-medium">Overall Risk Level:</span>
-							<span class="text-base font-semibold {riskAssessment.color}">{riskAssessment.level}</span>
+							<span class="text-base font-semibold {riskAssessment.color}"
+								>{riskAssessment.level}</span
+							>
 						</div>
 					</div>
 					{#if matchingCasesCount === 0}
@@ -787,7 +736,7 @@
 			</div>
 		</div>
 	{:else if matchingCasesCount < 50}
-		<div class="mt-4 rounded-lg p-4 shadow-sm bg-slate-700">
+		<div class="mt-4 rounded-lg bg-slate-700 p-4 shadow-sm">
 			<div class="flex items-start gap-3">
 				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-yellow-100">
 					<span class="text-lg">👍</span>
@@ -795,9 +744,11 @@
 				<div class="flex-1">
 					<div class="flex items-center justify-between">
 						<h4 class="mb-2 font-bold text-yellow-700">Good Sample Size</h4>
-						<div class="flex items-center justify-center gap-2 min-w-[200px]">
+						<div class="flex min-w-[200px] items-center justify-center gap-2">
 							<span class="text-base font-medium">Overall Risk Level:</span>
-							<span class="text-base font-semibold {riskAssessment.color}">{riskAssessment.level}</span>
+							<span class="text-base font-semibold {riskAssessment.color}"
+								>{riskAssessment.level}</span
+							>
 						</div>
 					</div>
 					<p class="text-sm opacity-80">
@@ -807,7 +758,7 @@
 			</div>
 		</div>
 	{:else if matchingCasesCount >= 50}
-		<div class="mt-4 rounded-lg p-4 shadow-sm bg-slate-700">
+		<div class="mt-4 rounded-lg bg-slate-700 p-4 shadow-sm">
 			<div class="flex items-start gap-3">
 				<div class="flex h-10 w-10 items-center justify-center rounded-full bg-green-100">
 					<span class="text-lg">✅</span>
@@ -815,9 +766,11 @@
 				<div class="flex-1">
 					<div class="flex items-center justify-between">
 						<h4 class="mb-2 font-bold text-green-700">Excellent Sample Size</h4>
-						<div class="flex items-center justify-center gap-2 min-w-[200px]">
+						<div class="flex min-w-[200px] items-center justify-center gap-2">
 							<span class="text-base font-medium">Overall Risk Level:</span>
-							<span class="text-base font-semibold {riskAssessment.color}">{riskAssessment.level}</span>
+							<span class="text-base font-semibold {riskAssessment.color}"
+								>{riskAssessment.level}</span
+							>
 						</div>
 					</div>
 					<p class="text-sm opacity-80">
@@ -926,14 +879,14 @@
 		<!-- Middle: Radar Chart -->
 		<div class="space-y-2 lg:col-span-6">
 			<h4 class="text-center text-sm font-semibold">Patient Outcomes Radar</h4>
-			<div class="flex justify-center h-[450px] -mt-10 w-[120%] -ml-[10%]">
+			<div class="-mt-10 -ml-[10%] flex h-[450px] w-[120%] justify-center">
 				<svg bind:this={radarSvg} class="radar-chart h-full"></svg>
 			</div>
 		</div>
 
 		<!-- Right side: Explanation Panels -->
-		<div class="space-y-3 max-w-[350px] ml-auto lg:col-span-3">
-			<div class="rounded-lg p-3 shadow-sm bg-slate-700">
+		<div class="ml-auto max-w-[350px] space-y-3 lg:col-span-3">
+			<div class="rounded-lg bg-slate-700 p-3 shadow-sm">
 				<h4 class="mb-2 text-sm font-semibold">How to Read This Chart</h4>
 				<div class="space-y-1 text-xs opacity-80">
 					<p>• <strong>Distance from center</strong> = Risk level (0-100%)</p>
@@ -942,7 +895,7 @@
 				</div>
 			</div>
 
-			<div class="rounded-lg p-3 shadow-sm bg-slate-700">
+			<div class="rounded-lg bg-slate-700 p-3 shadow-sm">
 				<h4 class="mb-2 text-sm font-semibold">Scale Ranges</h4>
 				<div class="space-y-1 text-xs opacity-80">
 					<div>
@@ -957,7 +910,7 @@
 				</div>
 			</div>
 
-			<div class="rounded-lg p-3 shadow-sm bg-slate-700">
+			<div class="rounded-lg bg-slate-700 p-3 shadow-sm">
 				<h4 class="mb-2 text-sm font-semibold">Risk Levels</h4>
 				<div class="space-y-1 text-xs">
 					<div class="flex items-center gap-2">
@@ -980,7 +933,7 @@
 	<!-- Individual Outcome Cards -->
 	{#if matchingCasesCount != 0}
 		<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
-			<div class="rounded-lg p-4 shadow-sm bg-slate-700">
+			<div class="rounded-lg bg-slate-700 p-4 shadow-sm">
 				<div class="flex items-center gap-3">
 					<div class="h-8 w-8 rounded-full {icuRisk.bgColor} flex items-center justify-center">
 						<span class="text-base text-white">🏥</span>
@@ -994,7 +947,7 @@
 				</div>
 			</div>
 
-			<div class="rounded-lg p-4 shadow-sm bg-slate-700">
+			<div class="rounded-lg bg-slate-700 p-4 shadow-sm">
 				<div class="flex items-center gap-3">
 					<div
 						class="h-8 w-8 rounded-full {mortalityRisk.bgColor} flex items-center justify-center"
@@ -1010,7 +963,7 @@
 				</div>
 			</div>
 
-			<div class="rounded-lg p-4 shadow-sm bg-slate-700">
+			<div class="rounded-lg bg-slate-700 p-4 shadow-sm">
 				<div class="flex items-center gap-3">
 					<div
 						class="h-8 w-8 rounded-full {bloodLossRisk.bgColor} flex items-center justify-center"

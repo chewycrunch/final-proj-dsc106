@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import {
-		predictionsWereMade,
-		usePredictions,
-		usePredictionsDisabled
-	} from '../../stores/predictions.svelte';
+		getMatchingCases,
+		calculateOutcomes,
+		calculateAccuracyScore
+	} from '$lib/utils/patientCalculations';
 
 	interface Props {
 		cases: SurgeryCase[];
@@ -12,110 +12,187 @@
 
 	let { cases }: Props = $props();
 
-	let predictors = $state({ age: 60, bmi: 25, asa: 2, emergency: 0, height: 170 });
+	// Height conversion functions
+	function cmToFeetInches(cm: number): { feet: number; inches: number } {
+		const totalInches = cm / 2.54;
+		const feet = Math.floor(totalInches / 12);
+		const inches = Math.round(totalInches % 12);
+		return { feet, inches };
+	}
+
+	function feetInchesToCm(feet: number, inches: number): number {
+		return Math.round((feet * 12 + inches) * 2.54);
+	}
+
+	// Define preset patient profiles for the quiz
+	const patientProfiles = [
+		{
+			age: 45,
+			bmi: 22,
+			asa: 1,
+			height: 175,
+			description: 'A healthy middle-aged patient with normal BMI'
+		},
+		{
+			age: 75,
+			bmi: 32,
+			asa: 3,
+			height: 165,
+			description: 'An elderly patient with obesity and severe systemic disease'
+		},
+		{
+			age: 60,
+			bmi: 28,
+			asa: 2,
+			height: 170,
+			description: 'A patient with mild systemic disease and slightly elevated BMI'
+		}
+	];
 
 	// Game state
-	let userGuess = {
+	let currentQuestionIndex = $state(0);
+	let showResults = $state(false);
+	let percentileRank = $state(0);
+	let totalScore = $state(0);
+	let questionsAnswered = $state(0);
+	let isLoading = $state(false);
+
+	let userGuess = $state({
 		icuDays: 0,
 		mortality: 0,
 		bloodLoss: 0
-	};
-
-	// Calculate accuracy score for a prediction
-	function calculateAccuracyScore(guess: number, actual: number, allValues: number[]): number {
-		// Handle zero or very small values
-		if (actual === 0 && guess === 0) return 1;
-		if (actual === 0 || guess === 0) return 0;
-
-		// Calculate relative error
-		const relativeError = Math.abs(guess - actual) / Math.max(actual, 1);
-
-		// Convert to accuracy score (1 - normalized error)
-		// Using exponential decay to make it more sensitive to differences
-		return Math.exp(-relativeError);
-	}
-
-	// Calculate outcomes based on similar cases
-	$effect(() => {
-		if (cases.length > 0) {
-			// Calculate matches with similarity criteria
-			const ageMatches = cases.filter((c) => Math.abs(c.age - predictors.age) <= 5);
-			const bmiMatches = cases.filter((c) => Math.abs(c.bmi - predictors.bmi) <= 5);
-			const heightMatches = cases.filter((c) => Math.abs(c.height - predictors.height) <= 5.08); // 2 inches in cm
-			const asaMatches = cases.filter((c) => Math.abs(c.asa - predictors.asa) <= 2);
-
-			const ageAndBmi = ageMatches.filter((c) => bmiMatches.includes(c));
-			const ageBmiAndHeight = ageAndBmi.filter((c) => heightMatches.includes(c));
-			const finalMatches = ageBmiAndHeight.filter((c) => asaMatches.includes(c));
-
-			if (finalMatches.length > 0) {
-				// ICU days calculations
-				const icuValues = finalMatches
-					.map((c) => Number(c.icu_days))
-					.filter((v) => !isNaN(v))
-					.sort((a, b) => a - b);
-				avgICUStay = icuValues.reduce((a, b) => a + b, 0) / icuValues.length;
-				icuIQR = {
-					q1: icuValues[Math.floor(icuValues.length * 0.25)],
-					q3: icuValues[Math.floor(icuValues.length * 0.75)]
-				};
-
-				// Mortality calculations
-				mortalityRate =
-					finalMatches.reduce((sum, case_) => sum + (case_.death_inhosp || 0), 0) /
-					finalMatches.length;
-
-				// Blood loss calculations
-				const bloodLossValues = finalMatches
-					.map((c) => Number(c.intraop_ebl))
-					.filter((v) => !isNaN(v))
-					.sort((a, b) => a - b);
-				avgBloodLoss = bloodLossValues.reduce((a, b) => a + b, 0) / bloodLossValues.length;
-				bloodLossIQR = {
-					q1: bloodLossValues[Math.floor(bloodLossValues.length * 0.25)],
-					q3: bloodLossValues[Math.floor(bloodLossValues.length * 0.75)]
-				};
-
-				// Calculate accuracy if showing results
-				if (showResults) {
-					const icuAccuracy = calculateAccuracyScore(userGuess.icuDays, avgICUStay, icuValues);
-					const mortalityAccuracy = calculateAccuracyScore(
-						userGuess.mortality,
-						mortalityRate * 100,
-						finalMatches.map((c) => c.death_inhosp * 100)
-					);
-					const bloodLossAccuracy = calculateAccuracyScore(
-						userGuess.bloodLoss,
-						avgBloodLoss,
-						bloodLossValues
-					);
-
-					// Weight the accuracies
-					percentileRank = icuAccuracy * 0.4 + mortalityAccuracy * 0.3 + bloodLossAccuracy * 0.3;
-				}
-			} else {
-				avgICUStay = 0;
-				mortalityRate = 0;
-				avgBloodLoss = 0;
-				icuIQR = { q1: 0, q3: 0 };
-				bloodLossIQR = { q1: 0, q3: 0 };
-			}
-		}
 	});
 
-	const actualPredictions = usePredictions();
+	// Stats for current question
+	let avgICUStay = $state(0);
+	let mortalityRate = $state(0);
+	let avgBloodLoss = $state(0);
+	let icuIQR = $state({ q1: 0, q3: 0 });
+	let bloodLossIQR = $state({ q1: 0, q3: 0 });
+	let matchingCasesCount = $state(0);
 
-	onMount(() => {});
-	const predictionsDisabled = usePredictionsDisabled();
+	// Cache for matching cases to avoid recalculation
+	let matchingCasesCache = $state<Map<number, SurgeryCase[]>>(new Map());
+
+	function checkAnswer() {
+		if (showResults) return;
+
+		// Get current patient profile
+		const currentProfile = patientProfiles[currentQuestionIndex];
+
+		// Get matching cases using shared function
+		const finalMatches = getMatchingCases(cases, currentProfile);
+		matchingCasesCount = finalMatches.length;
+
+		// Calculate outcomes using shared function
+		const outcomes = calculateOutcomes(finalMatches);
+
+		// Update state variables with calculated outcomes
+		avgICUStay = outcomes.avgICUStay;
+		mortalityRate = outcomes.mortalityRate;
+		avgBloodLoss = outcomes.avgBloodLoss;
+		icuIQR = outcomes.icuIQR;
+		bloodLossIQR = outcomes.bloodLossIQR;
+
+		// Calculate accuracy using shared function
+		const icuAccuracy = calculateAccuracyScore(
+			userGuess.icuDays,
+			outcomes.avgICUStay,
+			outcomes.icuValues
+		);
+		const mortalityAccuracy = calculateAccuracyScore(
+			userGuess.mortality,
+			outcomes.mortalityRate * 100,
+			finalMatches.map((c) => (c.death_inhosp ?? 0) * 100)
+		);
+		const bloodLossAccuracy = calculateAccuracyScore(
+			userGuess.bloodLoss,
+			outcomes.avgBloodLoss,
+			outcomes.bloodLossValues
+		);
+
+		// Weight the accuracies
+		percentileRank = icuAccuracy * 0.4 + mortalityAccuracy * 0.3 + bloodLossAccuracy * 0.3;
+
+		// Update total score and questions answered
+		totalScore += percentileRank;
+		questionsAnswered++;
+
+		// Show results
+		showResults = true;
+	}
+
+	function nextQuestion() {
+		if (currentQuestionIndex < patientProfiles.length - 1) {
+			currentQuestionIndex++;
+			showResults = false;
+			userGuess = {
+				icuDays: 0,
+				mortality: 0,
+				bloodLoss: 0
+			};
+		}
+	}
+
+	function resetQuiz() {
+		currentQuestionIndex = 0;
+		showResults = false;
+		totalScore = 0;
+		questionsAnswered = 0;
+		userGuess = {
+			icuDays: 0,
+			mortality: 0,
+			bloodLoss: 0
+		};
+		matchingCasesCache.clear();
+	}
+
+	let currentProfile = $derived(patientProfiles[currentQuestionIndex]);
+	let isLastQuestion = $derived(currentQuestionIndex === patientProfiles.length - 1);
+	let averageScore = $derived(questionsAnswered > 0 ? (totalScore / questionsAnswered) * 100 : 0);
 </script>
 
 <div class="space-y-6 rounded-lg bg-gray-50 p-4">
-	<h2 class="text-2xl font-bold">Make Your Predictions</h2>
+	<h2 class="text-2xl font-bold">Test Your Knowledge</h2>
 	<p class="text-gray-600">
-		Based on the patient profile you've built, predict their likely outcomes. Consider factors like
-		age, BMI, ASA score, and height when making your predictions.
+		Based on the patient profile below, predict their likely outcomes. Consider factors like age,
+		BMI, ASA score, and height when making your predictions.
 	</p>
 
+	<!-- Progress indicator -->
+	<div class="flex items-center justify-between text-sm text-gray-600">
+		<span>Question {currentQuestionIndex + 1} of {patientProfiles.length}</span>
+		<span>Average Score: {averageScore.toFixed(1)}%</span>
+	</div>
+
+	<!-- Current patient profile -->
+	<div class="mt-4 rounded-lg bg-white p-4 shadow-sm">
+		<h3 class="mb-2 text-lg font-semibold text-gray-900">Patient Profile</h3>
+		<p class="mb-4 text-gray-700">{currentProfile.description}</p>
+		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+			<div>
+				<p class="text-sm text-gray-600">Age</p>
+				<p class="font-medium text-gray-900">{currentProfile.age} years</p>
+			</div>
+			<div>
+				<p class="text-sm text-gray-600">Height</p>
+				<p class="font-medium text-gray-900">
+					{cmToFeetInches(currentProfile.height).feet}' {cmToFeetInches(currentProfile.height)
+						.inches}"
+				</p>
+			</div>
+			<div>
+				<p class="text-sm text-gray-600">BMI</p>
+				<p class="font-medium text-gray-900">{currentProfile.bmi}</p>
+			</div>
+			<div>
+				<p class="text-sm text-gray-600">ASA Score</p>
+				<p class="font-medium text-gray-900">{currentProfile.asa}</p>
+			</div>
+		</div>
+	</div>
+
+	<!-- Prediction inputs -->
 	<div class="mt-6 space-y-4">
 		<div class="grid gap-4">
 			<div>
@@ -125,7 +202,7 @@
 					bind:value={userGuess.icuDays}
 					min="0"
 					step="0.1"
-					class="mt-1 w-full rounded border p-2"
+					class="mt-1 w-full rounded border p-2 text-gray-900"
 				/>
 			</div>
 			<div>
@@ -136,7 +213,7 @@
 					min="0"
 					max="100"
 					step="0.1"
-					class="mt-1 w-full rounded border p-2"
+					class="mt-1 w-full rounded border p-2 text-gray-900"
 				/>
 			</div>
 			<div>
@@ -146,78 +223,118 @@
 					bind:value={userGuess.bloodLoss}
 					min="0"
 					step="1"
-					class="mt-1 w-full rounded border p-2"
+					class="mt-1 w-full rounded border p-2 text-gray-900"
 				/>
 			</div>
 		</div>
 
-		{#if yesPredictionsWereMade}
+		{#if !showResults}
 			<button
-				class="mt-4 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-				on:click={() => (showResults = true)}
+				class="mt-4 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50"
+				on:click={checkAnswer}
+				disabled={isLoading}
 			>
-				Check Your Predictions
+				{#if isLoading}
+					<div class="flex items-center gap-2">
+						<svg class="h-5 w-5 animate-spin" viewBox="0 0 24 24">
+							<circle
+								class="opacity-25"
+								cx="12"
+								cy="12"
+								r="10"
+								stroke="currentColor"
+								stroke-width="4"
+								fill="none"
+							/>
+							<path
+								class="opacity-75"
+								fill="currentColor"
+								d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+							/>
+						</svg>
+						<span>Calculating...</span>
+					</div>
+				{:else}
+					Check Your Predictions
+				{/if}
 			</button>
 		{:else}
-			<p class="mt-2 text-sm text-gray-500">You did not set up your risk profile yet.</p>
-		{/if}
-	</div>
+			<div class="mt-6 space-y-4">
+				<h3 class="text-lg font-semibold text-gray-900">Actual Outcomes from Similar Cases</h3>
+				<div class="grid grid-cols-3 gap-4">
+					<div>
+						<p class="text-sm text-gray-600">Average ICU Stay</p>
+						<p class="font-medium text-gray-900">{avgICUStay.toFixed(1)} days</p>
+						<p class="text-xs text-gray-600">
+							IQR: {icuIQR.q1.toFixed(1)} - {icuIQR.q3.toFixed(1)} days
+						</p>
+					</div>
+					<div>
+						<p class="text-sm text-gray-600">Mortality Rate</p>
+						<div
+							class="h-2 w-full rounded-full"
+							style="background: linear-gradient(to right, #22c55e, #ef4444)"
+						/>
+						<p class="font-medium text-gray-900">{(mortalityRate * 100).toFixed(1)}%</p>
+					</div>
+					<div>
+						<p class="text-sm text-gray-600">Average Blood Loss</p>
+						<p class="font-medium text-gray-900">{avgBloodLoss.toFixed(0)} mL</p>
+						<p class="text-xs text-gray-600">
+							IQR: {bloodLossIQR.q1.toFixed(0)} - {bloodLossIQR.q3.toFixed(0)} mL
+						</p>
+					</div>
+				</div>
 
-	{#if showResults}
-		<div class="mt-6 space-y-4">
-			<h3 class="text-lg font-semibold">Actual Outcomes from Similar Cases</h3>
-			<div class="grid grid-cols-3 gap-4">
-				<div>
-					<p class="text-sm text-gray-600">Average ICU Stay</p>
-					<p class="font-medium">{actualPredictions.avgICUStay.toFixed(1)} days</p>
-					<p class="text-xs text-gray-500">
-						IQR: {actualPredictions.icuIQR.q1.toFixed(1)} - {actualPredictions.icuIQR.q3.toFixed(1)}
-						days
-					</p>
+				<div class="mt-4 rounded bg-yellow-50 p-3 text-sm text-yellow-800">
+					Your guess was {(percentileRank * 100).toFixed(1)}% accurate!
+					{#if percentileRank <= 0.25}
+						<p class="mt-2 text-red-600">
+							Your predictions were quite far from the actual outcomes. Consider reviewing the
+							patient's risk factors more carefully.
+						</p>
+					{:else if percentileRank <= 0.5}
+						<p class="mt-2 text-orange-600">
+							Your predictions were somewhat off. Try to consider how different factors might
+							interact to affect outcomes.
+						</p>
+					{:else if percentileRank <= 0.75}
+						<p class="mt-2 text-yellow-600">
+							Good predictions! You're getting better at understanding how patient characteristics
+							influence outcomes.
+						</p>
+					{:else}
+						<p class="mt-2 text-green-600">
+							Excellent predictions! You have a strong understanding of how patient factors
+							correlate with surgical outcomes.
+						</p>
+					{/if}
 				</div>
-				<div>
-					<p class="text-sm text-gray-600">Mortality Rate</p>
-					<div
-						class="h-2 w-full rounded-full"
-						style="background: linear-gradient(to right, #22c55e, #ef4444)"
-					/>
-					<p class="font-medium">{(actualPredictions.mortalityRate * 100).toFixed(1)}%</p>
-				</div>
-				<div>
-					<p class="text-sm text-gray-600">Average Blood Loss</p>
-					<p class="font-medium">{actualPredictions.avgBloodLoss.toFixed(0)} mL</p>
-					<p class="text-xs text-gray-500">
-						IQR: {actualPredictions.bloodLossIQR.q1.toFixed(0)} - {actualPredictions.bloodLossIQR.q3.toFixed(
-							0
-						)} mL
-					</p>
-				</div>
-			</div>
 
-			<div class="mt-4 rounded bg-yellow-50 p-3 text-sm text-yellow-800">
-				Your guess was {(percentileRank * 100).toFixed(1)}% accurate!
-				{#if percentileRank <= 0.25}
-					<p class="mt-2 text-red-600">
-						Your predictions were quite far from the actual outcomes. Consider reviewing the
-						patient's risk factors more carefully.
-					</p>
-				{:else if percentileRank <= 0.5}
-					<p class="mt-2 text-orange-600">
-						Your predictions were somewhat off. Try to consider how different factors might interact
-						to affect outcomes.
-					</p>
-				{:else if percentileRank <= 0.75}
-					<p class="mt-2 text-yellow-600">
-						Good predictions! You're getting better at understanding how patient characteristics
-						influence outcomes.
-					</p>
+				{#if !isLastQuestion}
+					<button
+						class="mt-4 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+						on:click={nextQuestion}
+					>
+						Next Question
+					</button>
 				{:else}
-					<p class="mt-2 text-green-600">
-						Excellent predictions! You have a strong understanding of how patient factors correlate
-						with surgical outcomes.
-					</p>
+					<div class="mt-4 space-y-4">
+						<div class="rounded bg-green-50 p-4 text-center">
+							<h3 class="text-lg font-semibold text-green-800">Quiz Complete!</h3>
+							<p class="mt-2 text-green-700">
+								Your final average score: {averageScore.toFixed(1)}%
+							</p>
+						</div>
+						<button
+							class="w-full rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+							on:click={resetQuiz}
+						>
+							Try Again
+						</button>
+					</div>
 				{/if}
 			</div>
-		</div>
-	{/if}
+		{/if}
+	</div>
 </div>
