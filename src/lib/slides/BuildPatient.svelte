@@ -14,8 +14,7 @@
 <p class="mb-4">
 	Now it's your turn. Build a patient profile using the sliders below. Watch how tiny shifts—a
 	single ASA notch or clicking 'Emergency'—can triple the mortality risk instantly. We'll show you
-	how many similar historical cases we found, so you can trust the predictions. Try the "Make a
-	Guess" mode to test your intuition against the data.
+	how many similar historical cases we found, so you can trust the predictions.
 
 	<br />
 	<br />

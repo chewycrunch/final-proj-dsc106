@@ -637,44 +637,39 @@
 	});
 </script>
 
-<div class="space-y-6 rounded-lg p-4 shadow-sm bg-[#0e192b]">
+<div class="space-y-4 rounded-lg p-3 shadow-sm bg-[#0e192b]">
 	<!-- Header and Filter Controls Section -->
-	<div class="space-y-6">
+	<div class="space-y-3">
 		<div class="flex items-center justify-between">
-			<h3 class="text-lg font-semibold">Adjust Patient Profile</h3>
-			<div class="flex items-center gap-2 text-sm opacity-80">
-				<span>Active: {activeFilterText}</span>
+			<h3 class="text-base font-semibold">Adjust Patient Profile</h3>
+			<div class="flex items-center gap-3">
+				<label class="flex items-center gap-1">
+					<input type="checkbox" bind:checked={activeFilters.age} class="rounded border-gray-300" />
+					<span class="text-sm">Age</span>
+				</label>
+				<label class="flex items-center gap-1">
+					<input
+						type="checkbox"
+						bind:checked={activeFilters.height}
+						class="rounded border-gray-300"
+					/>
+					<span class="text-sm">Height</span>
+				</label>
+				<label class="flex items-center gap-1">
+					<input type="checkbox" bind:checked={activeFilters.bmi} class="rounded border-gray-300" />
+					<span class="text-sm">BMI</span>
+				</label>
+				<label class="flex items-center gap-1">
+					<input type="checkbox" bind:checked={activeFilters.asa} class="rounded border-gray-300" />
+					<span class="text-sm">ASA</span>
+				</label>
 			</div>
 		</div>
 
-		<!-- Filter Toggles -->
-		<div class="grid grid-cols-2 gap-4">
-			<label class="flex items-center gap-2">
-				<input type="checkbox" bind:checked={activeFilters.age} class="rounded border-gray-300" />
-				<span class="text-sm">Age Filter</span>
-			</label>
-			<label class="flex items-center gap-2">
-				<input
-					type="checkbox"
-					bind:checked={activeFilters.height}
-					class="rounded border-gray-300"
-				/>
-				<span class="text-sm">Height Filter</span>
-			</label>
-			<label class="flex items-center gap-2">
-				<input type="checkbox" bind:checked={activeFilters.bmi} class="rounded border-gray-300" />
-				<span class="text-sm">BMI Filter</span>
-			</label>
-			<label class="flex items-center gap-2">
-				<input type="checkbox" bind:checked={activeFilters.asa} class="rounded border-gray-300" />
-				<span class="text-sm">ASA Filter</span>
-			</label>
-		</div>
-
 		<!-- All Sliders in Grid Layout -->
-		<div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
+		<div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-4">
 			<div class={activeFilters.age ? '' : 'opacity-50'}>
-				<label class="block text-sm opacity-80">Age: {predictors.age} years</label>
+				<label class="block text-xs opacity-80">Age: {predictors.age} years</label>
 				<input
 					type="range"
 					bind:value={predictors.age}
@@ -687,7 +682,7 @@
 			</div>
 
 			<div class={activeFilters.height ? '' : 'opacity-50'}>
-				<label class="block text-sm opacity-80">
+				<label class="block text-xs opacity-80">
 					Height: {cmToFeetInches(predictors.height).feet}' {cmToFeetInches(predictors.height)
 						.inches}"
 				</label>
@@ -706,7 +701,7 @@
 			</div>
 
 			<div class={activeFilters.bmi ? '' : 'opacity-50'}>
-				<label class="block text-sm opacity-80">BMI: {predictors.bmi}</label>
+				<label class="block text-xs opacity-80">BMI: {predictors.bmi}</label>
 				<input
 					type="range"
 					bind:value={predictors.bmi}
@@ -722,7 +717,7 @@
 			</div>
 
 			<div class={activeFilters.asa ? '' : 'opacity-50'}>
-				<label class="block text-sm opacity-80">ASA Score: {predictors.asa}</label>
+				<label class="block text-xs opacity-80">ASA Score: {predictors.asa}</label>
 				<input
 					type="range"
 					bind:value={predictors.asa}
@@ -754,9 +749,15 @@
 					<span class="text-lg">⚠️</span>
 				</div>
 				<div class="flex-1">
-					<h4 class="mb-2 font-bold text-red-700">
-						{matchingCasesCount === 0 ? 'No Matching Cases Found' : 'Limited Data Available'}
-					</h4>
+					<div class="flex items-center justify-between">
+						<h4 class="mb-2 font-bold text-red-700">
+							{matchingCasesCount === 0 ? 'No Matching Cases Found' : 'Limited Data Available'}
+						</h4>
+						<div class="flex items-center justify-center gap-2 min-w-[200px]">
+							<span class="text-base font-medium">Overall Risk Level:</span>
+							<span class="text-base font-semibold {riskAssessment.color}">{riskAssessment.level}</span>
+						</div>
+					</div>
 					{#if matchingCasesCount === 0}
 						<p class="mb-3 text-sm opacity-80">
 							There are no historical cases that match your current patient profile.
@@ -792,7 +793,13 @@
 					<span class="text-lg">👍</span>
 				</div>
 				<div class="flex-1">
-					<h4 class="mb-2 font-bold text-yellow-700">Good Sample Size</h4>
+					<div class="flex items-center justify-between">
+						<h4 class="mb-2 font-bold text-yellow-700">Good Sample Size</h4>
+						<div class="flex items-center justify-center gap-2 min-w-[200px]">
+							<span class="text-base font-medium">Overall Risk Level:</span>
+							<span class="text-base font-semibold {riskAssessment.color}">{riskAssessment.level}</span>
+						</div>
+					</div>
 					<p class="text-sm opacity-80">
 						With {matchingCasesCount} matching cases, the predictions are reasonably reliable.
 					</p>
@@ -806,7 +813,13 @@
 					<span class="text-lg">✅</span>
 				</div>
 				<div class="flex-1">
-					<h4 class="mb-2 font-bold text-green-700">Excellent Sample Size</h4>
+					<div class="flex items-center justify-between">
+						<h4 class="mb-2 font-bold text-green-700">Excellent Sample Size</h4>
+						<div class="flex items-center justify-center gap-2 min-w-[200px]">
+							<span class="text-base font-medium">Overall Risk Level:</span>
+							<span class="text-base font-semibold {riskAssessment.color}">{riskAssessment.level}</span>
+						</div>
+					</div>
 					<p class="text-sm opacity-80">
 						Great! With {matchingCasesCount} matching cases, the predictions are highly reliable.
 					</p>
@@ -815,24 +828,16 @@
 		</div>
 	{/if}
 
-	<!-- Risk Assessment -->
-	<div class="mb-4 rounded-lg p-3 shadow-sm bg-slate-700">
-		<div class="flex items-center justify-between">
-			<span class="text-sm font-medium">Overall Risk Level:</span>
-			<span class="font-semibold {riskAssessment.color}">{riskAssessment.level}</span>
-		</div>
-	</div>
-
-	<!-- Main Visualization Section: Stick Figure and Radar Chart Side by Side -->
-	<div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
+	<!-- Main Visualization Section: Three Columns -->
+	<div class="grid grid-cols-1 gap-4 lg:grid-cols-12">
 		<!-- Left side: Stick Figure -->
-		<div class="space-y-4">
-			<h4 class="text-center text-lg font-semibold">Patient Visualization</h4>
+		<div class="space-y-2 lg:col-span-3">
+			<h4 class="text-center text-sm font-semibold">Patient Visualization</h4>
 			<div class="flex items-center justify-center">
 				<svg
 					viewBox="0 0 200 {figureHeight}"
 					class="h-full w-full"
-					style="min-height: 350px; max-height: 500px;"
+					style="min-height: 250px; max-height: 350px;"
 				>
 					<!-- Head -->
 					<circle
@@ -918,105 +923,103 @@
 			</div>
 		</div>
 
-		<!-- Right side: Radar Chart -->
-		<div class="space-y-4">
-			<h4 class="text-center text-lg font-semibold">Patient Outcomes Radar</h4>
-			<div class="flex justify-center">
-				<svg bind:this={radarSvg} class="radar-chart"></svg>
-			</div>
-		</div>
-	</div>
-
-	<!-- Chart Explanation Panels -->
-
-	<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-		<div class="rounded-lg p-4 shadow-sm bg-slate-700">
-			<h4 class="mb-3 font-semibold">How to Read This Chart</h4>
-			<div class="space-y-2 text-sm opacity-80">
-				<p>• <strong>Distance from center</strong> = Risk level (0-100%)</p>
-				<p>• <strong>Triangle shape</strong> = Overall risk profile</p>
-				<p>• <strong>Color</strong> = Risk severity level</p>
+		<!-- Middle: Radar Chart -->
+		<div class="space-y-2 lg:col-span-6">
+			<h4 class="text-center text-sm font-semibold">Patient Outcomes Radar</h4>
+			<div class="flex justify-center h-[450px] -mt-10 w-[120%] -ml-[10%]">
+				<svg bind:this={radarSvg} class="radar-chart h-full"></svg>
 			</div>
 		</div>
 
-		<div class="rounded-lg p-4 shadow-sm bg-slate-700">
-			<h4 class="mb-3 font-semibold">Scale Ranges</h4>
-			<div class="space-y-2 text-sm opacity-80">
-				<div>
-					<strong>ICU Stay:</strong> 0 - {maxICUStay} days
-				</div>
-				<div>
-					<strong>Mortality Rate:</strong> 0 - {(maxMortalityRate * 100).toFixed(0)}%
-				</div>
-				<div>
-					<strong>Blood Loss:</strong> 0 - {maxBloodLoss.toLocaleString()} mL
+		<!-- Right side: Explanation Panels -->
+		<div class="space-y-3 max-w-[350px] ml-auto lg:col-span-3">
+			<div class="rounded-lg p-3 shadow-sm bg-slate-700">
+				<h4 class="mb-2 text-sm font-semibold">How to Read This Chart</h4>
+				<div class="space-y-1 text-xs opacity-80">
+					<p>• <strong>Distance from center</strong> = Risk level (0-100%)</p>
+					<p>• <strong>Triangle shape</strong> = Overall risk profile</p>
+					<p>• <strong>Color</strong> = Risk severity level</p>
 				</div>
 			</div>
-		</div>
 
-		<div class="rounded-lg p-4 shadow-sm bg-slate-700">
-			<h4 class="mb-3 font-semibold">Risk Levels</h4>
-			<div class="space-y-1 text-sm">
-				<div class="flex items-center gap-2">
-					<span class="h-3 w-3 rounded-full bg-green-500"></span>
-					<span class="font-medium text-green-700">Low Risk</span>
+			<div class="rounded-lg p-3 shadow-sm bg-slate-700">
+				<h4 class="mb-2 text-sm font-semibold">Scale Ranges</h4>
+				<div class="space-y-1 text-xs opacity-80">
+					<div>
+						<strong>ICU Stay:</strong> 0 - {maxICUStay} days
+					</div>
+					<div>
+						<strong>Mortality Rate:</strong> 0 - {(maxMortalityRate * 100).toFixed(0)}%
+					</div>
+					<div>
+						<strong>Blood Loss:</strong> 0 - {maxBloodLoss.toLocaleString()} mL
+					</div>
 				</div>
-				<div class="flex items-center gap-2">
-					<span class="h-3 w-3 rounded-full bg-yellow-500"></span>
-					<span class="font-medium text-yellow-700">Medium Risk</span>
-				</div>
-				<div class="flex items-center gap-2">
-					<span class="h-3 w-3 rounded-full bg-red-500"></span>
-					<span class="font-medium text-red-500">High Risk</span>
+			</div>
+
+			<div class="rounded-lg p-3 shadow-sm bg-slate-700">
+				<h4 class="mb-2 text-sm font-semibold">Risk Levels</h4>
+				<div class="space-y-1 text-xs">
+					<div class="flex items-center gap-2">
+						<span class="h-2 w-2 rounded-full bg-green-500"></span>
+						<span class="font-medium text-green-700">Low Risk</span>
+					</div>
+					<div class="flex items-center gap-2">
+						<span class="h-2 w-2 rounded-full bg-yellow-500"></span>
+						<span class="font-medium text-yellow-700">Medium Risk</span>
+					</div>
+					<div class="flex items-center gap-2">
+						<span class="h-2 w-2 rounded-full bg-red-500"></span>
+						<span class="font-medium text-red-500">High Risk</span>
+					</div>
 				</div>
 			</div>
 		</div>
 	</div>
 
 	<!-- Individual Outcome Cards -->
-
 	{#if matchingCasesCount != 0}
-		<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-			<div class="rounded-lg p-6 shadow-sm bg-slate-700">
+		<div class="grid grid-cols-1 gap-3 md:grid-cols-3">
+			<div class="rounded-lg p-4 shadow-sm bg-slate-700">
 				<div class="flex items-center gap-3">
-					<div class="h-10 w-10 rounded-full {icuRisk.bgColor} flex items-center justify-center">
-						<span class="text-lg text-white">🏥</span>
+					<div class="h-8 w-8 rounded-full {icuRisk.bgColor} flex items-center justify-center">
+						<span class="text-base text-white">🏥</span>
 					</div>
 					<div>
-						<h3 class="font-medium opacity-80">ICU Stay</h3>
-						<p class="text-2xl font-bold {icuRisk.textColor}">
+						<h3 class="text-sm font-medium opacity-80">ICU Stay</h3>
+						<p class="text-xl font-bold {icuRisk.textColor}">
 							{radarOutcomes.icuStay.toFixed(1)} days
 						</p>
 					</div>
 				</div>
 			</div>
 
-			<div class="rounded-lg p-6 shadow-sm bg-slate-700">
+			<div class="rounded-lg p-4 shadow-sm bg-slate-700">
 				<div class="flex items-center gap-3">
 					<div
-						class="h-10 w-10 rounded-full {mortalityRisk.bgColor} flex items-center justify-center"
+						class="h-8 w-8 rounded-full {mortalityRisk.bgColor} flex items-center justify-center"
 					>
-						<span class="text-lg text-white">💗</span>
+						<span class="text-base text-white">💗</span>
 					</div>
 					<div>
-						<h3 class="font-medium opacity-80">Mortality Rate</h3>
-						<p class="text-2xl font-bold {mortalityRisk.textColor}">
+						<h3 class="text-sm font-medium opacity-80">Mortality Rate</h3>
+						<p class="text-xl font-bold {mortalityRisk.textColor}">
 							{(radarOutcomes.mortality * 100).toFixed(1)}%
 						</p>
 					</div>
 				</div>
 			</div>
 
-			<div class="rounded-lg p-6 shadow-sm bg-slate-700">
+			<div class="rounded-lg p-4 shadow-sm bg-slate-700">
 				<div class="flex items-center gap-3">
 					<div
-						class="h-10 w-10 rounded-full {bloodLossRisk.bgColor} flex items-center justify-center"
+						class="h-8 w-8 rounded-full {bloodLossRisk.bgColor} flex items-center justify-center"
 					>
-						<span class="text-lg text-white">🩸</span>
+						<span class="text-base text-white">🩸</span>
 					</div>
 					<div>
-						<h3 class="font-medium opacity-80">Blood Loss</h3>
-						<p class="text-2xl font-bold {bloodLossRisk.textColor}">
+						<h3 class="text-sm font-medium opacity-80">Blood Loss</h3>
+						<p class="text-xl font-bold {bloodLossRisk.textColor}">
 							{Math.round(radarOutcomes.bloodLoss)} mL
 						</p>
 					</div>
@@ -1024,42 +1027,6 @@
 			</div>
 		</div>
 	{/if}
-
-	<!-- 
-	<div class="mt-4 flex space-x-4">
-		{#if !isGuessing}
-			<button
-				class="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-				on:click={startGuessing}
-			>
-				Make a Guess
-			</button>
-		{:else}
-			<button
-				class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
-				on:click={() => {
-					isGuessing = false;
-					showResults = false;
-					showOutcomes = false;
-				}}
-			>
-				Back
-			</button>
-		{/if}
-
-		<button
-			class="rounded bg-gray-500 px-4 py-2 text-white hover:bg-gray-600"
-			on:click={() => {
-				showOutcomes = !showOutcomes;
-				if (isGuessing) {
-					showResults = true;
-				}
-			}}
-		>
-			{showOutcomes ? 'Hide Outcomes' : 'Show Outcomes'}
-		</button>
-	</div>
-	-->
 
 	{#if isGuessing}
 		<div class="mt-6 space-y-4">
@@ -1161,8 +1128,8 @@
 		display: block;
 		margin: 0 auto;
 		width: 100%;
-		max-width: 480px;
-		height: 480px;
+		max-width: 500px;
+		height: 450px;
 	}
 
 	.filter-group {
