@@ -122,7 +122,7 @@
 		// Apply age range filter if active
 		if (filteredAgeRange) {
 			filtered = filtered.filter(
-				(c) => c.age !== undefined && c.age >= filteredAgeRange[0] && c.age <= filteredAgeRange[1]
+				(c) => c.age !== undefined && c.age >= filteredAgeRange![0] && c.age <= filteredAgeRange![1]
 			);
 		}
 
@@ -137,55 +137,243 @@
 	}
 </script>
 
-<h2>Who Steps Into the OR?</h2>
-<p class="mb-4 max-w-xl">
-	Let's start by meeting our patients. The charts below reveal a striking pattern: while our
-	patients span six decades,
-	<strong>95% cluster in just two surgical departments</strong>. This concentration—combined with
-	age and sex differences—creates wildly different baseline risks before the first incision. Click
-	any department bar or select an age range to filter the dashboard and see how demographics shift
-	across specialties.
-</p>
-
-<div class="controls-container mb-4">
-	<div class="flex flex-wrap gap-4">
-		<label class="flex cursor-pointer items-center gap-2">
-			<input
-				type="checkbox"
-				bind:checked={showPercentage}
-				on:change={() => {
-					handlePercentageChange({ detail: { showPercentage } });
-				}}
-			/>
-			Show percentages
-		</label>
-
-		<label class="flex cursor-pointer items-center gap-2">
-			<input type="checkbox" bind:checked={showBySex} />
-			Split by sex
-		</label>
-
-		<p class="text-text-secondary text-xs italic">
-			<i
-				>Tip: Click and drag on the age chart to filter by age range. Click on department bars to
-				filter by department.</i
-			>
+<div class="slide-container">
+	<div class="content">
+		<h2>Who Steps Into the OR?</h2>
+		<p class="description">
+			Let's start by meeting our patients. The charts below reveal a striking pattern: while our
+			patients span six decades,
+			<strong>95% cluster in just two surgical departments</strong>. This concentration—combined with
+			age and sex differences—creates wildly different baseline risks before the first incision. Click
+			any department bar or select an age range to filter the dashboard and see how demographics shift
+			across specialties.
 		</p>
+
+		<div class="controls-container">
+			<div class="flex-controls">
+				<label class="control-item">
+					<input
+						type="checkbox"
+						bind:checked={showPercentage}
+					/>
+					<span class="checkbox-label">Show percentages</span>
+				</label>
+
+				<label class="control-item">
+					<input type="checkbox" bind:checked={showBySex} />
+					<span class="checkbox-label">Split by sex</span>
+				</label>
+
+				<p class="tip-text">
+					<i
+						>Tip: Click and drag on the age chart to filter by age range. Click on department bars to
+						filter by department.</i
+					>
+				</p>
+			</div>
+		</div>
+
+		<div class="visualization-grid">
+			<AgeDistribution
+				data={filteredDepartment ? filteredCases : cases}
+				bind:showPercentage
+				bind:showBySex
+				on:percentageChange={handlePercentageChange}
+				on:filter={handleAgeFilter}
+			/>
+			<DepartmentDistribution
+				data={filteredAgeRange ? filteredCases : cases}
+				{filteredDepartment}
+				{showPercentage}
+				on:filter={handleDepartmentFilter}
+			/>
+		</div>
+
+		<div class="insights-container">
+			<h4>Insights into Demographics</h4>
+			<div class="insights-grid">
+				<div class="insight-card">
+					<p>
+						Our surgical cases span six decades of life. The median age of 59.0 suggests an
+						aging population, with implications for surgical risk and recovery
+						considerations.
+					</p>
+				</div>
+				<div class="insight-card">
+					<p>
+						Our patients span six decades, but 95% of them cluster in just two surgical
+						departments, setting the stage for wildly different baseline risks.
+					</p>
+				</div>
+			</div>
+		</div>
 	</div>
 </div>
 
-<div class="visualization-grid grid gap-8 md:grid-cols-2">
-	<AgeDistribution
-		data={filteredDepartment ? filteredCases : cases}
-		bind:showPercentage
-		bind:showBySex
-		on:percentageChange={handlePercentageChange}
-		on:filter={handleAgeFilter}
-	/>
-	<DepartmentDistribution
-		data={filteredAgeRange ? filteredCases : cases}
-		{filteredDepartment}
-		{showPercentage}
-		on:filter={handleDepartmentFilter}
-	/>
-</div>
+<style>
+	.slide-container {
+		height: 100vh;
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		padding: 8vh 2.5rem 4vh 2.5rem;
+		box-sizing: border-box;
+		overflow: hidden;
+		color: #f1f5f9;
+	}
+
+	.content {
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		gap: clamp(1rem, 2vh, 1.5rem);
+	}
+
+	h2 {
+		font-size: clamp(1.8rem, 3vh, 2.2rem);
+		text-align: left;
+		margin: 0;
+	}
+
+	.description {
+		font-size: clamp(0.95rem, 1.8vh, 1.1rem);
+		line-height: 1.5;
+		text-align: left;
+		margin: 0;
+	}
+
+	.controls-container {
+		background: rgba(30, 41, 59, 0.8);
+		backdrop-filter: blur(10px);
+		border: 1px solid #334155;
+		border-radius: 12px;
+		padding: 1.5rem;
+		margin-bottom: 1.5rem;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+	}
+
+	.flex-controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1rem;
+		align-items: center;
+	}
+
+	.control-item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		cursor: pointer;
+		color: #f1f5f9;
+	}
+
+	.control-item input[type="checkbox"] {
+		appearance: none;
+		width: 1.2rem;
+		height: 1.2rem;
+		border: 2px solid #64748b;
+		border-radius: 4px;
+		background: transparent;
+		position: relative;
+		transition: all 0.2s ease;
+	}
+
+	.control-item input[type="checkbox"]:checked {
+		background: #3b82f6;
+		border-color: #3b82f6;
+	}
+
+	.control-item input[type="checkbox"]:checked::after {
+		content: '✓';
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		color: white;
+		font-weight: bold;
+		font-size: 0.8rem;
+	}
+
+	.checkbox-label {
+		font-weight: 600;
+		font-size: 0.95rem;
+	}
+
+	.tip-text {
+		font-size: 0.85rem;
+		color: #94a3b8;
+		margin-left: auto;
+		text-align: right;
+		flex-grow: 1;
+	}
+
+	.visualization-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		gap: 1.5rem;
+	}
+
+	.insights-container {
+		background: rgba(30, 41, 59, 0.8);
+		border: 1px solid #334155;
+		border-radius: 12px;
+		padding: 1.5rem;
+		margin-top: 1.5rem;
+		backdrop-filter: blur(10px);
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+	}
+
+	.insights-container h4 {
+		margin: 0 0 1rem 0;
+		color: #f1f5f9;
+		font-size: clamp(1rem, 2vh, 1.1rem);
+	}
+
+	.insights-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+		gap: 1rem;
+	}
+
+	.insight-card {
+		background: rgba(51, 65, 85, 0.6);
+		border: 1px solid #475569;
+		border-radius: 8px;
+		padding: 1rem;
+		text-align: left;
+		transition: transform 0.2s ease;
+		font-size: clamp(0.9rem, 1.7vh, 1rem);
+		line-height: 1.5;
+	}
+
+	.insight-card:hover {
+		transform: translateY(-2px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+	}
+
+	.insight-card p {
+		margin: 0;
+		color: #CBD5E0;
+	}
+
+	/* Responsive adjustments */
+	@media (max-width: 768px) {
+		.slide-container {
+			padding: 6vh 1.5rem 2vh 1.5rem;
+		}
+		.flex-controls {
+			flex-direction: column;
+			align-items: flex-start;
+		}
+		.tip-text {
+			margin-left: 0;
+			text-align: left;
+		}
+		.visualization-grid {
+			grid-template-columns: 1fr;
+		}
+		.insights-grid {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

@@ -115,7 +115,7 @@
 		if (!aggEvents.length) return;
 
 		const width = timelineContainer.offsetWidth;
-		const height = 400;
+		const height = timelineDiv.clientHeight > 0 ? timelineDiv.clientHeight : 400; // Use available height, fallback to 400px
 		const margin = {
 			top: 20,
 			right: 100,
@@ -165,7 +165,7 @@
 		const svg = d3.select(timelineDiv)
 			.append('svg')
 			.attr('width', '100%')
-			.attr('height', height)
+			.attr('height', '100%') // Changed to 100% to fill parent
 			.attr('viewBox', `0 0 ${width} ${height}`)
 			.attr('preserveAspectRatio', 'xMidYMid meet');
 
@@ -223,7 +223,7 @@
 			.attr('y1', innerHeight)
 			.attr('x2', innerWidth)
 			.attr('y2', innerHeight)
-			.attr('stroke', '#4A5568')
+			.attr('stroke', '#4A5568')		
 			.attr('stroke-width', 1);
 
 		// Add labels within the translated group
@@ -464,6 +464,9 @@
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 		width: 100%;
 		box-sizing: border-box;
+		height: 100%; /* Ensure container fills parent height */
+		display: flex;
+		flex-direction: column; /* Enable flex for vertical distribution */
 	}
 
 	.filter-controls {
@@ -474,6 +477,7 @@
 		padding-bottom: 1rem;
 		border-bottom: 1px solid #eee;
 		justify-content: center;
+		flex-shrink: 0; /* Prevent filters from shrinking */
 	}
 
 	.filter-group {
@@ -597,7 +601,8 @@
 	.timeline-visualization {
 		width: 100%;
 		overflow: hidden;
-		min-height: 400px;
+		/* min-height: 400px; */ /* Removed fixed min-height */
+		height: 100%; /* Take full height of parent */
 		position: relative;
 		box-sizing: border-box;
 	}
@@ -625,7 +630,8 @@
 	svg {
 		display: block;
 		max-width: 100%;
-		height: auto;
+		height: 100%; /* Ensure SVG fills its container */
+		width: 100%;
 	}
 
 	/* Add hover effects for interactive elements */

@@ -606,7 +606,7 @@
 		</div>
 	{/if}
 
-	<div class="insights">
+	<!-- <div class="insights">
 		<p class="insight-text text-black">
 			Our surgical cases span six decades of life. The median age of {medianAge.toFixed(1)}
 			suggests an aging population, with implications for surgical risk and recovery considerations.
@@ -619,7 +619,7 @@
 				</span>
 			{/if}
 		</p>
-	</div>
+	</div> -->
 </div>
 
 <style>

@@ -226,9 +226,9 @@
 		// Clear previous chart
 		select(svg).selectAll('*').remove();
 
-		const margin = { top: 60, right: 120, bottom: 80, left: 180 };
-		const width = 800 - margin.left - margin.right;
-		const height = 500 - margin.top - margin.bottom;
+		const margin = { top: 50, right: 80, bottom: 60, left: 120 };
+		const width = Math.min(800, window.innerWidth - margin.left - margin.right - 40);
+		const height = Math.min(400, window.innerHeight * 0.6);
 
 		// Filter data based on toggles and selections
 		const displayData = riskFactors.filter(d => {
@@ -300,7 +300,7 @@
 			.delay((d, i) => i * 100)
 			.attr('width', d => xScale(d.value))
 			.on('end', function() {
-				select(this.parentNode).select('text').transition().duration(200).attr('opacity', 1);
+				select(this.parentNode as SVGGElement).select('text').transition().duration(200).attr('opacity', 1);
 			});
 
 		// Bar labels
@@ -312,10 +312,11 @@
 			.attr('y', d => yScale(d.name)! + yScale.bandwidth() / 2)
 			.attr('dy', '0.35em')
 			.attr('text-anchor', 'middle')
-			.attr('fill', 'white')
-			.attr('opacity', 0) // Start invisible
-			.style('font-weight', 'bold')
+			.attr('fill', '#ffffff')
+			.attr('opacity', 0)
+			.style('font-weight', '600')
 			.style('font-size', '12px')
+			.style('text-shadow', '0 1px 2px rgba(0,0,0,0.3)')
 			.text(d => `${d.value.toFixed(1)}%`);
 
 		// Add hover effects
@@ -362,30 +363,47 @@
 		g.append('g')
 			.attr('transform', `translate(0,${height})`)
 			.call(axisBottom(xScale).tickFormat(d => `${d}%`))
-			.style('color', '#64748b');
+			.style('color', '#ffffff');
 
 		g.append('g')
 			.call(axisLeft(yScale))
-			.style('color', '#64748b');
+			.style('color', '#ffffff');
 
 		// Title
 		g.append('text')
 			.attr('x', width / 2)
-			.attr('y', -30)
+			.attr('y', -35)
 			.attr('text-anchor', 'middle')
 			.style('font-size', '18px')
 			.style('font-weight', 'bold')
-			.style('fill', '#1e293b')
+			.style('fill', '#ffffff')
+			.style('dominant-baseline', 'text-before-edge')
 			.text('Interactive Risk Calculator - Real Data');
 
 		// X-axis label
 		g.append('text')
 			.attr('x', width / 2)
-			.attr('y', height + 50)
+			.attr('y', height + 45)
 			.attr('text-anchor', 'middle')
 			.style('font-size', '14px')
-			.style('fill', '#475569')
+			.style('fill', '#ffffff')
 			.text('Mortality Risk (%)');
+
+		// Add grid lines
+		g.append('g')
+			.attr('class', 'grid')
+			.selectAll('line')
+			.data(xScale.ticks())
+			.enter()
+			.append('line')
+			.attr('x1', d => xScale(d))
+			.attr('x2', d => xScale(d))
+			.attr('y1', 0)
+			.attr('y2', height)
+			.attr('stroke', '#334155')
+			.attr('stroke-width', 1)
+			.attr('stroke-dasharray', '4,4')
+			.attr('opacity', 0.3);
 	}
 
 	// Reactive updates
@@ -421,52 +439,54 @@
 	{#if cases && cases.length > 0}
 		<!-- Interactive Controls -->
 		<div class="controls-panel">
-			<h3>🎯 Interactive Risk Calculator</h3>
-			<p class="subtitle">Toggle risk factors to see how they combine and affect patient mortality</p>
-			
-			<div class="controls-grid">
-				<label class="control-item major">
-					<input type="checkbox" bind:checked={selectedFactors.asa_high} />
-					<span class="factor-name">ASA ≥ 3</span>
-					<span class="factor-impact">High Impact</span>
-				</label>
-				<label class="control-item major">
-					<input type="checkbox" bind:checked={selectedFactors.emergency} />
-					<span class="factor-name">Emergency</span>
-					<span class="factor-impact">High Impact</span>
-				</label>
-				<label class="control-item major">
-					<input type="checkbox" bind:checked={selectedFactors.low_albumin} />
-					<span class="factor-name">Low Albumin</span>
-					<span class="factor-impact">High Impact</span>
-				</label>
-				<label class="control-item minor">
-					<input type="checkbox" bind:checked={selectedFactors.old_age} />
-					<span class="factor-name">Age > 65</span>
-					<span class="factor-impact">Minor Impact</span>
-				</label>
-				<label class="control-item minor">
-					<input type="checkbox" bind:checked={selectedFactors.obesity} />
-					<span class="factor-name">BMI > 30</span>
-					<span class="factor-impact">Minor Impact</span>
-				</label>
-				<label class="control-item minor">
-					<input type="checkbox" bind:checked={selectedFactors.long_surgery} />
-					<span class="factor-name">Long Surgery</span>
-					<span class="factor-impact">Minor Impact</span>
-				</label>
-			</div>
-			
-			<div class="current-risk">
-				<span class="risk-label">Current Patient Risk:</span>
-				<span class="risk-value">{getCurrentRisk().toFixed(1)}%</span>
-			</div>
+			<div class="controls-content">
+				<h3>🎯 Interactive Risk Calculator</h3>
+				<p class="subtitle">Toggle risk factors to see how they combine and affect patient mortality</p>
+				
+				<div class="controls-grid">
+					<label class="control-item major">
+						<input type="checkbox" bind:checked={selectedFactors.asa_high} />
+						<span class="factor-name">ASA ≥ 3</span>
+						<span class="factor-impact">High Impact</span>
+					</label>
+					<label class="control-item major">
+						<input type="checkbox" bind:checked={selectedFactors.emergency} />
+						<span class="factor-name">Emergency</span>
+						<span class="factor-impact">High Impact</span>
+					</label>
+					<label class="control-item major">
+						<input type="checkbox" bind:checked={selectedFactors.low_albumin} />
+						<span class="factor-name">Low Albumin</span>
+						<span class="factor-impact">High Impact</span>
+					</label>
+					<label class="control-item minor">
+						<input type="checkbox" bind:checked={selectedFactors.old_age} />
+						<span class="factor-name">Age > 65</span>
+						<span class="factor-impact">Minor Impact</span>
+					</label>
+					<label class="control-item minor">
+						<input type="checkbox" bind:checked={selectedFactors.obesity} />
+						<span class="factor-name">BMI > 30</span>
+						<span class="factor-impact">Minor Impact</span>
+					</label>
+					<label class="control-item minor">
+						<input type="checkbox" bind:checked={selectedFactors.long_surgery} />
+						<span class="factor-name">Long Surgery</span>
+						<span class="factor-impact">Minor Impact</span>
+					</label>
+				</div>
+				
+				<div class="current-risk">
+					<span class="risk-label">Current Patient Risk:</span>
+					<span class="risk-value">{getCurrentRisk().toFixed(1)}%</span>
+				</div>
 
-			<div class="toggle-section">
-				<label class="toggle-item">
-					<input type="checkbox" bind:checked={showMinorFactors} />
-					Show minor risk factors in chart
-				</label>
+				<div class="toggle-section">
+					<label class="toggle-item">
+						<input type="checkbox" bind:checked={showMinorFactors} />
+						Show minor risk factors in chart
+					</label>
+				</div>
 			</div>
 		</div>
 
@@ -522,34 +542,56 @@
 </div>
 
 <style>
+	/* Global styles */
+	:global(body),
+	:global(html) {
+		margin: 0;
+		padding: 0;
+		height: 100%;
+		width: 100%;
+		overflow-x: hidden;
+	}
+
+	:global(body) {
+		background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%) !important;
+	}
+
 	.container {
-		max-width: 1000px;
+		max-width: 100vw;
 		margin: 0 auto;
-		padding: 1rem;
-		background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-		min-height: 100vh;
+		padding: 0.75rem;
+		min-height: auto;
+		height: auto;
+		width: 100%;
 		color: #f1f5f9;
+		overflow-y: auto;
 	}
 
 	.controls-panel {
-		background: rgba(30, 41, 59, 0.8);
+		background: rgba(30, 41, 59, 0.5);
 		backdrop-filter: blur(10px);
 		border: 1px solid #334155;
 		border-radius: 12px;
 		padding: 1.5rem;
-		margin-bottom: 1.5rem;
-		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+		margin-bottom: 1rem;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+	}
+
+	.controls-content {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
 	}
 
 	.controls-panel h3 {
-		margin: 0 0 0.5rem 0;
+		margin: 0;
 		color: #f1f5f9;
 		font-size: 1.25rem;
 		font-weight: 700;
 	}
 
 	.subtitle {
-		margin: 0 0 1rem 0;
+		margin: 0;
 		color: #94a3b8;
 		font-size: 0.9rem;
 	}
@@ -557,8 +599,8 @@
 	.controls-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: 1rem;
-		margin-bottom: 1.5rem;
+		gap: 0.75rem;
+		margin: 0;
 	}
 
 	.control-item {
@@ -629,12 +671,12 @@
 	}
 
 	.current-risk {
-		background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+		background: #1e40af;
 		color: white;
 		padding: 1rem;
 		border-radius: 8px;
 		text-align: center;
-		margin-bottom: 1rem;
+		margin: 0;
 		box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 	}
 
@@ -652,6 +694,7 @@
 	.toggle-section {
 		border-top: 1px solid #475569;
 		padding-top: 1rem;
+		margin: 0;
 	}
 
 	.toggle-item {
@@ -688,11 +731,11 @@
 	}
 
 	.debug-panel {
-		background: rgba(30, 41, 59, 0.6);
+		background: rgba(30, 41, 59, 0.4);
 		border: 1px solid #334155;
 		border-radius: 8px;
-		padding: 1rem;
-		margin-bottom: 1.5rem;
+		padding: 0.75rem;
+		margin-bottom: 1rem;
 	}
 
 	.debug-panel h4 {
@@ -713,24 +756,28 @@
 	}
 
 	.chart-wrapper {
-		background: rgba(255, 255, 255, 0.95);
-		border: 1px solid #e2e8f0;
+		background: rgba(30, 41, 59, 0.5);
+		backdrop-filter: blur(10px);
+		border: 1px solid #334155;
 		border-radius: 12px;
-		padding: 1.5rem;
-		margin-bottom: 1.5rem;
-		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+		padding: 1rem;
+		margin-bottom: 1rem;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+		width: 100%;
+		overflow-x: auto;
 	}
 
 	.chart {
 		width: 100%;
 		height: auto;
+		min-width: 600px;
 	}
 
 	.insights {
-		background: rgba(30, 41, 59, 0.8);
+		background: rgba(30, 41, 59, 0.5);
 		border: 1px solid #334155;
 		border-radius: 12px;
-		padding: 1.5rem;
+		padding: 1rem;
 		backdrop-filter: blur(10px);
 	}
 
@@ -743,21 +790,22 @@
 	.insights-grid {
 		display: grid;
 		grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-		gap: 1rem;
+		gap: 0.75rem;
 	}
 
 	.insight-card {
-		background: rgba(51, 65, 85, 0.6);
+		background: rgba(51, 65, 85, 0.4);
 		border: 1px solid #475569;
 		border-radius: 8px;
-		padding: 1rem;
+		padding: 0.75rem;
 		text-align: center;
 		transition: transform 0.2s ease;
 	}
 
 	.insight-card:hover {
 		transform: translateY(-2px);
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+		background: rgba(51, 65, 85, 0.5);
 	}
 
 	.insight-card strong {
@@ -810,6 +858,7 @@
 		
 		.controls-grid {
 			grid-template-columns: 1fr;
+			gap: 0.75rem;
 		}
 		
 		.debug-stats {
@@ -819,6 +868,32 @@
 		
 		.insights-grid {
 			grid-template-columns: 1fr 1fr;
+			gap: 0.5rem;
 		}
+
+		.chart-wrapper {
+			padding: 0.5rem;
+		}
+	}
+
+	/* Style for axis lines */
+	:global(.chart .domain) {
+		stroke: #475569;
+	}
+
+	/* Style for grid lines */
+	:global(.chart .grid line) {
+		stroke: #334155;
+		stroke-opacity: 0.3;
+	}
+
+	/* Style for axis text */
+	:global(.chart text) {
+		fill: #ffffff;
+	}
+
+	/* Style for axis ticks */
+	:global(.chart .tick line) {
+		stroke: #475569;
 	}
 </style>

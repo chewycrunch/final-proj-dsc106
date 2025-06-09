@@ -328,13 +328,13 @@
 			</p>
 		</div>
 	{:else}
-		<div class="insight-box">
+		<!-- <div class="insight-box">
 			<p class="insight-text">
 				Our patients span six decades, but <strong
 					>95% of them cluster in just two surgical departments</strong
 				>, setting the stage for wildly different baseline risks.
 			</p>
-		</div>
+		</div> -->
 	{/if}
 
 	<!-- Percentage toggle removed - now controlled by AgeDistribution -->
