@@ -13,10 +13,10 @@
 		<h2>Time on the Table</h2>
 		<p class="description">
 			Each dot marks a key moment in surgery. The visualization shows <strong>mean, min, and max durations</strong>
-			across our 6,388 cases. Try the filters above—switch between department and surgery type to see how
+			across our 6,388 cases. Try the filters above, switch between department and surgery type to see how
 			<strong>different procedures have their own rhythm</strong>. This pre-incision time matters, as longer anesthesia exposure
 			before surgery increases risk of complications. If you're facing surgery, use these filters to see
-			typical timing patterns for your procedure—knowledge that can help you understand and prepare for
+			typical timing patterns for your procedure, knowledge that can help you understand and prepare for
 			your own surgical journey. Hover over dots for exact timing stats.
 		</p>
 

@@ -16,7 +16,7 @@
 		</h1>
 
 		<p class="description">
-			Imagine an operating room humming along in perfect rhythm—dozens of cases lined up, each one
+			Imagine an operating room humming along in perfect rhythm, dozens of cases lined up, each one
 			expected to end smoothly. Yet among those <strong>6 388</strong> surgeries lie stories of sudden
 			blood-loss emergencies, unplanned ICU detours, and the quiet heartbreak of lives forever changed.
 		</p>
@@ -29,7 +29,7 @@
 
 		<p class="description">
 			Scroll down to meet our patients, feel the pulse of the OR phases, test your own predictions,
-			and discover the hidden signals that could one day warn us—before the routine becomes critical.
+			and discover the hidden signals that could one day warn us, before the routine becomes critical.
 		</p>
 
 		<HeroCounter
