@@ -165,8 +165,8 @@
 		const svg = d3.select(timelineDiv)
 			.append('svg')
 			.attr('width', '100%')
-			.attr('height', '100%') // Changed to 100% to fill parent
-			.attr('viewBox', `0 0 ${width} ${height}`)
+			.attr('height', '100%')
+			.attr('viewBox', `0 -20 ${width} ${height + 20}`)
 			.attr('preserveAspectRatio', 'xMidYMid meet');
 
 		// Create a group for the main visualization
@@ -391,15 +391,15 @@
 		if (title) {
 			svg.append<SVGTextElement>('text')
 				.attr('x', margin.left)
-				.attr('y', 0.1)  // Fixed position near the top
+				.attr('y', margin.top - 25)  // Moved up by increasing offset
 				.attr('font-size', '12px')
 				.attr('fill', '#CBD5E0')
 				.text(title);
 		}
 
 		svg.append<SVGTextElement>('text')
-			.attr('x', width - margin.right)
-			.attr('y', 0.1)  // Fixed position near the top
+			.attr('x', width - margin.right - 10)  // Adjusted to align with graph margin
+			.attr('y', margin.top - 25)
 			.attr('text-anchor', 'end')
 			.attr('font-size', '12px')
 			.attr('fill', '#CBD5E0')
@@ -458,7 +458,6 @@
 
 <style>
 	.timeline-container {
-		background: #1A202C;
 		border-radius: 8px;
 		padding: 1.5rem;
 		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -473,9 +472,8 @@
 		display: flex;
 		flex-wrap: wrap;
 		gap: 1.5rem;
-		margin-bottom: 1.5rem;
-		padding-bottom: 1rem;
-		border-bottom: 1px solid #eee;
+		margin-bottom: 1rem;
+		padding-bottom: 0;
 		justify-content: center;
 		flex-shrink: 0; /* Prevent filters from shrinking */
 	}

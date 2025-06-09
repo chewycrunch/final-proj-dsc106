@@ -660,30 +660,43 @@
 	.age-range-indicator {
 		display: flex;
 		align-items: center;
-		justify-content: center;
-		gap: 0.5rem;
-		padding: 0.25rem 0.5rem;
-		background: #f0f4f8;
-		border-radius: 4px;
-		font-size: 0.9rem;
+		gap: 2.5rem;
+		padding: 0.75rem 1rem;
+		background: rgba(30, 41, 59, 0.5);
+		backdrop-filter: blur(10px);
+		border: 1px solid #334155;
+		border-radius: 12px;
 		margin-top: 0.5rem;
 		margin-bottom: 0.5rem;
-		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+		color: #f1f5f9;
+		font-size: 0.95rem;
+	}
+
+	.age-range-indicator span {
+		color: #f1f5f9;
+		line-height: 1.5;
+		transform: translateY(1px);
 	}
 
 	.clear-btn {
-		padding: 0.125rem 0.5rem;
-		background-color: #4682b4;
-		color: white;
-		border: none;
-		border-radius: 3px;
-		font-size: 0.8rem;
+		background: rgba(51, 65, 85, 0.6);
+		color: #94a3b8;
+		border: 1px solid #475569;
+		border-radius: 6px;
+		padding: 0.35rem 0.75rem;
+		font-size: 0.95rem;
 		cursor: pointer;
-		transition: background-color 0.2s;
+		transition: all 0.2s ease;
+		margin-left: auto;
+		line-height: 1.5;
 	}
 
 	.clear-btn:hover {
-		background-color: #366a99;
+		background: rgba(71, 85, 105, 0.7);
+		color: #f1f5f9;
+		border-color: #64748b;
+		transform: translateY(-1px);
 	}
 
 	:global(.brush .selection) {
