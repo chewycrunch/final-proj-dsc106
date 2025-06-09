@@ -247,7 +247,7 @@
 		line-height: 1.5;
 		text-align: left;
 		margin: 0;
-		max-width: 1000px;
+		width: 100%;
 	}
 
 	.controls-container {

@@ -61,18 +61,7 @@
 			props: {
 				lines: [
 					'Time on the table is predictable, but what about recovery?',
-					'Let\'s explore how a simple blood test, albumin, can reveal hidden risks.'
-				]
-			}
-		},
-		{ id: 'albumin', content: AlbuminSlide },
-		{
-			id: 'transition',
-			content: TransitionSlide,
-			props: {
-				lines: [
-					'While albumin reveals hidden risks, it\'s not the whole story.',
-					'Let\'s see how different factors work together in our interactive risk builder.'
+					'Let\'s explore how other factors can reveal hidden risks.'
 				]
 			}
 		},
@@ -82,8 +71,19 @@
 			content: TransitionSlide,
 			props: {
 				lines: [
-					'Now that you\'ve seen how risk factors combine,',
-					'let\'s build your own patient profile.'
+					'Low albumin emerged as a key risk factor...',
+					'But what is it and why does it matter so much?'
+				]
+			}
+		},
+		{ id: 'albumin', content: AlbuminSlide },
+		{
+			id: 'transition',
+			content: TransitionSlide,
+			props: {
+				lines: [
+					'Now that we understand albumin\'s impact,',
+					'Let\'s build your patient profile in our interactive risk builder.'
 				]
 			}
 		},
@@ -105,7 +105,7 @@
 			props: {
 				lines: [
 					'Now that you\'ve made your predictions',
-					'what are the key takeaways from our journey?'
+					'what is the key takeaway from our journey?'
 				]
 			}
 		},
