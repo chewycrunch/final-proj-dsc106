@@ -7,7 +7,7 @@
 	let { cases }: Props = $props();
 </script>
 
-<h2>Hidden Risk Factor — The Albumin Cliff</h2>
+<h2>Hidden Risk Factor: The Albumin Cliff</h2>
 <p>
 	Albumin is a blood protein that reflects nutritional reserve and overall physiological resilience.
 	In the pre-operative setting, low albumin levels often signal that a patient's body may struggle
@@ -19,7 +19,7 @@
 <p>
 	Use the radio buttons to flip between
 	routine <b>elective</b>, urgent <b>emergency</b>, or <b>all</b> cases. Below a certain threshold, the
-	risk of prolonged ICU stay climbs sharply—our so-called "Albumin Cliff."
+	risk of prolonged ICU stay climbs sharply, our so-called "Albumin Cliff."
 </p>
 <br />
 

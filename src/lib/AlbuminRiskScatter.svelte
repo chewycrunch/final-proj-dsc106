@@ -272,7 +272,7 @@
 			.attr('font-size', '14px')
 			.attr('font-weight', '600')
 			.attr('fill', '#CBD5E0')
-			.text('Hidden Risk Factor — The Albumin Cliff')
+			.text('Hidden Risk Factor: The Albumin Cliff')
 			.attr('class', 'fill-text-primary');
 
 		// Legend
